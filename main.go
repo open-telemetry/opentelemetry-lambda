@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -11,8 +12,11 @@ import (
 	"syscall"
 
 	"github.com/lightstep/opentelemetry-lambda-extension/extension"
+	"github.com/spf13/viper"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/defaultcomponents"
 )
@@ -20,8 +24,23 @@ import (
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
+	configFile      = os.Getenv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
 	printPrefix     = fmt.Sprintf("[%s]", extensionName)
 )
+
+// envFileLoaderConfigFactory implements ConfigFactory and it creates configuration from file.
+func envFileLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*configmodels.Config, error) {
+	file := configFile
+	if file == "" {
+		return nil, errors.New("config file not specified")
+	}
+	v.SetConfigFile(file)
+	err := v.ReadInConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error loading config file %q: %v", file, err)
+	}
+	return config.Load(v, factories)
+}
 
 func startCollector() {
 	factories, err := defaultcomponents.Components()
@@ -36,7 +55,7 @@ func startCollector() {
 		// GitHash:  version.GitHash,
 	}
 
-	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories}); err != nil {
+	if err := run(service.Parameters{ApplicationStartInfo: info, Factories: factories, ConfigFactory: envFileLoaderConfigFactory}); err != nil {
 		log.Fatal(err)
 	}
 }
