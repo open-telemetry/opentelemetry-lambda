@@ -36,6 +36,7 @@ func NewInProcessCollector(factories component.Factories) *InProcessCollector {
 
 // envFileLoaderConfigFactory implements ConfigFactory and it creates configuration from file.
 func envFileLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*configmodels.Config, error) {
+	println("Loading config file:", configFile)
 	file := configFile
 	if file == "" {
 		return nil, errors.New("config file not specified")
@@ -82,6 +83,7 @@ func (ipp *InProcessCollector) start() error {
 	if err != nil {
 		return err
 	}
+	ipp.svc.Command().SetArgs([]string{"--metrics-level=NONE"})
 
 	ipp.appDone = make(chan struct{})
 	go func() {
