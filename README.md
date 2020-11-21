@@ -8,7 +8,7 @@ The OpenTelemetry Lambda Extension provides a mechanism to export telemetry aync
 To install the OpenTelemetry Lambda Extension to an existing Lambda function using the `aws` CLI:
 
 ```
-aws lambda update-function-configuration --function-name Function --layers arn:aws:lambda:us-east-1:297975325230:layer:opentelemetry-extension:2
+aws lambda update-function-configuration --function-name Function --layers arn:aws:lambda:<AWS REGION>:297975325230:layer:opentelemetry-lambda-extension:8
 ```
 
 Alternatively, to configure the OpenTelemetry Lambda Extension via SAM, add the following configuration:
@@ -18,7 +18,7 @@ Alternatively, to configure the OpenTelemetry Lambda Extension via SAM, add the 
     Type: AWS::Serverless::Function
     Properties:
       Layers:
-        - arn:aws:lambda:us-east-1:297975325230:layer:opentelemetry-extension:2
+        - arn:aws:lambda:<AWS REGION>:297975325230:layer:opentelemetry-lambda-extension:8
       ...
       Environment:
         Variables:
