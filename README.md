@@ -1,4 +1,6 @@
 # OpenTelemetry AWS Lambda Extension
+*NOTE: This repo has been moved to: https://github.com/open-telemetry/opentelemetry-lambda-extension*
+
 *NOTE: This is an experimental AWS Lambda Extension for OpenTelemetry*
 
 The OpenTelemetry Lambda Extension provides a mechanism to export telemetry aynchronously from AWS Lambdas. It does this by embedding an [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector) inside an [AWS Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). This allows lambdas to use the OpenTelemetry Collector Exporter to send traces and metrics to any configured backend.
