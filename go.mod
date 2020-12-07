@@ -1,4 +1,4 @@
-module github.com/lightstep/opentelemetry-lambda-extension
+module github.com/open-telemetry/opentelemetry-lambda-extension
 
 go 1.14
 

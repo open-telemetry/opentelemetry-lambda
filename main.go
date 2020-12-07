@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/lightstep/opentelemetry-lambda-extension/extension"
+	"github.com/open-telemetry/opentelemetry-lambda-extension/extension"
 
 	"go.opentelemetry.io/collector/service/defaultcomponents"
 )
