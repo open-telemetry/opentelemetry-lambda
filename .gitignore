@@ -1,2 +1,5 @@
 bin/*
 extension.zip
+
+.idea
+.vscode
