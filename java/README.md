@@ -8,9 +8,9 @@ Two types of layers are provided
 
 ### Java agent
 
-The [AWS OpenTelemetry Java Agent](https://github.com/aws-observability/aws-otel-java-instrumentation)
+The [OpenTelemetry Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 is bundled into the base of the layer and can be loaded into a Lambda function by specifying the
-environment variable `JAVA_TOOL_OPTIONS=-javaagent:/opt/aws-opentelemetry-agent.jar` in your Lambda
+environment variable `JAVA_TOOL_OPTIONS=-javaagent:/opt/opentelemetry-javaagent.jar` in your Lambda
 configuration. The agent will automatically instrument your application for all supported libraries.
 Note, automatic instrumentation has a notable impact on startup time on AWS Lambda and you will
 generally need to use this along with provisioned concurrency and warmup requests to serve production
@@ -42,7 +42,7 @@ To build the Java Agent layer, run
 ./gradlew :layer-javaagent:build
 ```
 
-The layer zip file will be present at `./layer-javaagent/build/distributions/aws-opentelemetry-agent-layer.zip`.
+The layer zip file will be present at `./layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip`.
 
 To build the wrapper layer, run
 

@@ -14,7 +14,7 @@ val DEPENDENCY_BOMS = listOf(
 )
 
 val DEPENDENCIES = listOf(
-    "software.amazon.opentelemetry:aws-opentelemetry-agent:0.17.0-aws.1"
+    "io.opentelemetry.javaagent:opentelemetry-javaagent:1.0.1"
 )
 
 javaPlatform {
