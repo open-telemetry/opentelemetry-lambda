@@ -16,8 +16,11 @@ tasks {
         archiveFileName.set("opentelemetry-java-wrapper.zip")
         destinationDirectory.set(file("$buildDir/distributions"))
 
-        from(configurations["runtimeClasspath"])
-        into("java/lib")
+        from(configurations["runtimeClasspath"]) {
+            into("java/lib")
+        }
+
+        from("scripts")
     }
 
     val assemble by existing {

@@ -20,13 +20,12 @@ requests without causing timeouts on initial requests while it initializes.
 [OpenTelemetry Lambda Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/aws-lambda-1.0/library)
 and [OpenTelemetry SDK](https://github.com/open-telemetry/opentelemetry-java) are bundled into the
 `java/lib` directory to be available on the classpath of the Lambda function. No code change is
-needed to instrument the execution of your function, but you will need to change the configuration
-to point the `OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER` environment variable to your handler function
-in the format `package.ClassName::methodName` and set the actual handler of the function to one of
+needed to instrument the execution of your function, but you will need to set the `AWS_LAMBDA_EXEC_WRAPPER`
+environment variable pointing to the appropriate wrapper for the type of handler.
 
-- io.opentelemetry.instrumentation.awslambda.v1_0.TracingRequestWrapper - for wrapping regular handlers (implementing RequestHandler)
-- io.opentelemetry.instrumentation.awslambda.v1_0.TracingRequestApiGatewayWrapper - for wrapping regular handlers (implementing RequestHandler) proxied through API Gateway, enabling HTTP context propagation
-- io.opentelemetry.instrumentation.awslambda.v1_0.TracingRequestStreamWrapper - for wrapping streaming handlers (implementing RequestStreamHandler), enabling HTTP context propagation for HTTP requests
+- `/opt/otel-handler` - for wrapping regular handlers (implementing RequestHandler)
+- `/opt/otel-proxy-handler` - for wrapping regular handlers (implementing RequestHandler) proxied through API Gateway, enabling HTTP context propagation
+- `/opt/otel-stream-handler` - for wrapping streaming handlers (implementing RequestStreamHandler), enabling HTTP context propagation for HTTP requests
 
 [AWS SDK instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/aws-sdk/aws-sdk-2.2/library) is also
 included and loaded automatically if you use the AWS SDK.
