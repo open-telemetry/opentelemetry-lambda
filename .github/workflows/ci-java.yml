@@ -24,3 +24,4 @@ jobs:
         with:
           remote-build-cache-proxy-enabled: false
           arguments: build --stacktrace
+          build-root-directory: java

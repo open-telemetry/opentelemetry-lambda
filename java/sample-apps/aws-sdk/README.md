@@ -24,7 +24,7 @@ terraform init
 terraform apply
 ```
 
-After deployment, a URL which can be used to invoke the function via API Gateway. The agent version
+After deployment, a URL which can be used to invoke the function via API Gateway will be displayed. The agent version
 tends to take 10-20s for the first request, while the wrapper version tends to take 5-10s. Confirm
 that spans are logged in the CloudWatch logs for the function on the AWS Console either for the
 [wrapper](https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Flambda$252Fhello-awssdk-java-wrapper)
