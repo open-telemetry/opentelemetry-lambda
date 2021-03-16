@@ -1,2 +1,6 @@
 bin/*
 extension.zip
+
+build
+.gradle
+.idea
