@@ -17,5 +17,7 @@ include(":awssdk-autoconfigure")
 include(":dependencyManagement")
 include(":layer-javaagent")
 include(":layer-wrapper")
+include(":sample-apps:aws-sdk")
+include(":sample-apps:okhttp")
 
 rootProject.name = "opentelemetry-lambda-java"

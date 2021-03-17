@@ -4,3 +4,6 @@ extension.zip
 build
 .gradle
 .idea
+
+.terraform*
+terraform.*

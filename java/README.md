@@ -12,6 +12,7 @@ The [OpenTelemetry Java Agent](https://github.com/open-telemetry/opentelemetry-j
 is bundled into the base of the layer and can be loaded into a Lambda function by specifying the
 environment variable `JAVA_TOOL_OPTIONS=-javaagent:/opt/opentelemetry-javaagent.jar` in your Lambda
 configuration. The agent will automatically instrument your application for all supported libraries.
+
 Note, automatic instrumentation has a notable impact on startup time on AWS Lambda and you will
 generally need to use this along with provisioned concurrency and warmup requests to serve production
 requests without causing timeouts on initial requests while it initializes.
@@ -51,3 +52,14 @@ To build the wrapper layer, run
 ```
 
 The layer zip file will be present at `./layer-wrapper/build/distributions/opentelemetry-java-wrapper.zip`.
+
+## Sample applications
+
+Sample applications are provided to show usage the above layers.
+
+- [Application using AWS SDK](./sample-apps/aws-sdk) - shows how both the wrapper and agent can be used
+with an application using AWS SDK without code change.
+
+- [Application using OkHttp](./sample-apps/okhttp) - shows the manual initialization of OkHttp
+library instrumentation for use with the wrapper. The agent would be usable without such a code change
+at the expense of the cold start overhead it introduces.
