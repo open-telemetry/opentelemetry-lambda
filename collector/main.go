@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/open-telemetry/opentelemetry-lambda-extension/extension"
-
-	"go.opentelemetry.io/collector/service/defaultcomponents"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/defaultcomponents"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 )
 
 var (
@@ -21,6 +20,7 @@ var (
 )
 
 func main() {
+	fmt.Println("Launching Opentelemetry Lambda extension, version: ", Version)
 	factories, _ := defaultcomponents.Components()
 	collector := NewInProcessCollector(factories)
 	collector.prepareConfig()
