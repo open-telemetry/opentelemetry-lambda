@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector
 
-go 1.14
+go 1.16
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsemfexporter v0.22.0

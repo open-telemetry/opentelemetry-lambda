@@ -1,6 +1,6 @@
 # OpenTelemetry Collector AWS Lambda Extension layer
 
-The OpenTelemetry Collector Lambda Extension provides a mechanism to export telemetry aynchronously from AWS Lambdas. It does this by embedding an [AWS Distro for OpenTelemetry Collector(AWS OTel Collector)](https://github.com/aws-observability/aws-otel-collector) inside an [AWS Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). This allows lambdas to use the OpenTelemetry Collector Exporter to send traces and metrics to any configured backend.
+The OpenTelemetry Collector Lambda Extension provides a mechanism to export telemetry aynchronously from AWS Lambdas. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). This allows lambdas to use the OpenTelemetry Collector Exporter to send traces and metrics to any configured backend.
 
 
 ## Build your OpenTelemetry Collector Lambda layer from scratch
@@ -62,7 +62,7 @@ Once the file has been deployed with a Lambda, configuring the `OPENTELEMETRY_CO
 aws lambda update-function-configuration --function-name Function --environment Variables={OPENTELEMETRY_COLLECTOR_CONFIG_FILE=/var/task/collector.yaml}
 ```
 
-You can configure environment variables via yaml as well:
+You can configure environment variables via cloudformation template as well:
 
 ```yaml
   Function:
@@ -73,7 +73,3 @@ You can configure environment variables via yaml as well:
         Variables:
           OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector.yaml
 ```
-
-## License
-
-This project is licensed under the Apache-2.0 License.
