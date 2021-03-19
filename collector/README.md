@@ -20,7 +20,7 @@ To install the OpenTelemetry Collector Lambda layer to an existing Lambda functi
 aws lambda update-function-configuration --function-name Function --layers <your Lambda layer ARN>
 ```
 
-Alternatively, to configure the OpenTelemetry Lambda Extension via SAM, add the following configuration:
+Alternatively, to configure the OpenTelemetry Lambda Extension via CloudFormation template, add the following configuration:
 
 ```yaml
   Function:
@@ -62,7 +62,7 @@ Once the file has been deployed with a Lambda, configuring the `OPENTELEMETRY_CO
 aws lambda update-function-configuration --function-name Function --environment Variables={OPENTELEMETRY_COLLECTOR_CONFIG_FILE=/var/task/collector.yaml}
 ```
 
-You can configure environment variables via cloudformation template as well:
+You can configure environment variables via CloudFormation template as well:
 
 ```yaml
   Function:
