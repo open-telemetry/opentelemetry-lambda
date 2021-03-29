@@ -19,8 +19,9 @@ Resources:
       Timeout: 15
       Policies:
         - AWSLambdaBasicExecutionRole
-        - AWSLambdaReadOnlyAccess
+        - AWSLambda_ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
+        - AmazonS3FullAccess
       Environment:
         Variables:
           AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-instrument
