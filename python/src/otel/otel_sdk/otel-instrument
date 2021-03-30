@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+import os
+
+# the path to the interpreter and all of the originally intended arguments
+args = os.sys.argv[1:]
+
+os.environ['ORIG_HANDLER']=os.environ.get('_HANDLER')
+os.environ['_HANDLER']='otel_wrapper.lambda_handler'
+
+os.environ['OTEL_TRACES_EXPORTER']='otlp_span'
+os.environ['OTEL_EXPORTER_OTLP_SPAN_INSECURE']='true'
+
+# start the runtime with the extra options
+os.system(" ".join(args))

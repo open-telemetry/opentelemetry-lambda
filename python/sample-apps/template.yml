@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: OpenTelemetry Python Lambda layer for Python 3.8 Runtime
+Resources:
+  api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: api
+      TracingEnabled: true
+      OpenApiVersion: 3.0.2
+  function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.8
+      CodeUri: ./function
+      Description: Build OTel Python Lambda Sample from scratch
+      MemorySize: 512
+      Timeout: 15
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambda_ReadOnlyAccess
+        - AWSXrayWriteOnlyAccess
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-instrument
+          OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector-xray.yml
+      Tracing: Active
+      Layers:
+        - !Ref OTelLayer
+      Events:
+        getEndpoint:
+          Type: Api
+          Properties:
+            RestApiId: !Ref api
+            Path: /
+            Method: GET
+  OTelLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: opentelemetry-python-38
+      Description: Opentelemetry Python38 layer
+      ContentUri: ./otel
+      CompatibleRuntimes:
+        - python3.8
+    Metadata:
+      BuildMethod: makefile

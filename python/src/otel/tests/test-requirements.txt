@@ -1,0 +1,6 @@
+opentelemetry-api==1.0.0rc1
+opentelemetry-sdk==1.0.0rc1
+opentelemetry-sdk-extension-aws==0.18b1
+opentelemetry-distro==0.18b0
+opentelemetry-instrumentation==0.18b0
+pytest

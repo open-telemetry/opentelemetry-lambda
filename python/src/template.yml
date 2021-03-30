@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: OpenTelemetry Python Lambda layer for Python 3.8 Runtime
+Resources:
+  OTelLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: opentelemetry-python-38
+      Description: Opentelemetry Python38 layer
+      ContentUri: ./otel
+      CompatibleRuntimes:
+        - python3.8
+    Metadata:
+      BuildMethod: makefile
