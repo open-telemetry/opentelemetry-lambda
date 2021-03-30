@@ -8,6 +8,7 @@ dependencies {
     runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-1.0")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-logging")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
+    runtimeOnly("io.opentelemetry:opentelemetry-extension-trace-propagators")
     runtimeOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
 }
 
