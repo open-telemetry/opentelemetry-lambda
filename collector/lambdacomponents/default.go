@@ -1,4 +1,4 @@
-package defaultcomponents
+package lambdacomponents
 
 import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsemfexporter"
