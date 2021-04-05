@@ -13,7 +13,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
 	"go.opentelemetry.io/collector/service"
-	"go.uber.org/zap"
 )
 
 // Version variable will be replaced at link time after `make` has been run.
@@ -80,10 +79,6 @@ func (ipp *InProcessCollector) prepareConfig() (err error) {
 	v := config.NewViper()
 	v.SetConfigType("yaml")
 	cfg, err := envLoaderConfigFactory(v, ipp.factories)
-	if err != nil {
-		return err
-	}
-	err = config.ValidateConfig(cfg, zap.NewNop())
 	if err != nil {
 		return err
 	}
