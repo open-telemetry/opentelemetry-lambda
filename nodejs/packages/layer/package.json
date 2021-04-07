@@ -1,0 +1,33 @@
+{
+  "name": "@opentelemetry-lambda/sdk-layer",
+  "version": "0.0.1",
+  "description": "Layer including OpenTelemetry SDK for use with AWS Lambda.",
+  "repository": "open-telemetry/opentelemetry-lambda",
+  "scripts": {
+    "clean": "rimraf build/*",
+    "prepare": "npm run compile",
+    "compile": "tsc -p .",
+    "postcompile": "copyfiles 'node_modules/**' build/workspace/nodejs && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*' build/workspace && cd build/workspace && bestzip ../layer.zip *"
+  },
+  "keywords": [
+    "opentelemetry",
+    "awslambda",
+    "nodejs",
+    "tracing",
+    "profiling",
+    "instrumentation"
+  ],
+  "author": "OpenTelemetry Authors",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.0.0-rc.0",
+    "@opentelemetry/instrumentation": "^0.18.2",
+    "@opentelemetry/instrumentation-awslambda": "https://gitpkg.now.sh/anuraaga/opentelemetry-js-contrib/plugins/node/opentelemetry-instrumentation-awslambda?7e291c394a9817d23223f5e906a9a01736726f26",
+    "@opentelemetry/node": "^0.18.2",
+    "@opentelemetry/tracing": "^0.18.2",
+    "opentelemetry-instrumentation-aws-sdk": "^0.3.0"
+  }
+}
