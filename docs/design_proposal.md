@@ -64,3 +64,6 @@ Java SDK supports auto-instrumentation through javaagent, which will noticeably 
 
 Even if we don't provide an SDK layer for a language, we still need to provide a sample demonstrating how to use it. The sample would refer to the OpenTelemetry SDK dependencies directly and consume the public Collector Lambda layer. For example, for time-sensitive users we will provide a sample of Java library instrumentation, as a complement of Java(agent based) auto-instrumentation layer.
 
+## 4. CI/CD convention
+Each sample application and layer source folder must have a one-click script `run.sh`, to build and deploy OpenTelemetry Lambda application in a uniform manner. It is not only providing a good user experience but also for building a generic CI/CD workflow, github action can simply run tests and publish Lambda layer no matter what the stack tool(Terraform, CloudFormation), or language(Java, Python) the sample application is. 
+See an example for publishing [Python layer](../python/src/).

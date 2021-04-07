@@ -25,7 +25,6 @@ Resources:
       Environment:
         Variables:
           AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-instrument
-          OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector-xray.yml
       Tracing: Active
       Layers:
         - !Ref OTelLayer
