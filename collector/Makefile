@@ -21,9 +21,9 @@ build: clean
 
 package:
 	@echo Package zip file for collector extension layer
-	mkdir -p $(BUILD_SPACE)/collector
-	cp config* $(BUILD_SPACE)/collector
-	cd $(BUILD_SPACE) && zip -r collector-extension.zip collector extensions
+	mkdir -p $(BUILD_SPACE)/collector-config
+	cp config* $(BUILD_SPACE)/collector-config
+	cd $(BUILD_SPACE) && zip -r collector-extension.zip collector-config extensions
 
 publish-layer: build package
 	@echo Publishing collector extension layer...
