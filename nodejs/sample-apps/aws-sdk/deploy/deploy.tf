@@ -6,6 +6,14 @@ resource "aws_lambda_layer_version" "opentelemetry_nodejs_wrapper" {
   source_code_hash = filebase64sha256("../../../packages/layer/build/layer.zip")
 }
 
+resource "aws_lambda_layer_version" "opentelemetry_collector" {
+  layer_name = "opentelemetry-collector"
+  filename = "../../../../collector/build/collector-extension.zip"
+  compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
+  license_info = "Apache-2.0"
+  source_code_hash = filebase64sha256("../../../../collector/build/collector-extension.zip")
+}
+
 module "hello-nodejs" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -20,6 +28,7 @@ module "hello-nodejs" {
   timeout = 20
 
   layers = [
+    aws_lambda_layer_version.opentelemetry_collector.arn,
     aws_lambda_layer_version.opentelemetry_nodejs_wrapper.arn
   ]
 
