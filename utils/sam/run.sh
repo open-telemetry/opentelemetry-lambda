@@ -31,7 +31,7 @@ main() {
 	layer=false
 
 	region=${AWS_REGION-$(aws configure get region)}
-	stack=${KEY-"otel"}
+	stack=${OTEL_LAMBDA_STACK-"otel"}
 	layerName=$stack
 
 
