@@ -1,6 +1,7 @@
 {
   "name": "@opentelemetry-samples/lambda-awssdk",
   "version": "0.0.0",
+  "private": true,
   "description": "Sample application for AWS Lambda using AWS SDK v2.",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",

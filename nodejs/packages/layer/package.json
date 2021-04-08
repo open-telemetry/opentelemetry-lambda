@@ -1,6 +1,7 @@
 {
   "name": "@opentelemetry-lambda/sdk-layer",
   "version": "0.0.1",
+  "private": true,
   "description": "Layer including OpenTelemetry SDK for use with AWS Lambda.",
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
