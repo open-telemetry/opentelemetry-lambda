@@ -1,6 +1,7 @@
 {
   "name": "opentelemetry-lambda",
   "version": "0.0.0",
+  "private": true,
   "description": "This is a repository for AWS Lambda integration with OpenTelemetry.",
   "repository": {
     "type": "git",
