@@ -1,0 +1,70 @@
+{
+  "name": "opentelemetry-lambda",
+  "version": "0.0.0",
+  "private": true,
+  "description": "This is a repository for AWS Lambda integration with OpenTelemetry.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/open-telemetry/opentelemetry-lambda.git"
+  },
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "scripts": {
+    "clean": "lerna run clean",
+    "postinstall": "npm run bootstrap",
+    "precompile": "tsc --version",
+    "compile": "lerna run compile",
+    "test": "lerna run test",
+    "bootstrap": "lerna bootstrap --no-ci",
+    "lint": "lerna run lint",
+    "lint:fix": "lerna run lint:fix"
+  },
+  "keywords": [
+    "opentelemetry",
+    "nodejs",
+    "profiling",
+    "metrics",
+    "stats",
+    "plugins"
+  ],
+  "author": "OpenTelemetry Authors",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@commitlint/cli": "11.0.0",
+    "@commitlint/config-conventional": "11.0.0",
+    "@typescript-eslint/eslint-plugin": "4.3.0",
+    "@typescript-eslint/parser": "4.3.0",
+    "aws-sdk": "2.875.0",
+    "bestzip": "2.2.0",
+    "copyfiles": "2.4.1",
+    "eslint": "7.19.0",
+    "eslint-config-airbnb-base": "14.2.0",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.22.1",
+    "gts": "3.1.0",
+    "husky": "4.2.5",
+    "lerna": "3.22.1",
+    "lerna-changelog": "1.0.1",
+    "rimraf": "3.0.2",
+    "typescript": "4.1.3"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "changelog": {
+    "labels": {
+      "breaking": ":boom: Breaking Change",
+      "bug": ":bug: Bug Fix",
+      "plugin-request": ":tada: New Plugins",
+      "enhancement": ":rocket: Enhancement",
+      "internal": ":house: Internal",
+      "documentation": ":memo: Documentation"
+    },
+    "ignoreCommitters": [
+      "renovate-bot",
+      "dependabot"
+    ]
+  }
+}
