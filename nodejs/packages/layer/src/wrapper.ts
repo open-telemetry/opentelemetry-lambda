@@ -1,6 +1,6 @@
 import { NodeTracerProvider } from '@opentelemetry/node';
 import { ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/tracing';
-import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-awslambda';
+import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { AwsInstrumentation } from 'opentelemetry-instrumentation-aws-sdk';
 
