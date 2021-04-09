@@ -1,0 +1,41 @@
+name: "Pull Request (Python)"
+
+on:
+  pull_request:
+    paths:
+    - 'python/**'
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  PR-Python:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python: [3.8]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Tox
+        working-directory: python/src
+        run: |
+          pip install tox
+          tox
+
+      - name: build layer
+        working-directory: python/src
+        run: ./run.sh -b
+
+      - name: build sample
+        working-directory: python/sample-apps
+        run: ./run.sh -b

@@ -31,8 +31,8 @@ main() {
 	layer=false
 
 	region=${AWS_REGION-$(aws configure get region)}
-	stack=${OTEL_LAMBDA_STACK-"otel"}
-	layerName=$stack
+	stack=${OTEL_LAMBDA_STACK-"otel-stack"}
+	layerName=${OTEL_LAMBDA_LAYER-"otel-layer"}
 
 
 	collectorPath=${COLLECTOR_PATH-"../../collector"}
