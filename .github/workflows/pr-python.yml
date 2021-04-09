@@ -7,6 +7,9 @@ on:
     branches:
       - main
 
+env:
+  AWS_REGION: us-east-1
+
 jobs:
   PR-Python:
     runs-on: ubuntu-latest
@@ -29,8 +32,10 @@ jobs:
           pip install tox
           tox
 
-      - name: SAM build
-        env:
-          AWS_REGION: us-east-1
+      - name: build layer
         working-directory: python/src
+        run: ./run.sh -b
+
+      - name: build sample
+        working-directory: python/sample-apps
         run: ./run.sh -b
