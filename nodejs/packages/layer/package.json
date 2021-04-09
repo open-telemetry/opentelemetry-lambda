@@ -6,6 +6,8 @@
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
     "clean": "rimraf build/*",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "prepare": "npm run compile",
     "compile": "tsc -p .",
     "postcompile": "copyfiles 'node_modules/**' build/workspace/nodejs && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*' build/workspace && cd build/workspace && bestzip ../layer.zip *"
@@ -25,6 +27,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.0.0-rc.0",
+    "@opentelemetry/exporter-collector-proto": "^0.18.2",
     "@opentelemetry/instrumentation": "^0.18.2",
     "@opentelemetry/instrumentation-aws-lambda": "https://gitpkg.now.sh/anuraaga/opentelemetry-js-contrib/plugins/node/opentelemetry-instrumentation-awslambda?7e291c394a9817d23223f5e906a9a01736726f26",
     "@opentelemetry/node": "^0.18.2",

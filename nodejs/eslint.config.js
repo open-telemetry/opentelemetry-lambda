@@ -4,7 +4,7 @@ module.exports = {
     "header"
   ],
   extends: [
-      "./node_modules/gts",
+      "../../node_modules/gts",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {

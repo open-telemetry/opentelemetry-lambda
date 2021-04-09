@@ -19,13 +19,13 @@ build: clean
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
-package:
+package: build
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
 	cd $(BUILD_SPACE) && zip -r collector-extension.zip collector-config extensions
 
-publish-layer: build package
+publish-layer: package
 	@echo Publishing collector extension layer...
 	aws s3 mb s3://$(BUCKET_NAME)
 	aws s3 cp $(BUILD_SPACE)/collector-extension.zip s3://$(BUCKET_NAME)
