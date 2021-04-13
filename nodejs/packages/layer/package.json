@@ -30,7 +30,9 @@
     "@opentelemetry/exporter-collector-proto": "^0.18.2",
     "@opentelemetry/instrumentation": "^0.18.2",
     "@opentelemetry/instrumentation-aws-lambda": "https://gitpkg.now.sh/anuraaga/opentelemetry-js-contrib/plugins/node/opentelemetry-instrumentation-awslambda?7e291c394a9817d23223f5e906a9a01736726f26",
+    "@opentelemetry/resource-detector-aws": "https://gitpkg.now.sh/anuraaga/opentelemetry-js/packages/opentelemetry-resource-detector-aws?025cfd3040cc163f671b50482b1c82d3d7f2f2ac",
     "@opentelemetry/node": "^0.18.2",
+    "@opentelemetry/resources": "^0.18.2",
     "@opentelemetry/tracing": "^0.18.2",
     "opentelemetry-instrumentation-aws-sdk": "^0.3.0"
   }
