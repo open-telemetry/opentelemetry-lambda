@@ -52,7 +52,7 @@ func NewInProcessCollector(factories component.Factories) *InProcessCollector {
 
 func envLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*configmodels.Config, error) {
 	if configContent, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT"); ok {
-		println("Reading config from environment: ", configContent)
+		log("Reading config from environment: ", configContent)
 		configContent = strings.Replace(configContent, "\\n", "\n", -1)
 		var configBytes = []byte(configContent)
 		err := v.ReadConfig(bytes.NewBuffer(configBytes))
@@ -62,7 +62,7 @@ func envLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*con
 		return config.Load(v, factories)
 	}
 
-	println("Reading config from file: ", configFile)
+	log("Reading config from file: ", configFile)
 	file := configFile
 	if file == "" {
 		return nil, errors.New("config file not specified")

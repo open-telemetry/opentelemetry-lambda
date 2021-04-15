@@ -16,11 +16,11 @@ import (
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
-	printPrefix     = fmt.Sprintf("[%s]", extensionName)
+	logPrefix       = fmt.Sprintf("[%s]", extensionName)
 )
 
 func main() {
-	fmt.Println("Launching Opentelemetry Lambda extension, version: ", Version)
+	log("Launching Opentelemetry Lambda extension, version: ", Version)
 	factories, _ := lambdacomponents.Components()
 	collector := NewInProcessCollector(factories)
 	collector.prepareConfig()
@@ -33,15 +33,15 @@ func main() {
 	go func() {
 		s := <-sigs
 		cancel()
-		println(printPrefix, "Received", s)
-		println(printPrefix, "Exiting")
+		log("Received", s)
+		log("Exiting")
 	}()
 
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		panic(err)
 	}
-	println(printPrefix, "Register response:", prettyPrint(res))
+	log("Register response:", prettyPrint(res))
 
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, collector)
@@ -53,19 +53,20 @@ func processEvents(ctx context.Context, collector *InProcessCollector) {
 		case <-ctx.Done():
 			return
 		default:
-			println(printPrefix, "Waiting for event...")
+			log("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
-				println(printPrefix, "Error:", err)
-				println(printPrefix, "Exiting")
+				log("Error:", err)
+				log("Exiting")
 				return
 			}
-			println(printPrefix, "Received event:", prettyPrint(res))
+
+			log("Received event:", prettyPrint(res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
 				collector.stop() // TODO: handle return values
-				println(printPrefix, "Received SHUTDOWN event")
-				println(printPrefix, "Exiting")
+				log("Received SHUTDOWN event")
+				log("Exiting")
 				return
 			}
 		}
@@ -78,4 +79,10 @@ func prettyPrint(v interface{}) string {
 		return ""
 	}
 	return string(data)
+}
+
+// log is similar to fmt.Println but it logs a
+// log prefix before the log message.
+func log(a ...interface{}) {
+	fmt.Println(logPrefix, a)
 }
