@@ -10,8 +10,8 @@ Two types of layers are provided
 
 The [OpenTelemetry Java Agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 is bundled into the base of the layer and can be loaded into a Lambda function by specifying the
-environment variable `JAVA_TOOL_OPTIONS=-javaagent:/opt/opentelemetry-javaagent.jar` in your Lambda
-configuration. The agent will automatically instrument your application for all supported libraries.
+`AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler` in your Lambda configuration. The agent will be automatically
+loaded and instrument your application for all supported libraries.
 
 Note, automatic instrumentation has a notable impact on startup time on AWS Lambda and you will
 generally need to use this along with provisioned concurrency and warmup requests to serve production

@@ -14,6 +14,8 @@ tasks {
         from(configurations["runtimeClasspath"]) {
             rename("opentelemetry-javaagent-.*.jar", "opentelemetry-javaagent.jar")
         }
+
+        from("scripts")
     }
 
     val assemble by existing {
