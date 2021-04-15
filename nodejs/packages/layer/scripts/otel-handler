@@ -2,6 +2,6 @@
 
 echo "$@"
 
-export NODE_OPTIONS="--require /opt/wrapper.js"
+export NODE_OPTIONS="--require /opt/wrapper.js ${NODE_OPTIONS}"
 
 exec "$@"
