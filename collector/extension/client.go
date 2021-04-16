@@ -1,5 +1,16 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
+// Copyright The OpenTelemetry Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package extension
 
@@ -9,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -54,14 +66,14 @@ const (
 	extensionErrorType       = "Lambda-Extension-Function-Error-Type"
 )
 
-// Client is a simple client for the Lambda Extensions API
+// Client is a simple client for the Lambda Extensions API.
 type Client struct {
 	baseURL     string
 	httpClient  *http.Client
 	extensionID string
 }
 
-// NewClient returns a Lambda Extensions API client
+// NewClient returns a Lambda Extensions API client.
 func NewClient(awsLambdaRuntimeAPI string) *Client {
 	baseURL := fmt.Sprintf("http://%s/2020-01-01/extension", awsLambdaRuntimeAPI)
 	return &Client{
@@ -70,7 +82,7 @@ func NewClient(awsLambdaRuntimeAPI string) *Client {
 	}
 }
 
-// Register will register the extension with the Extensions API
+// Register will register the extension with the Extensions API.
 func (e *Client) Register(ctx context.Context, filename string) (*RegisterResponse, error) {
 	const action = "/register"
 	url := e.baseURL + action
@@ -81,121 +93,96 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 	if err != nil {
 		return nil, err
 	}
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Header.Set(extensionNameHeader, filename)
-	httpRes, err := e.httpClient.Do(httpReq)
+	req.Header.Set(extensionNameHeader, filename)
+
+	var registerResp RegisterResponse
+	resp, err := e.doRequest(req, &registerResp)
 	if err != nil {
 		return nil, err
 	}
-	if httpRes.StatusCode != 200 {
-		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
-	}
-	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
-	if err != nil {
-		return nil, err
-	}
-	res := RegisterResponse{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return nil, err
-	}
-	e.extensionID = httpRes.Header.Get(extensionIdentiferHeader)
-	print(e.extensionID)
-	return &res, nil
+	e.extensionID = resp.Header.Get(extensionIdentiferHeader)
+	log.Printf("Registered extension ID: %q", e.extensionID)
+
+	return &registerResp, nil
 }
 
-// NextEvent blocks while long polling for the next lambda invoke or shutdown
+// NextEvent blocks while long polling for the next lambda invoke or shutdown.
 func (e *Client) NextEvent(ctx context.Context) (*NextEventResponse, error) {
 	const action = "/event/next"
 	url := e.baseURL + action
 
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Header.Set(extensionIdentiferHeader, e.extensionID)
-	httpRes, err := e.httpClient.Do(httpReq)
-	if err != nil {
+	req.Header.Set(extensionIdentiferHeader, e.extensionID)
+
+	var nextEventResp NextEventResponse
+	if _, err := e.doRequest(req, &nextEventResp); err != nil {
 		return nil, err
 	}
-	if httpRes.StatusCode != 200 {
-		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
-	}
-	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
-	if err != nil {
-		return nil, err
-	}
-	res := NextEventResponse{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
+	return &nextEventResp, nil
 }
 
-// InitError reports an initialization error to the platform. Call it when you registered but failed to initialize
+// InitError reports an initialization error to the platform.
+// Call it when you registered but failed to initialize.
 func (e *Client) InitError(ctx context.Context, errorType string) (*StatusResponse, error) {
 	const action = "/init/error"
 	url := e.baseURL + action
 
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Header.Set(extensionIdentiferHeader, e.extensionID)
-	httpReq.Header.Set(extensionErrorType, errorType)
-	httpRes, err := e.httpClient.Do(httpReq)
-	if err != nil {
+	req.Header.Set(extensionIdentiferHeader, e.extensionID)
+	req.Header.Set(extensionErrorType, errorType)
+
+	var statusResp StatusResponse
+	if _, err := e.doRequest(req, &statusResp); err != nil {
 		return nil, err
 	}
-	if httpRes.StatusCode != 200 {
-		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
-	}
-	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
-	if err != nil {
-		return nil, err
-	}
-	res := StatusResponse{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
+	return &statusResp, nil
 }
 
-// ExitError reports an error to the platform before exiting. Call it when you encounter an unexpected failure
+// ExitError reports an error to the platform before exiting.
+// Call it when you encounter an unexpected failure.
 func (e *Client) ExitError(ctx context.Context, errorType string) (*StatusResponse, error) {
 	const action = "/exit/error"
 	url := e.baseURL + action
 
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Header.Set(extensionIdentiferHeader, e.extensionID)
-	httpReq.Header.Set(extensionErrorType, errorType)
-	httpRes, err := e.httpClient.Do(httpReq)
+	req.Header.Set(extensionIdentiferHeader, e.extensionID)
+	req.Header.Set(extensionErrorType, errorType)
+
+	var statusResp StatusResponse
+	if _, err := e.doRequest(req, &statusResp); err != nil {
+		return nil, err
+	}
+	return &statusResp, nil
+}
+
+func (e *Client) doRequest(req *http.Request, out interface{}) (*http.Response, error) {
+	resp, err := e.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if httpRes.StatusCode != 200 {
-		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("request failed with status %s", resp.Status)
 	}
-	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	res := StatusResponse{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return nil, err
+	if err = json.Unmarshal(body, out); err != nil {
+		return resp, err
 	}
-	return &res, nil
+	return resp, nil
 }

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export JAVA_TOOL_OPTIONS="-javaagent:/opt/opentelemetry-javaagent.jar ${JAVA_TOOL_OPTIONS}"
+
+exec "$@"
