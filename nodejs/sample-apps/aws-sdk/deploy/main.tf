@@ -1,7 +1,7 @@
 module "hello-nodejs" {
   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "hello-nodejs"
+  function_name = var.name
   handler       = "index.handler"
   runtime       = "nodejs14.x"
 
@@ -40,7 +40,7 @@ module "hello-nodejs" {
 module "api-gateway" {
   source = "../../../../utils/terraform/api-gateway-proxy"
 
-  name                = "hello-nodejs"
+  name                = var.name
   function_name       = module.hello-nodejs.this_lambda_function_name
   function_invoke_arn = module.hello-nodejs.this_lambda_function_invoke_arn
 }

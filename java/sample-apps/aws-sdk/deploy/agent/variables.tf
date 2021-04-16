@@ -1,3 +1,9 @@
+variable "name" {
+  type        = string
+  description = "Name of created function and API Gateway"
+  default     = "hello-java-awssdk-agent"
+}
+
 variable "collector_layer_arn" {
   type        = string
   description = "ARN for the Lambda layer containing the OpenTelemetry collector extension"
