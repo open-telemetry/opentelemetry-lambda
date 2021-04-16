@@ -49,7 +49,9 @@ const (
 
 	// Shutdown is a shutdown event for the environment
 	Shutdown EventType = "SHUTDOWN"
+)
 
+const (
 	extensionNameHeader      = "Lambda-Extension-Name"
 	extensionIdentiferHeader = "Lambda-Extension-Identifier"
 	extensionErrorType       = "Lambda-Extension-Function-Error-Type"

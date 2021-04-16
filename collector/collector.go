@@ -15,11 +15,13 @@ import (
 	"go.opentelemetry.io/collector/service"
 )
 
-// Version variable will be replaced at link time after `make` has been run.
-var Version = "latest"
+var (
+	// Version variable will be replaced at link time after `make` has been run.
+	Version = "latest"
 
-// GitHash variable will be replaced at link time after `make` has been run.
-var GitHash = "<NOT PROPERLY GENERATED>"
+	// GitHash variable will be replaced at link time after `make` has been run.
+	GitHash = "<NOT PROPERLY GENERATED>"
+)
 
 // InProcessCollector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
@@ -31,9 +33,7 @@ type InProcessCollector struct {
 	stopped   bool
 }
 
-var (
-	configFile = getConfig()
-)
+var configFile = getConfig()
 
 func getConfig() string {
 	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
