@@ -142,12 +142,11 @@ func (ipp *InProcessCollector) start() error {
 	return err
 }
 
-func (ipp *InProcessCollector) stop() (stopped bool, err error) {
+func (ipp *InProcessCollector) stop() error {
 	if !ipp.stopped {
 		ipp.stopped = true
 		ipp.svc.Shutdown()
 	}
 	<-ipp.appDone
-	stopped = ipp.stopped
-	return stopped, err
+	return nil
 }
