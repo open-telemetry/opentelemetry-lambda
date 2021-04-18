@@ -1,7 +1,7 @@
 module "hello-awssdk-java-wrapper" {
   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "hello-awssdk-java-wrapper"
+  function_name = var.name
   handler       = "io.opentelemetry.lambda.sampleapps.awssdk.AwsSdkRequestHandler::handleRequest"
   runtime       = "java11"
 
@@ -39,7 +39,7 @@ module "hello-awssdk-java-wrapper" {
 module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
-  name                = "hello-java-awssdk-wrapper"
+  name                = var.name
   function_name       = module.hello-awssdk-java-wrapper.this_lambda_function_name
   function_invoke_arn = module.hello-awssdk-java-wrapper.this_lambda_function_invoke_arn
 }
