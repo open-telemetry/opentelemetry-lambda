@@ -36,6 +36,3 @@ jobs:
         working-directory: python/src
         run: ./run.sh -b
 
-      - name: build sample
-        working-directory: python/sample-apps
-        run: ./run.sh -b
