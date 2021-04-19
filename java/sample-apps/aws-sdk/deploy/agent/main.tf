@@ -8,19 +8,17 @@ module "hello-awssdk-javaagent" {
   create_package         = false
   local_existing_package = "${path.module}/../../build/libs/aws-sdk-all.jar"
 
-  memory_size = 384
+  memory_size = 512
   timeout     = 120
   publish     = true
 
   layers = [
     var.collector_layer_arn,
-    var.javaagent_layer_arn
+    var.java_agent_layer_arn
   ]
 
   environment_variables = {
-    JAVA_TOOL_OPTIONS     = "-javaagent:/opt/opentelemetry-javaagent.jar"
-    OTEL_TRACES_EXPORTER  = "logging"
-    OTEL_METRICS_EXPORTER = "logging"
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
   }
 
   attach_policy_statements = true

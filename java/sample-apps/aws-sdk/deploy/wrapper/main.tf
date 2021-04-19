@@ -13,13 +13,11 @@ module "hello-awssdk-java-wrapper" {
 
   layers = [
     var.collector_layer_arn,
-    var.javawrapper_layer_arn
+    var.java_wrapper_layer_arn
   ]
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-proxy-handler"
-    OTEL_TRACES_EXPORTER    = "logging"
-    OTEL_METRICS_EXPORTER   = "logging"
   }
 
   attach_policy_statements = true
