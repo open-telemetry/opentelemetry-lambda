@@ -1,0 +1,23 @@
+name: "Continuous Build (Terraform)"
+
+on:
+  push:
+    paths:
+      - '**/*.tf'
+      - '.github/workflows/ci-terraform.yml'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '.github/workflows/ci-terraform.yml'
+    branches:
+      - main
+
+jobs:
+  check-terraform-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v1
+      - run: terraform fmt -check -recursive
