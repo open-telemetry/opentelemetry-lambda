@@ -1,9 +1,9 @@
-module "hello-nodejs" {
+module "function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
-  handler       = "index.handler"
-  runtime       = "nodejs14.x"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.8"
 
   create_package         = false
   local_existing_package = "${path.module}/../build/function.zip"
@@ -13,14 +13,11 @@ module "hello-nodejs" {
 
   layers = [
     var.collector_layer_arn,
-    var.nodejs_wrapper_layer_arn
+    var.python_wrapper_layer_arn
   ]
 
   environment_variables = {
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
-    OTEL_TRACES_EXPORTER    = "logging"
-    OTEL_METRICS_EXPORTER   = "logging"
-    OTEL_LOG_LEVEL          = "DEBUG"
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
   }
 
   attach_policy_statements = true
@@ -38,10 +35,9 @@ module "hello-nodejs" {
 }
 
 module "api-gateway" {
-  source = "../../../../utils/terraform/api-gateway-proxy"
+  source = "../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.hello-nodejs.this_lambda_function_name
-  function_invoke_arn = module.hello-nodejs.this_lambda_function_invoke_arn
+  function_name       = module.function.this_lambda_function_name
+  function_invoke_arn = module.function.this_lambda_function_invoke_arn
 }
-

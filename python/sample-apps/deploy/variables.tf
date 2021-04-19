@@ -1,7 +1,7 @@
 variable "name" {
   type        = string
   description = "Name of created function and API Gateway"
-  default     = "hello-java-okhttp-wrapper"
+  default     = "hello-python"
 }
 
 variable "collector_layer_arn" {
@@ -10,8 +10,8 @@ variable "collector_layer_arn" {
   // TODO(anuraaga): Add default when a public layer is published.
 }
 
-variable "java_wrapper_layer_arn" {
+variable "python_wrapper_layer_arn" {
   type        = string
-  description = "ARN for the Lambda layer containing the OpenTelemetry Java Wrapper"
+  description = "ARN for the Lambda layer containing the OpenTelemetry Python Wrapper"
   // TODO(anuraaga): Add default when a public layer is published.
 }

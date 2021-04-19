@@ -2,7 +2,7 @@
 module "hello-okhttp-java-wrapper" {
   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "hello-okhttp-java-wrapper"
+  function_name = var.name
   handler       = "io.opentelemetry.lambda.sampleapps.okhttp.OkHttpRequestHandler::handleRequest"
   runtime       = "java11"
 
@@ -40,7 +40,7 @@ module "hello-okhttp-java-wrapper" {
 module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
-  name                = "hello-java-okhttp"
+  name                = var.name
   function_name       = module.hello-okhttp-java-wrapper.this_lambda_function_name
   function_invoke_arn = module.hello-okhttp-java-wrapper.this_lambda_function_invoke_arn
 }

@@ -1,26 +1,24 @@
 module "hello-awssdk-javaagent" {
   source = "terraform-aws-modules/lambda/aws"
 
-  function_name = "hello-awssdk-javaagent"
+  function_name = var.name
   handler       = "io.opentelemetry.lambda.sampleapps.awssdk.AwsSdkRequestHandler::handleRequest"
   runtime       = "java11"
 
   create_package         = false
   local_existing_package = "${path.module}/../../build/libs/aws-sdk-all.jar"
 
-  memory_size = 384
+  memory_size = 512
   timeout     = 120
   publish     = true
 
   layers = [
     var.collector_layer_arn,
-    var.javaagent_layer_arn
+    var.java_agent_layer_arn
   ]
 
   environment_variables = {
-    JAVA_TOOL_OPTIONS     = "-javaagent:/opt/opentelemetry-javaagent.jar"
-    OTEL_TRACES_EXPORTER  = "logging"
-    OTEL_METRICS_EXPORTER = "logging"
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
   }
 
   attach_policy_statements = true
@@ -52,7 +50,7 @@ resource "aws_lambda_provisioned_concurrency_config" "lambda_api" {
 module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
-  name                = "hello-java-awssdk-agent"
+  name                = var.name
   function_name       = aws_lambda_alias.provisioned.function_name
   function_qualifier  = aws_lambda_alias.provisioned.name
   function_invoke_arn = aws_lambda_alias.provisioned.invoke_arn
