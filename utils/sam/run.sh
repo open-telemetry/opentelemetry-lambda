@@ -93,7 +93,7 @@ main() {
 	fi
 
 	if [[ $deploy == true ]]; then
-	  sam deploy --stack-name $stack --region $region --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --parameter-overrides LayerName=$layerName
+		sam deploy --stack-name $stack --region $region --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --parameter-overrides LayerName=$layerName
 		rm -rf otel/otel_collector
 		rm -rf .aws-sam
 	fi
