@@ -14,7 +14,7 @@ module "hello-okhttp-java-wrapper" {
 
   layers = [
     var.collector_layer_arn,
-    var.javawrapper_layer_arn
+    var.java_wrapper_layer_arn
   ]
 
   environment_variables = {
