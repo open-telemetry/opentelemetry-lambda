@@ -21,7 +21,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: api
-      TracingEnabled: true
       OpenApiVersion: 3.0.2
   function:
     Type: AWS::Serverless::Function
