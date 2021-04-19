@@ -1,4 +1,4 @@
-resource "aws_lambda_layer_version" "opentelemetry_python_wrapper" {
+resource "aws_lambda_layer_version" "sdk_layer" {
   layer_name          = var.sdk_layer_name
   filename            = "../../src/build/layer.zip"
   compatible_runtimes = ["python3.8"]
@@ -6,7 +6,7 @@ resource "aws_lambda_layer_version" "opentelemetry_python_wrapper" {
   source_code_hash    = filebase64sha256("../../src/build/layer.zip")
 }
 
-resource "aws_lambda_layer_version" "opentelemetry_collector" {
+resource "aws_lambda_layer_version" "collector_layer" {
   layer_name          = var.collector_layer_name
   filename            = "../../../collector/build/collector-extension.zip"
   compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
@@ -17,6 +17,6 @@ resource "aws_lambda_layer_version" "opentelemetry_collector" {
 module "function" {
   source                   = "../../sample-apps/deploy"
   name                     = var.function_name
-  collector_layer_arn      = aws_lambda_layer_version.opentelemetry_collector.arn
-  python_wrapper_layer_arn = aws_lambda_layer_version.opentelemetry_python_wrapper.arn
+  collector_layer_arn      = aws_lambda_layer_version.sdk_layer.arn
+  python_wrapper_layer_arn = aws_lambda_layer_version.collector_layer.arn
 }
