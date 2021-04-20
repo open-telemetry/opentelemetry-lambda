@@ -2,8 +2,14 @@ plugins {
     `java-library`
 }
 
+val agentDependency = rootProject.findProperty("otel.lambda.javaagent.dependency")
+
 dependencies {
-    implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", classifier="all")
+    if (agentDependency != null) {
+        implementation(agentDependency)
+    } else {
+        implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", classifier = "all")
+    }
 }
 
 tasks {
