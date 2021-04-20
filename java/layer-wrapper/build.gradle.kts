@@ -24,6 +24,11 @@ tasks {
             into("java/lib")
         }
 
+        // Can be used by redistributions of the wrapper to add more libraries.
+        from("build/extensions") {
+            into("java/lib")
+        }
+
         from("scripts")
     }
 
