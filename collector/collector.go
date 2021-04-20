@@ -37,9 +37,9 @@ var (
 	GitHash = "<NOT PROPERLY GENERATED>"
 )
 
-// InProcessCollector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
+// Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
-type InProcessCollector struct {
+type Collector struct {
 	factories component.Factories
 	config    *configmodels.Config
 	svc       *service.Application
@@ -57,11 +57,13 @@ func getConfig() string {
 	return val
 }
 
-// NewInProcessCollector creates a new InProcessCollector using the supplied component factories.
-func NewInProcessCollector(factories component.Factories) *InProcessCollector {
-	return &InProcessCollector{
+// NewCollector creates a new Lambda collector using the supplied component factories.
+func NewCollector(factories component.Factories) *Collector {
+	col := &Collector{
 		factories: factories,
 	}
+	col.prepareConfig()
+	return col
 }
 
 func envLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*configmodels.Config, error) {
@@ -89,47 +91,47 @@ func envLoaderConfigFactory(v *viper.Viper, factories component.Factories) (*con
 	return config.Load(v, factories)
 }
 
-func (ipp *InProcessCollector) prepareConfig() (err error) {
+func (c *Collector) prepareConfig() (err error) {
 	v := config.NewViper()
 	v.SetConfigType("yaml")
-	cfg, err := envLoaderConfigFactory(v, ipp.factories)
+	cfg, err := envLoaderConfigFactory(v, c.factories)
 	if err != nil {
 		return err
 	}
-	ipp.config = cfg
+	c.config = cfg
 	return err
 }
 
-func (ipp *InProcessCollector) start() error {
+func (c *Collector) Start() error {
 	params := service.Parameters{
 		ApplicationStartInfo: component.ApplicationStartInfo{
 			ExeName:  "otelcol",
-			LongName: "InProcess Collector",
+			LongName: "Lambda Collector",
 			Version:  Version,
 			GitHash:  GitHash,
 		},
 		ConfigFactory: func(v *viper.Viper, cmd *cobra.Command, factories component.Factories) (*configmodels.Config, error) {
-			return ipp.config, nil
+			return c.config, nil
 		},
-		Factories: ipp.factories,
+		Factories: c.factories,
 	}
 	var err error
-	ipp.svc, err = service.New(params)
+	c.svc, err = service.New(params)
 	if err != nil {
 		return err
 	}
-	ipp.svc.Command().SetArgs([]string{"--metrics-level=NONE"})
+	c.svc.Command().SetArgs([]string{"--metrics-level=NONE"})
 
-	ipp.appDone = make(chan struct{})
+	c.appDone = make(chan struct{})
 	go func() {
-		defer close(ipp.appDone)
-		appErr := ipp.svc.Run()
+		defer close(c.appDone)
+		appErr := c.svc.Run()
 		if appErr != nil {
 			err = appErr
 		}
 	}()
 
-	for state := range ipp.svc.GetStateChannel() {
+	for state := range c.svc.GetStateChannel() {
 		switch state {
 		case service.Starting:
 			// NoOp
@@ -142,11 +144,11 @@ func (ipp *InProcessCollector) start() error {
 	return err
 }
 
-func (ipp *InProcessCollector) stop() error {
-	if !ipp.stopped {
-		ipp.stopped = true
-		ipp.svc.Shutdown()
+func (c *Collector) Stop() error {
+	if !c.stopped {
+		c.stopped = true
+		c.svc.Shutdown()
 	}
-	<-ipp.appDone
+	<-c.appDone
 	return nil
 }

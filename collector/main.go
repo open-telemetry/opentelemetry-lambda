@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -31,12 +32,13 @@ var (
 )
 
 func main() {
-	logln("Launching Opentelemetry Lambda extension, version: ", Version)
+	logln("Launching OpenTelemetry Lambda extension, version: ", Version)
 
 	factories, _ := lambdacomponents.Components()
-	collector := NewInProcessCollector(factories)
-	collector.prepareConfig()
-	collector.start()
+	collector := NewCollector(factories)
+	if err := collector.Start(); err != nil {
+		log.Fatalf("Failed to start the extension: %v", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -51,15 +53,15 @@ func main() {
 
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Cannot register extension: %v", err)
 	}
-	logln("Register response:", prettyPrint(res))
 
+	logln("Register response:", prettyPrint(res))
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, collector)
 }
 
-func processEvents(ctx context.Context, collector *InProcessCollector) {
+func processEvents(ctx context.Context, collector *Collector) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -76,7 +78,7 @@ func processEvents(ctx context.Context, collector *InProcessCollector) {
 			logln("Received event:", prettyPrint(res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
-				collector.stop() // TODO: handle return values
+				collector.Stop() // TODO: handle return values
 				logln("Received SHUTDOWN event")
 				logln("Exiting")
 				return
