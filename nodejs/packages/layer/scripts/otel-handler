@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo "$@"
-
-export NODE_OPTIONS="--require /opt/wrapper.js ${NODE_OPTIONS}"
+export NODE_OPTIONS="${NODE_OPTIONS} --require /opt/wrapper.js"
 
 exec "$@"
