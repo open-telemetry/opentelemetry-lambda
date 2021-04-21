@@ -14,9 +14,9 @@ resource "aws_lambda_layer_version" "collector_layer" {
   source_code_hash    = filebase64sha256("../../../../collector/build/collector-extension.zip")
 }
 
-module "hello-awssdk-function" {
-  source                 = "../../../sample-apps/aws-sdk/deploy/wrapper"
-  name                   = var.function_name
-  collector_layer_arn    = aws_lambda_layer_version.sdk_layer.arn
-  java_wrapper_layer_arn = aws_lambda_layer_version.collector_layer.arn
+module "hello-lambda-function" {
+  source              = "../../../sample-apps/aws-sdk/deploy/wrapper"
+  name                = var.function_name
+  collector_layer_arn = aws_lambda_layer_version.sdk_layer.arn
+  sdk_layer_arn       = aws_lambda_layer_version.collector_layer.arn
 }

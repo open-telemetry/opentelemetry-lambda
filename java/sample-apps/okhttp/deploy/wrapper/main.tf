@@ -1,5 +1,4 @@
-
-module "hello-okhttp-java-wrapper" {
+module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
@@ -14,7 +13,7 @@ module "hello-okhttp-java-wrapper" {
 
   layers = [
     var.collector_layer_arn,
-    var.java_wrapper_layer_arn
+    var.sdk_layer_arn
   ]
 
   environment_variables = {
@@ -41,6 +40,6 @@ module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.hello-okhttp-java-wrapper.this_lambda_function_name
-  function_invoke_arn = module.hello-okhttp-java-wrapper.this_lambda_function_invoke_arn
+  function_name       = module.hello-lambda-function.this_lambda_function_name
+  function_invoke_arn = module.hello-lambda-function.this_lambda_function_invoke_arn
 }

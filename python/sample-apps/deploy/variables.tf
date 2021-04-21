@@ -10,7 +10,7 @@ variable "collector_layer_arn" {
   // TODO(anuraaga): Add default when a public layer is published.
 }
 
-variable "python_wrapper_layer_arn" {
+variable "sdk_layer_arn" {
   type        = string
   description = "ARN for the Lambda layer containing the OpenTelemetry Python Wrapper"
   // TODO(anuraaga): Add default when a public layer is published.
