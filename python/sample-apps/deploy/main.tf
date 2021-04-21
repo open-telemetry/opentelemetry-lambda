@@ -1,4 +1,4 @@
-module "function" {
+module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
@@ -13,7 +13,7 @@ module "function" {
 
   layers = [
     var.collector_layer_arn,
-    var.python_wrapper_layer_arn
+    var.sdk_layer_arn
   ]
 
   environment_variables = {

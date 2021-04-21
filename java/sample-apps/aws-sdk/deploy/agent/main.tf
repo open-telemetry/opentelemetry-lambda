@@ -1,4 +1,4 @@
-module "hello-awssdk-javaagent" {
+module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
@@ -14,7 +14,7 @@ module "hello-awssdk-javaagent" {
 
   layers = [
     var.collector_layer_arn,
-    var.java_agent_layer_arn
+    var.sdk_layer_arn
   ]
 
   environment_variables = {
@@ -37,8 +37,8 @@ module "hello-awssdk-javaagent" {
 
 resource "aws_lambda_alias" "provisioned" {
   name             = "provisioned"
-  function_name    = module.hello-awssdk-javaagent.this_lambda_function_name
-  function_version = module.hello-awssdk-javaagent.this_lambda_function_version
+  function_name    = module.hello-lambda-function.this_lambda_function_name
+  function_version = module.hello-lambda-function.this_lambda_function_version
 }
 
 resource "aws_lambda_provisioned_concurrency_config" "lambda_api" {

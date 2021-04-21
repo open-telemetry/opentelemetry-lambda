@@ -1,4 +1,4 @@
-module "hello-nodejs" {
+module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
@@ -13,7 +13,7 @@ module "hello-nodejs" {
 
   layers = [
     var.collector_layer_arn,
-    var.nodejs_wrapper_layer_arn
+    var.sdk_layer_arn
   ]
 
   environment_variables = {
@@ -41,7 +41,7 @@ module "api-gateway" {
   source = "../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.hello-nodejs.this_lambda_function_name
-  function_invoke_arn = module.hello-nodejs.this_lambda_function_invoke_arn
+  function_name       = module.hello-lambda-function.this_lambda_function_name
+  function_invoke_arn = module.hello-lambda-function.this_lambda_function_invoke_arn
 }
 
