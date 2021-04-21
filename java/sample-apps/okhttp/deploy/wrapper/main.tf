@@ -22,6 +22,8 @@ module "hello-lambda-function" {
     OTEL_METRICS_EXPORTER   = "logging"
   }
 
+  tracing_mode = var.tracing_mode
+
   attach_policy_statements = true
   policy_statements = {
     s3 = {

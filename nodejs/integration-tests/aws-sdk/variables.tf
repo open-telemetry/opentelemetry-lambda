@@ -15,3 +15,9 @@ variable "function_name" {
   description = "Name of sample app function / API gateway"
   default     = "hello-nodejs-awssdk"
 }
+
+variable "tracing_mode" {
+  type        = string
+  description = "Lambda function tracing mode"
+  default     = "PassThrough"
+}

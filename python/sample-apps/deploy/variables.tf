@@ -15,3 +15,9 @@ variable "sdk_layer_arn" {
   description = "ARN for the Lambda layer containing the OpenTelemetry Python Wrapper"
   // TODO(anuraaga): Add default when a public layer is published.
 }
+
+variable "tracing_mode" {
+  type        = string
+  description = "Lambda function tracing mode"
+  default     = "PassThrough"
+}
