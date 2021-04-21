@@ -15,8 +15,9 @@ resource "aws_lambda_layer_version" "collector_layer" {
 }
 
 module "hello-awssdk-function" {
-  source               = "../../../sample-apps/aws-sdk/deploy/agent"
-  name                 = var.function_name
-  collector_layer_arn  = aws_lambda_layer_version.sdk_layer.arn
-  java_agent_layer_arn = aws_lambda_layer_version.collector_layer.arn
+  source                 = "../../../sample-apps/aws-sdk/deploy/agent"
+  name                   = var.function_name
+  collector_layer_arn    = aws_lambda_layer_version.sdk_layer.arn
+  java_agent_layer_arn   = aws_lambda_layer_version.collector_layer.arn
+  enable_lambda_insights = var.enable_lambda_insights
 }

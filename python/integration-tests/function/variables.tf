@@ -15,3 +15,9 @@ variable "function_name" {
   description = "Name of sample app function / API gateway"
   default     = "hello-python"
 }
+
+variable "enable_lambda_insights" {
+  type        = bool
+  description = "Whether to enable Lambda Insights. For now, only supports enabling on us-east-1"
+  default     = false
+}

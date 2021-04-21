@@ -19,4 +19,5 @@ module "hello-awssdk-function" {
   name                   = var.function_name
   collector_layer_arn    = aws_lambda_layer_version.sdk_layer.arn
   java_wrapper_layer_arn = aws_lambda_layer_version.collector_layer.arn
+  enable_lambda_insights = var.enable_lambda_insights
 }

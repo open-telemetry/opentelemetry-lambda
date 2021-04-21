@@ -15,3 +15,9 @@ variable "java_agent_layer_arn" {
   description = "ARN for the Lambda layer containing the OpenTelemetry Java Agent"
   // TODO(anuraaga): Add default when a public layer is published.
 }
+
+variable "enable_lambda_insights" {
+  type        = bool
+  description = "Whether to enable Lambda Insights. For now, only supports enabling on us-east-1"
+  default     = false
+}

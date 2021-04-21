@@ -12,10 +12,12 @@ module "hello-awssdk-javaagent" {
   timeout     = 120
   publish     = true
 
-  layers = [
-    var.collector_layer_arn,
-    var.java_agent_layer_arn
-  ]
+  layers = concat(
+    [
+      var.collector_layer_arn,
+      var.java_agent_layer_arn
+    ],
+  var.enable_lambda_insights ? ["arn:aws:lambda:us-east-1:580247275435:layer:LambdaInsightsExtension:14"] : [])
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
