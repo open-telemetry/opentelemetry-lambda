@@ -26,5 +26,19 @@ elif "service.name=" not in environ.get("OTEL_RESOURCE_ATTRIBUTES"):
         environ.get("OTEL_RESOURCE_ATTRIBUTES"),
     )
 
+# TODO: Remove if sdk support resource detector env variable configuration.
+lambda_resource_attributes = (
+    "cloud.region=%s,cloud.provider=aws,faas.name=%s,faas.version=%s"
+    % (
+        environ.get("AWS_REGION"),
+        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
+        environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
+    )
+)
+environ["OTEL_RESOURCE_ATTRIBUTES"] = "%s,%s" % (
+    lambda_resource_attributes,
+    environ.get("OTEL_RESOURCE_ATTRIBUTES"),
+)
+
 # start the runtime with the extra options
 system(" ".join(args))
