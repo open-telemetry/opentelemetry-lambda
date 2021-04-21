@@ -20,6 +20,8 @@ module "hello-lambda-function" {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-proxy-handler"
   }
 
+  tracing_mode = var.tracing_mode
+
   attach_policy_statements = true
   policy_statements = {
     s3 = {

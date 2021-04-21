@@ -19,4 +19,5 @@ module "hello-lambda-function" {
   name                = var.function_name
   collector_layer_arn = aws_lambda_layer_version.sdk_layer.arn
   sdk_layer_arn       = aws_lambda_layer_version.collector_layer.arn
+  tracing_mode        = var.tracing_mode
 }

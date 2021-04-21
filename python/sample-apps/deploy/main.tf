@@ -20,6 +20,8 @@ module "hello-lambda-function" {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
   }
 
+  tracing_mode = var.tracing_mode
+
   attach_policy_statements = true
   policy_statements = {
     s3 = {
@@ -38,6 +40,6 @@ module "api-gateway" {
   source = "../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.function.this_lambda_function_name
-  function_invoke_arn = module.function.this_lambda_function_invoke_arn
+  function_name       = module.hello-lambda-function.this_lambda_function_name
+  function_invoke_arn = module.hello-lambda-function.this_lambda_function_invoke_arn
 }

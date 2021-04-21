@@ -23,6 +23,8 @@ module "hello-lambda-function" {
     OTEL_LOG_LEVEL          = "DEBUG"
   }
 
+  tracing_mode = var.tracing_mode
+
   attach_policy_statements = true
   policy_statements = {
     s3 = {
