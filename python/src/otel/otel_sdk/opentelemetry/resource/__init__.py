@@ -14,6 +14,6 @@ class AwsLambdaResourceDetector(ResourceDetector):
             "cloud.region": aws_region,
             "cloud.provider": "aws",
             "faas.name": lambda_name,
-            "faas.version": function_version
+            "faas.version": function_version,
         }
         return Resource(env_resource_map)

@@ -2,16 +2,29 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import os
+from os import environ, system
+import sys
 
 # the path to the interpreter and all of the originally intended arguments
-args = os.sys.argv[1:]
+args = sys.argv[1:]
 
-os.environ['ORIG_HANDLER']=os.environ.get('_HANDLER')
-os.environ['_HANDLER']='otel_wrapper.lambda_handler'
+# enable OTel wrapper
+environ["ORIG_HANDLER"] = environ.get("_HANDLER")
+environ["_HANDLER"] = "otel_wrapper.lambda_handler"
 
-os.environ['OTEL_TRACES_EXPORTER']='otlp_span'
-os.environ['OTEL_EXPORTER_OTLP_SPAN_INSECURE']='true'
+# config OTel
+environ["OTEL_TRACES_EXPORTER"] = "otlp_proto_grpc_span"
+
+# set service name
+if environ.get("OTEL_RESOURCE_ATTRIBUTES") is None:
+    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s" % (
+        environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    )
+elif "service.name=" not in environ.get("OTEL_RESOURCE_ATTRIBUTES"):
+    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s,%s" % (
+        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
+        environ.get("OTEL_RESOURCE_ATTRIBUTES"),
+    )
 
 # start the runtime with the extra options
-os.system(" ".join(args))
+system(" ".join(args))
