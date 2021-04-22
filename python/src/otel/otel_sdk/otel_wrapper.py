@@ -17,15 +17,15 @@ logger = logging.getLogger(__name__)
 # resource = Resource.create().merge(AwsLambdaResourceDetector().detect())
 # trace.get_tracer_provider.resource = resource
 
+
 def _load_distros():
     for entry_point in iter_entry_points("opentelemetry_distro"):
         try:
             entry_point.load()().configure()  # type: ignore
             logger.info("Distribution %s configured", entry_point.name)
         except Exception as exc:  # pylint: disable=broad-except
-            logger.info(
-                "Distribution %s configuration failed", entry_point.name
-            )
+            logger.info("Distribution %s configuration failed", entry_point.name)
+
 
 def _load_instrumentors():
     package_to_exclude = os.environ.get(OTEL_PYTHON_DISABLED_INSTRUMENTATIONS, [])
@@ -36,14 +36,13 @@ def _load_instrumentors():
     for entry_point in iter_entry_points("opentelemetry_instrumentor"):
         try:
             if entry_point.name in package_to_exclude:
-                logger.info(
-                    "Instrumentation skipped for library %s", entry_point.name
-                )
+                logger.info("Instrumentation skipped for library %s", entry_point.name)
                 continue
             entry_point.load()().instrument()  # type: ignore
             logger.info("Instrumented %s", entry_point.name)
         except Exception as exc:  # pylint: disable=broad-except
             logger.info("Instrumenting of %s failed", entry_point.name)
+
 
 def _load_configurators():
     configured = None
@@ -74,7 +73,7 @@ class HandlerError(Exception):
 _load_distros()
 _load_configurators()
 _load_instrumentors()
-#TODO: move to python-contrib
+# TODO: move to python-contrib
 AwsLambdaInstrumentor().instrument()
 
 path = os.environ.get("ORIG_HANDLER", None)

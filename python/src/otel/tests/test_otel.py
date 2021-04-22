@@ -36,7 +36,7 @@ from otel_wrapper import lambda_handler
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
 from opentelemetry.sdk.trace.export import (
-    SimpleExportSpanProcessor,
+    SimpleSpanProcessor,
     ConsoleSpanExporter,
 )
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
@@ -46,8 +46,10 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.resource import AwsLambdaResourceDetector
 from opentelemetry.sdk.resources import Resource
 
+
 class MockLambdaContext:
     pass
+
 
 lambdaContext = MockLambdaContext()
 lambdaContext.invoked_function_arn = "arn://mock-lambda-function-arn"
@@ -61,14 +63,12 @@ trace.set_tracer_provider(
     )
 )
 trace.get_tracer_provider().add_span_processor(
-    SimpleExportSpanProcessor(ConsoleSpanExporter()),
+    SimpleSpanProcessor(ConsoleSpanExporter()),
 )
 
 
 in_memory_exporter = InMemorySpanExporter()
-trace.get_tracer_provider().add_span_processor(
-    SimpleExportSpanProcessor(in_memory_exporter)
-)
+trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(in_memory_exporter))
 
 
 def test_lambda_instrument():

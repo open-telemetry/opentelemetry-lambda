@@ -14,6 +14,7 @@ async def callAioHttp():
     async with aiohttp.ClientSession() as session:
         html = await fetch(session, "http://httpbin.org/")
 
+
 s3 = boto3.resource("s3")
 
 # lambda function
