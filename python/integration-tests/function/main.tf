@@ -7,6 +7,7 @@ resource "aws_lambda_layer_version" "sdk_layer" {
 }
 
 resource "aws_lambda_layer_version" "collector_layer" {
+  count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
   filename            = "${path.module}/../../../collector/build/collector-extension.zip"
   compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
@@ -17,7 +18,7 @@ resource "aws_lambda_layer_version" "collector_layer" {
 module "hello-lambda-function" {
   source              = "../../sample-apps/deploy"
   name                = var.function_name
-  collector_layer_arn = aws_lambda_layer_version.sdk_layer.arn
-  sdk_layer_arn       = aws_lambda_layer_version.collector_layer.arn
+  collector_layer_arn = var.enable_collector_layer ? aws_lambda_layer_version.collector_layer[0].arn : null
+  sdk_layer_arn       = aws_lambda_layer_version.sdk_layer.arn
   tracing_mode        = var.tracing_mode
 }

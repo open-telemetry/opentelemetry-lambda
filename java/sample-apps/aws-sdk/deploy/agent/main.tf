@@ -12,10 +12,10 @@ module "hello-lambda-function" {
   timeout     = 120
   publish     = true
 
-  layers = [
+  layers = collapse([
     var.collector_layer_arn,
     var.sdk_layer_arn
-  ]
+  ])
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"

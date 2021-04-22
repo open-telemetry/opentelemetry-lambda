@@ -11,10 +11,10 @@ module "hello-lambda-function" {
   memory_size = 384
   timeout     = 20
 
-  layers = [
+  layers = collapse([
     var.collector_layer_arn,
     var.sdk_layer_arn
-  ]
+  ])
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
