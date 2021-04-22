@@ -101,7 +101,7 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
         parent_context = propagator.extract({"X-Amzn-Trace-Id": xray_trace_id})
 
         with self._tracer.start_as_current_span(
-            name=orig_handler, context=parent_context, kind=SpanKind.CONSUMER
+            name=orig_handler, context=parent_context, kind=SpanKind.SERVER
         ) as span:
             # Refer: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/semantic_conventions/faas.md#example
             span.set_attribute("faas.execution", ctx_aws_request_id)
