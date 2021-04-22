@@ -87,7 +87,7 @@ def test_lambda_instrument():
 
     assert span.context.trace_id == 0x5FB7331105E8BB83207FA31D4D9CDB4C
 
-    assert span.kind == SpanKind.CONSUMER
+    assert span.kind == SpanKind.SERVER
 
     # TODO: waiting OTel Python supports env variable for resource detector
     resource_atts = span.resource.attributes
