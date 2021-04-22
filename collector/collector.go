@@ -16,12 +16,12 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
+	"io"
+	"log"
+	"os"
 )
 
 var (
@@ -56,6 +56,7 @@ func NewCollector(factories component.Factories) *Collector {
 	f, err := os.Open(configFile)
 	if err != nil {
 		log.Printf("Reading AOT config from file: %v failed.\n", configFile)
+		panic("Cannot load Collector config.")
 	}
 	var r io.Reader = f
 	col := &Collector{
