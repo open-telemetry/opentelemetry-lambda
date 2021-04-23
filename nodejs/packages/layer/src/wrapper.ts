@@ -7,6 +7,11 @@ import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lam
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { CollectorTraceExporter } from '@opentelemetry/exporter-collector-proto';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
+import {
+  detectResources,
+  envDetector,
+  processDetector,
+} from '@opentelemetry/resources';
 import { AwsInstrumentation } from 'opentelemetry-instrumentation-aws-sdk';
 
 declare global {
@@ -31,7 +36,9 @@ registerInstrumentations({
 });
 
 async function initializeProvider() {
-  const resource = await awsLambdaDetector.detect();
+  const resource = await detectResources({
+    detectors: [awsLambdaDetector, envDetector, processDetector],
+  });
 
   let config: NodeTracerConfig = {
     resource,
