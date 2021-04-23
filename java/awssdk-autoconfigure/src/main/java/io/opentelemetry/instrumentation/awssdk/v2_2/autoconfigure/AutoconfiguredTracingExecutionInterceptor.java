@@ -43,7 +43,15 @@ public class AutoconfiguredTracingExecutionInterceptor implements ExecutionInter
 
   public AutoconfiguredTracingExecutionInterceptor() {
     delegate =
-        AwsSdkTracing.newBuilder(GlobalOpenTelemetry.get()).build().newExecutionInterceptor();
+        AwsSdkTracing.newBuilder(GlobalOpenTelemetry.get())
+            // TODO(anuraaga): Replace this by adding ability to configure default property values
+            // via sdk-extension-autoconfigure.
+            .setCaptureExperimentalSpanAttributes(
+                "true"
+                    .equals(
+                        System.getenv("OTEL_INSTRUMENTATION_AWS_SDK_EXPERIMENTAL_SPAN_ATTRIBUTES")))
+            .build()
+            .newExecutionInterceptor();
   }
 
   @Override
