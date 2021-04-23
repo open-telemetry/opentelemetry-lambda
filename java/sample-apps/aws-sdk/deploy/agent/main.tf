@@ -12,7 +12,7 @@ module "hello-lambda-function" {
   timeout     = 120
   publish     = true
 
-  layers = collapse([
+  layers = compact([
     var.collector_layer_arn,
     var.sdk_layer_arn
   ])
