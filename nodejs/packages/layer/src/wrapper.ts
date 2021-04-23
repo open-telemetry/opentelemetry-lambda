@@ -1,7 +1,7 @@
 import { NodeTracerConfig, NodeTracerProvider } from '@opentelemetry/node';
 import {
+  BatchSpanProcessor,
   SDKRegistrationConfig,
-  SimpleSpanProcessor,
 } from '@opentelemetry/tracing';
 import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -41,9 +41,8 @@ async function initializeProvider() {
   }
 
   const tracerProvider = new NodeTracerProvider(config);
-  // TODO(anuraaga): Switch to BatchSpanProcessor after using published instrumentation package.
   tracerProvider.addSpanProcessor(
-    new SimpleSpanProcessor(new CollectorTraceExporter())
+    new BatchSpanProcessor(new CollectorTraceExporter())
   );
 
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
