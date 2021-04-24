@@ -16,12 +16,13 @@ package main
 
 import (
 	"fmt"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/collector/service/parserprovider"
 	"io"
 	"log"
 	"os"
+
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/collector/service/parserprovider"
 )
 
 var (
