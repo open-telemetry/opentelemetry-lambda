@@ -12,17 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package lambdacollector
+package main
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
-
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
+	"io"
+	"log"
+	"os"
+)
+
+var (
+	// Version variable will be replaced at link time after `make` has been run.
+	Version = "latest"
+
+	// GitHash variable will be replaced at link time after `make` has been run.
+	GitHash = "<NOT PROPERLY GENERATED>"
 )
 
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
