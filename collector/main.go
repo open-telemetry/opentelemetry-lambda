@@ -23,16 +23,7 @@ import (
 	"syscall"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacollector"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
-)
-
-var (
-	// Version variable will be replaced at link time after `make` has been run.
-	Version = "latest"
-
-	// GitHash variable will be replaced at link time after `make` has been run.
-	GitHash = "<NOT PROPERLY GENERATED>"
 )
 
 var (
@@ -44,7 +35,7 @@ func main() {
 	logln("Launching OpenTelemetry Lambda extension, version: ", Version)
 
 	factories, _ := lambdacomponents.Components()
-	collector := lambdacollector.NewCollector(factories)
+	collector := NewCollector(factories)
 	if err := collector.Start(); err != nil {
 		log.Fatalf("Failed to start the extension: %v", err)
 	}
@@ -70,7 +61,7 @@ func main() {
 	processEvents(ctx, collector)
 }
 
-func processEvents(ctx context.Context, collector *lambdacollector.Collector) {
+func processEvents(ctx context.Context, collector *Collector) {
 	for {
 		select {
 		case <-ctx.Done():
