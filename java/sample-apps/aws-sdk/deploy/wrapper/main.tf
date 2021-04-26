@@ -40,7 +40,7 @@ module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.hello-lambda-function.this_lambda_function_name
-  function_invoke_arn = module.hello-lambda-function.this_lambda_function_invoke_arn
+  function_name       = module.hello-lambda-function.lambda_function_name
+  function_invoke_arn = module.hello-lambda-function.lambda_function_invoke_arn
   enable_xray_tracing = var.tracing_mode == "Active"
 }
