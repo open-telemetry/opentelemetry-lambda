@@ -18,8 +18,6 @@ module "hello-lambda-function" {
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-proxy-handler"
-    OTEL_TRACES_EXPORTER    = "logging"
-    OTEL_METRICS_EXPORTER   = "logging"
   }
 
   tracing_mode = var.tracing_mode
