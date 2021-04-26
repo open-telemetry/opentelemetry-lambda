@@ -22,3 +22,8 @@ module "hello-lambda-function" {
   sdk_layer_arn       = aws_lambda_layer_version.sdk_layer.arn
   tracing_mode        = var.tracing_mode
 }
+
+resource "aws_iam_role_policy_attachment" "hello-lambda-cloudwatch-insights" {
+  role       = module.hello-lambda-function.function_role_name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
