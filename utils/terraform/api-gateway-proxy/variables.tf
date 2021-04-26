@@ -18,3 +18,9 @@ variable "function_invoke_arn" {
   type        = string
   description = "Invoke ARN of function to proxy to"
 }
+
+variable "enable_xray_tracing" {
+  type        = bool
+  description = "Whether to enable xray tracing of the API gateway"
+  default     = false
+}
