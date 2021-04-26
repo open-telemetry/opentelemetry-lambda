@@ -11,8 +11,8 @@ LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUI
 
 build-OTelLayer:
 	mkdir -p $(ARTIFACTS_DIR)/python
-	pip3 install -r $(SDK)/requirements.txt -t $(ARTIFACTS_DIR)/python
-	pip3 install -r $(SDK)/requirements-nodeps.txt -t $(ARTIFACTS_DIR)/tmp --no-deps
+	python3 -m pip install -r $(SDK)/requirements.txt -t $(ARTIFACTS_DIR)/python
+	python3 -m pip install -r $(SDK)/requirements-nodeps.txt -t $(ARTIFACTS_DIR)/tmp --no-deps
 	cp -r $(ARTIFACTS_DIR)/tmp/* $(ARTIFACTS_DIR)/python/
 	rm -rf $(ARTIFACTS_DIR)/tmp
 	cp -r $(SDK)/* $(ARTIFACTS_DIR)/python
