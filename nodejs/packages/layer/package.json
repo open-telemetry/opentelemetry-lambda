@@ -32,7 +32,6 @@
     "@opentelemetry/instrumentation-aws-lambda": "https://gitpkg.now.sh/anuraaga/opentelemetry-js-contrib/plugins/node/opentelemetry-instrumentation-aws-lambda?2f43915dd94f21a4daf54632db2c12c1ca597a6d",
     "@opentelemetry/instrumentation-dns": "^0.15.0",
     "@opentelemetry/instrumentation-express": "^0.15.0",
-    "@opentelemetry/instrumentation-fetch": "^0.18.2",
     "@opentelemetry/instrumentation-graphql": "^0.15.0",
     "@opentelemetry/instrumentation-grpc": "^0.18.2",
     "@opentelemetry/instrumentation-hapi": "^0.15.0",

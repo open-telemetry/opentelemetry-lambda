@@ -9,7 +9,6 @@ import {
 const{ AwsLambdaInstrumentation } = require('@opentelemetry/instrumentation-aws-lambda');
 const { DnsInstrumentation } = require('@opentelemetry/instrumentation-dns');
 const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
-const { FetchInstrumentation } = require('@opentelemetry/instrumentation-fetch');
 const { GraphQLInstrumentation } = require('@opentelemetry/instrumentation-graphql');
 const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
 const { HapiInstrumentation } = require('@opentelemetry/instrumentation-hapi');
@@ -47,7 +46,6 @@ const instrumentations = [
   new AwsLambdaInstrumentation(),
   new DnsInstrumentation(),
   new ExpressInstrumentation(),
-  new FetchInstrumentation(),
   new GraphQLInstrumentation(),
   new GrpcInstrumentation(),
   new HapiInstrumentation(),
