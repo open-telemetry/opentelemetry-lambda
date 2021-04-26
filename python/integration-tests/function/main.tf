@@ -24,6 +24,6 @@ module "hello-lambda-function" {
 }
 
 resource "aws_iam_role_policy_attachment" "hello-lambda-cloudwatch-insights" {
-  role = module.hello-lambda-function.function_role_name
+  role       = module.hello-lambda-function.function_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
