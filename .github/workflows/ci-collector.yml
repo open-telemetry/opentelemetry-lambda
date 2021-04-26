@@ -1,0 +1,32 @@
+name: "Continuous Build (Collector)"
+
+on:
+  push:
+    paths:
+      - 'collector/**'
+      - '.github/workflows/ci-collector.yml'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'collector/**'
+      - '.github/workflows/ci-collector.yml'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16'
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - run: make package
+        working-directory: collector

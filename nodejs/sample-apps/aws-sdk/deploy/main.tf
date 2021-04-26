@@ -11,10 +11,10 @@ module "hello-lambda-function" {
   memory_size = 384
   timeout     = 20
 
-  layers = [
+  layers = compact([
     var.collector_layer_arn,
     var.sdk_layer_arn
-  ]
+  ])
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
@@ -45,5 +45,6 @@ module "api-gateway" {
   name                = var.name
   function_name       = module.hello-lambda-function.this_lambda_function_name
   function_invoke_arn = module.hello-lambda-function.this_lambda_function_invoke_arn
+  enable_xray_tracing = var.tracing_mode == "Active"
 }
 
