@@ -7,8 +7,8 @@ ADD . /workspace
 WORKDIR /workspace
 
 RUN mkdir -p /build && \
-  pip3 install -r otel_sdk/requirements.txt -t /build/python && \
-  pip3 install -r otel_sdk/requirements-nodeps.txt -t /build/tmp --no-deps && \
+  python3 -m pip install -r otel_sdk/requirements.txt -t /build/python && \
+  python3 -m pip install -r otel_sdk/requirements-nodeps.txt -t /build/tmp --no-deps && \
   cp -r /build/tmp/* /build/python/ && \
   rm -rf /build/tmp && \
   cp -r otel_sdk/* /build/python && \
