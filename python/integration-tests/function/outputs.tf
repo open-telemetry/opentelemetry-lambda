@@ -7,7 +7,7 @@ output "function_role_name" {
 }
 
 output "collector_layer_arn" {
-  value = aws_lambda_layer_version.collector_layer.arn
+  value = aws_lambda_layer_version.collector_layer[0].arn
 }
 
 output "sdk_layer_arn" {
