@@ -4,11 +4,6 @@ plugins {
 
 val agentDependency: String? = rootProject.findProperty("otel.lambda.javaagent.dependency") as String?
 
-val agent by configurations.creating {
-    isCanBeConsumed = false
-    isCanBeResolved = false
-}
-
 val agentClasspath by configurations.creating {
     extendsFrom(configurations["implementation"])
     isCanBeConsumed = false
