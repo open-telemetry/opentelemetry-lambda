@@ -9,7 +9,7 @@ using System;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace SampleApps
+namespace AwsSdkSample
 {
     public class Function
     {
@@ -26,7 +26,7 @@ namespace SampleApps
                 .Build();
         }
 
-        // use SampleApps::SampleApps.Function::TracingFunctionHandler as input Lambda handler instead
+        // use AwsSdkSample::AwsSdkSample.Function::TracingFunctionHandler as input Lambda handler instead
         public APIGatewayProxyResponse TracingFunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
         {
             return AWSLambdaWrapper.Trace(tracerProvider, FunctionHandler, request, context);

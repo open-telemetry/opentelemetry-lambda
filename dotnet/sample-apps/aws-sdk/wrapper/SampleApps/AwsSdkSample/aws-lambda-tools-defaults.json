@@ -12,7 +12,7 @@
   "function-runtime": "dotnetcore3.1",
   "function-memory-size": 256,
   "function-timeout": 30,
-  "function-handler": "SampleApps::SampleApps.Function::TracingFunctionHandler",
+  "function-handler": "AwsSdkSample::AwsSdkSample.Function::TracingFunctionHandler",
   "function-name": "",
   "function-description": "",
   "package-type": "Zip",
