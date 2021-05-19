@@ -2,7 +2,16 @@ plugins {
     `java-library`
 }
 
-val agentDependency = rootProject.findProperty("otel.lambda.javaagent.dependency")
+val agentDependency: String? = rootProject.findProperty("otel.lambda.javaagent.dependency") as String?
+
+val agentClasspath by configurations.creating {
+    extendsFrom(configurations["implementation"])
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    attributes {
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
+    }
+}
 
 dependencies {
     if (agentDependency != null) {
@@ -17,8 +26,8 @@ tasks {
         archiveFileName.set("opentelemetry-javaagent-layer.zip")
         destinationDirectory.set(file("$buildDir/distributions"))
 
-        from(configurations["runtimeClasspath"]) {
-            rename("opentelemetry-javaagent-.*.jar", "opentelemetry-javaagent.jar")
+        from(agentClasspath) {
+            rename(".*.jar", "opentelemetry-javaagent.jar")
         }
 
         from("scripts")
