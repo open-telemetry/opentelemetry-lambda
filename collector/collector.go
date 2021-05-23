@@ -68,11 +68,10 @@ func NewCollector(factories component.Factories) *Collector {
 
 func (c *Collector) Start() error {
 	params := service.Parameters{
-		ApplicationStartInfo: component.ApplicationStartInfo{
-			ExeName:  "otelcol",
-			LongName: "Lambda Collector",
+		BuildInfo: component.BuildInfo{
+			Command:  "otelcol",
+			Description: "Lambda Collector",
 			Version:  Version,
-			GitHash:  GitHash,
 		},
 		ParserProvider: c.parserProvider,
 		Factories:      c.factories,
