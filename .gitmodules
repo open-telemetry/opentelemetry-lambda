@@ -1,3 +1,0 @@
-[submodule "dotnet/sample-apps/aws-sdk/wrapper/SampleApps/opentelemetry-dotnet-contrib"]
-	path = dotnet/sample-apps/aws-sdk/wrapper/SampleApps/opentelemetry-dotnet-contrib
-	url = https://github.com/open-telemetry/opentelemetry-dotnet-contrib.git
