@@ -4,6 +4,14 @@ receivers:
       grpc:
       http:
 
+processors:
+  attributesprocessor:
+  filterprocessor:
+  memorylimiter:
+  probabilisticsamplerprocessor:
+  resourceprocessor:
+  spanprocessor:
+
 exporters:
   logging:
     loglevel: debug
@@ -13,6 +21,7 @@ service:
     traces:
       receivers: [otlp]
       exporters: [logging]
+      processors: [attributesprocessor, filterprocessor, memorylimiter, probabilisticsamplerprocessor, resourceprocessor, spanprocessor]
     metrics:
       receivers: [otlp]
       exporters: [logging]

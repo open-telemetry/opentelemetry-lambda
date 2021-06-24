@@ -20,6 +20,12 @@ import (
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/processor/attributesprocessor"
+	"go.opentelemetry.io/collector/processor/filterprocessor"
+	"go.opentelemetry.io/collector/processor/memorylimiter"
+	"go.opentelemetry.io/collector/processor/probabilisticsamplerprocessor"
+	"go.opentelemetry.io/collector/processor/resourceprocessor"
+	"go.opentelemetry.io/collector/processor/spanprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 )
 
@@ -42,9 +48,22 @@ func Components() (component.Factories, error) {
 		errs = append(errs, err)
 	}
 
+	processors, err := component.MakeProcessorFactoryMap(
+		attributesprocessor.NewFactory(),
+		filterprocessor.NewFactory(),
+		memorylimiter.NewFactory(),
+		probabilisticsamplerprocessor.NewFactory(),
+		resourceprocessor.NewFactory(),
+		spanprocessor.NewFactory(),
+	)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
 	factories := component.Factories{
 		Receivers: receivers,
 		Exporters: exporters,
+		Processors: processors,
 	}
 
 	return factories, consumererror.Combine(errs)
