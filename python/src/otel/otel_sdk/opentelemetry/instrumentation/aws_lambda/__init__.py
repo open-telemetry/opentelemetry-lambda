@@ -47,13 +47,14 @@ API
 import logging
 import os
 from importlib import import_module
-
+from typing import Collection
 from wrapt import wrap_function_wrapper
 
 # TODO: aws propagator
 from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
     AwsXRayFormat,
 )
+from opentelemetry.instrumentation.aws_lambda.package import _instruments
 from opentelemetry.instrumentation.aws_lambda.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
@@ -63,6 +64,9 @@ logger = logging.getLogger(__name__)
 
 
 class AwsLambdaInstrumentor(BaseInstrumentor):
+    def instrumentation_dependencies(self) -> Collection[str]:
+        return _instruments
+
     def _instrument(self, **kwargs):
         self._tracer = get_tracer(__name__, __version__, kwargs.get("tracer_provider"))
 
