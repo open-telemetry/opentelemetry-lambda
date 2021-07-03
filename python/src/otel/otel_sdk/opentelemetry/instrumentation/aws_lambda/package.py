@@ -13,4 +13,4 @@
 # limitations under the License.
 
 
-_instruments = ("not-applicable >= 0.1.0",)
+_instruments = ()

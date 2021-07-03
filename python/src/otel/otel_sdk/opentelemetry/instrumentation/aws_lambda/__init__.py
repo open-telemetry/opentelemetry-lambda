@@ -30,7 +30,7 @@ Usage
     )
 
     # Enable instrumentation
-    AwsLambdaInstrumentor().instrument()
+    AwsLambdaInstrumentor().instrument(skip_dep_check=True)
 
     # Lambda function
     def lambda_handler(event, context):
