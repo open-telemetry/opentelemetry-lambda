@@ -74,7 +74,7 @@ _load_distros()
 _load_configurators()
 _load_instrumentors()
 # TODO: move to python-contrib
-AwsLambdaInstrumentor().instrument()
+AwsLambdaInstrumentor().instrument(skip_dep_check=True)
 
 path = os.environ.get("ORIG_HANDLER", None)
 if path is None:
