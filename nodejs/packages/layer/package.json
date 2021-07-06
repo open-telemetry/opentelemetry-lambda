@@ -48,6 +48,6 @@
     "@opentelemetry/resource-detector-aws": "^0.23.0",
     "@opentelemetry/resources": "^0.23.0",
     "@opentelemetry/tracing": "^0.23.0",
-    "opentelemetry-instrumentation-aws-sdk": "^0.3.0"
+    "opentelemetry-instrumentation-aws-sdk": "^0.23.0"
   }
 }
