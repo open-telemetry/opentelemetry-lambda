@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -69,10 +70,10 @@ func lambda_handler(ctx context.Context) (interface{}, error) {
 	}
 	fmt.Printf("Latest OTel Go Release is '%s'\n", data["name"])
 
-	return struct {
-		StatusCode int
-		Trace string
-	}{StatusCode: http.StatusOK, Trace: os.Getenv("_X_AMZN_TRACE_ID")}, nil
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       os.Getenv("_X_AMZN_TRACE_ID"),
+	}, nil
 }
 
 func main() {
