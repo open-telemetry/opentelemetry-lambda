@@ -13,6 +13,6 @@ require (
 )
 
 replace (
-	go.opentelemetry.io/contrib/detectors/aws/lambda => github.com/garrettwegan/opentelemetry-go-contrib/detectors/aws/lambda v0.0.0-20210709170325-db3d3cb103be
-	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda => github.com/garrettwegan/opentelemetry-go-contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.0.0-20210709170325-db3d3cb103be
+	go.opentelemetry.io/contrib/detectors/aws/lambda => github.com/garrettwegan/opentelemetry-go-contrib/detectors/aws/lambda latest
+	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda => github.com/garrettwegan/opentelemetry-go-contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda latest
 )
