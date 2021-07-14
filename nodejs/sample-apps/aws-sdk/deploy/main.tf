@@ -17,10 +17,11 @@ module "hello-lambda-function" {
   ])
 
   environment_variables = {
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
-    OTEL_TRACES_EXPORTER    = "logging"
-    OTEL_METRICS_EXPORTER   = "logging"
-    OTEL_LOG_LEVEL          = "DEBUG"
+    AWS_LAMBDA_EXEC_WRAPPER     = "/opt/otel-handler"
+    OTEL_TRACES_EXPORTER        = "logging"
+    OTEL_METRICS_EXPORTER       = "logging"
+    OTEL_LOG_LEVEL              = "DEBUG"
+    OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:55681/v1/traces"
   }
 
   tracing_mode = var.tracing_mode
