@@ -1,3 +1,7 @@
+locals {
+  collector_layer_arn = "arn:aws:lambda:${data.aws_region.current.name}:901920570463:layer:aws-otel-nodejs-ver-0-23-0:1"
+}
+
 module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -11,10 +15,9 @@ module "hello-lambda-function" {
   memory_size = 384
   timeout     = 20
 
-  layers = compact([
-    var.collector_layer_arn,
-    var.sdk_layer_arn
-  ])
+  layers = [
+    local.collector_layer_arn
+  ]
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER     = "/opt/otel-handler"
