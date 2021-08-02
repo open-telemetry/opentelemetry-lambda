@@ -4,6 +4,8 @@ plugins {
 }
 
 dependencies {
+    implementation("io.opentelemetry:opentelemetry-api")
+    implementation("io.opentelemetry:opentelemetry-api-metrics")
     implementation("com.amazonaws:aws-lambda-java-core")
     implementation("com.amazonaws:aws-lambda-java-events")
     implementation("org.apache.logging.log4j:log4j-core")
