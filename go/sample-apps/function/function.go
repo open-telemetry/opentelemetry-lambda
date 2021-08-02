@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda/xrayconfig"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -77,5 +78,5 @@ func lambda_handler(ctx context.Context) (interface{}, error) {
 }
 
 func main() {
-	lambda.Start(otellambda.LambdaHandlerWrapper(lambda_handler))
+	lambda.Start(otellambda.WrapHandlerFunction(lambda_handler, xrayconfig.AllRecommendedOptions()...))
 }
