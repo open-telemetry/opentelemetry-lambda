@@ -17,6 +17,13 @@ public class AwsSdkRequestHandler
     implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
   private static final Logger logger = LogManager.getLogger(AwsSdkRequestHandler.class);
+  private static Meter sampleMeter = GlobalMeterProvider.getMeter("aws-otel", "1.0");
+  LongUpDownCounter queueSizeCounter =
+      sampleMeter
+          .longUpDownCounterBuilder("queueSizeChangeMetricName")
+          .setDescription("Queue Size change")
+          .setUnit("one")
+          .build();
 
   @Override
   public APIGatewayProxyResponseEvent handleRequest(
@@ -31,14 +38,6 @@ public class AwsSdkRequestHandler
     }
 
     // Generate a sample counter metric using the OpenTelemetry Java Metrics API
-    Meter sampleMeter = GlobalMeterProvider.getMeter("aws-otel", "1.0");
-    LongUpDownCounter queueSizeCounter =
-        sampleMeter
-            .longUpDownCounterBuilder("queueSizeChangeMetricName")
-            .setDescription("Queue Size change")
-            .setUnit("one")
-            .build();
-
     queueSizeCounter.add(2, Labels.of("apiName", "apiName", "statuscode", "200"));
 
     System.out.println("emit metric with queue size change " + 2 + "," + "apiName" + "," + "200");
