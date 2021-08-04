@@ -40,8 +40,6 @@ public class AwsSdkRequestHandler
     // Generate a sample counter metric using the OpenTelemetry Java Metrics API
     queueSizeCounter.add(2, Labels.of("apiName", "apiName", "statuscode", "200"));
 
-    System.out.println("emit metric with queue size change " + 2 + "," + "apiName" + "," + "200");
-
     return response;
   }
 }
