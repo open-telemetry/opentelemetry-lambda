@@ -20,7 +20,7 @@ public class AwsSdkRequestHandler
   private static Meter sampleMeter = GlobalMeterProvider.getMeter("aws-otel", "1.0");
   LongUpDownCounter queueSizeCounter =
       sampleMeter
-          .longUpDownCounterBuilder("queueSizeChangeMetricName")
+          .longUpDownCounterBuilder("queueSizeChange")
           .setDescription("Queue Size change")
           .setUnit("one")
           .build();
