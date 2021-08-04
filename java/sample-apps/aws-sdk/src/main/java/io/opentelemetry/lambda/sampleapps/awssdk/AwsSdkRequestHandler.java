@@ -17,8 +17,8 @@ public class AwsSdkRequestHandler
     implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
   private static final Logger logger = LogManager.getLogger(AwsSdkRequestHandler.class);
-  private static Meter sampleMeter = GlobalMeterProvider.getMeter("aws-otel", "1.0");
-  LongUpDownCounter queueSizeCounter =
+  private static final Meter sampleMeter = GlobalMeterProvider.getMeter("aws-otel", "1.0");
+  private static final LongUpDownCounter queueSizeCounter =
       sampleMeter
           .longUpDownCounterBuilder("queueSizeChange")
           .setDescription("Queue Size change")
