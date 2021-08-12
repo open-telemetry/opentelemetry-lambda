@@ -49,6 +49,7 @@ func getConfig() string {
 	if !ex {
 		return "/opt/collector-config/config.yaml"
 	}
+	log.Printf("Using config file at path %v", val)
 	return val
 }
 
