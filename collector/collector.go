@@ -22,6 +22,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 var (
@@ -81,7 +82,9 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
-	c.svc.Command().SetArgs([]string{"--metrics-level=NONE"})
+	if args, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_ARGS"); ok {
+		c.svc.Command().SetArgs(strings.Split(args, " "))
+	}
 
 	c.appDone = make(chan struct{})
 	go func() {
