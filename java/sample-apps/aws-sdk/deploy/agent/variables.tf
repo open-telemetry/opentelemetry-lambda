@@ -14,8 +14,6 @@ variable "collector_layer_arn" {
 variable "collector_config_layer_arn" {
   type        = string
   description = "ARN for the Lambda layer containing the OpenTelemetry collector configuration file"
-  // TODO(anuraaga): Add default when a public layer is published.
-  default = "arn:aws:lambda:us-east-1:614732350472:layer:CustomCollectorConfig:1"
 }
 
 

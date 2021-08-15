@@ -20,7 +20,7 @@ module "hello-lambda-function" {
 
   environment_variables = {
     AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler",
-    OPENTELEMETRY_COLLECTOR_CONFIG_FILE	= "/opt/collector.yaml",
+    OPENTELEMETRY_COLLECTOR_CONFIG_FILE	= "/opt/config.yaml",
   }
 
   tracing_mode = var.tracing_mode
