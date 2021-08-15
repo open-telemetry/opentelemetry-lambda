@@ -24,6 +24,8 @@ terraform init
 terraform apply
 ```
 
+For the agent version, you can optionally enable a pipeline to send Prometheus metrics to Amazon Managed Service for Prometheus (AMP). To enable it, provide the ARN of a lambda layer with a working AMP region and endpoint (see example [configuration](https://aws-otel.github.io/docs/getting-started/prometheus-remote-write-exporter#aws-prometheus-remote-write-exporter)) in a file named `config.yaml` file (similar to the provided [config.yaml](./../../../collector/config.yaml)). After running the `terraform apply`, when prompted, provide the ARN of the layer you created. 
+
 After deployment, a URL which can be used to invoke the function via API Gateway will be displayed. The agent version
 tends to take 10-20s for the first request, while the wrapper version tends to take 5-10s. Confirm
 that spans are logged in the CloudWatch logs for the function on the AWS Console either for the
