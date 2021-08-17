@@ -24,7 +24,7 @@ terraform init
 terraform apply
 ```
 
-For the agent version, to optionally enable a pipeline to send Prometheus metrics to a Prometheus backend, provide the ARN of a Lambda layer with a custom collector configuration in a file named `config.yaml` when prompted after running the `terraform apply` command. 
+For the agent version, to change the configuration of the OpenTelemetry collector, you can provide the ARN of a Lambda layer with a custom collector configuration in a file named `config.yaml` when prompted after running the `terraform apply` command. 
 
 After deployment, a URL which can be used to invoke the function via API Gateway will be displayed. The agent version
 tends to take 10-20s for the first request, while the wrapper version tends to take 5-10s. Confirm
