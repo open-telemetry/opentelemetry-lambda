@@ -73,3 +73,16 @@ You can configure environment variables via CloudFormation template as well:
         Variables:
           OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector.yaml
 ```
+
+You can configure arguments passed to the collector command line with the
+`OPENTELEMETRY_COLLECTOR_ARGS` environment variable.
+
+```yaml
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      ...
+      Environment:
+        Variables:
+          OPENTELEMETRY_COLLECTOR_ARGS: --log-level=debug
+```
