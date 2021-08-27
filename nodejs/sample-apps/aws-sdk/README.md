@@ -1,5 +1,7 @@
 # AWS SDK Sample Application
 
+**This Sample App is a work-in-progress because it depends on the OpenTelemetry public layer. The public layer will not be published
+
 This sample application demonstrates usage of the AWS SDK. To try it out, make sure the collector and nodejs Lambda
 layers are built.
 
