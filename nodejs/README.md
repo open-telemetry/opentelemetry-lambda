@@ -18,6 +18,12 @@ npm install
 
 This will download all dependencies and compile all code. The layer zip file will be present at `./packages/layer/build/layer.zip`.
 
+To upload the layer to your AWS Lambda account, you can run:
+
+```
+aws lambda publish-layer-version --layer-name nodejs-otel --zip-file fileb://packages/layer/build/layer.zip --compatible-runtimes nodejs12.x nodejs10.x --query 'LayerVersionArn' --output text
+```
+
 ## Sample applications
 
 Sample applications are provided to show usage of the above layer.
