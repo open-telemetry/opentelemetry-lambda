@@ -5,8 +5,10 @@ import os
 from importlib import import_module
 from pkg_resources import iter_entry_points
 
+from opentelemetry.instrumentation.dependencies import get_dist_dependency_conflicts
 from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
 from opentelemetry.environment_variables import OTEL_PYTHON_DISABLED_INSTRUMENTATIONS
+from opentelemetry.instrumentation.distro import BaseDistro, DefaultDistro
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,31 +19,80 @@ logger = logging.getLogger(__name__)
 # resource = Resource.create().merge(AwsLambdaResourceDetector().detect())
 # trace.get_tracer_provider.resource = resource
 
-
-def _load_distros():
+def _load_distros() -> BaseDistro:
     for entry_point in iter_entry_points("opentelemetry_distro"):
         try:
-            entry_point.load()().configure()  # type: ignore
-            logger.info("Distribution %s configured", entry_point.name)
+            distro = entry_point.load()()
+            if not isinstance(distro, BaseDistro):
+                logger.debug(
+                    "%s is not an OpenTelemetry Distro. Skipping",
+                    entry_point.name,
+                )
+                continue
+            logger.debug(
+                "Distribution %s will be configured", entry_point.name
+            )
+            return distro
         except Exception as exc:  # pylint: disable=broad-except
             logger.info("Distribution %s configuration failed", entry_point.name)
+    return DefaultDistro()
 
 
-def _load_instrumentors():
+def _load_instrumentors(distro):
     package_to_exclude = os.environ.get(OTEL_PYTHON_DISABLED_INSTRUMENTATIONS, [])
     if isinstance(package_to_exclude, str):
         package_to_exclude = package_to_exclude.split(",")
         # to handle users entering "requests , flask" or "requests, flask" with spaces
         package_to_exclude = [x.strip() for x in package_to_exclude]
+
     for entry_point in iter_entry_points("opentelemetry_instrumentor"):
+        if entry_point.name in package_to_exclude:
+            logger.debug(
+                "Instrumentation skipped for library %s", entry_point.name
+            )
+            continue
+
         try:
-            if entry_point.name in package_to_exclude:
-                logger.info("Instrumentation skipped for library %s", entry_point.name)
+            conflict = get_dist_dependency_conflicts(entry_point.dist)
+            if conflict:
+                logger.debug(
+                    "Skipping instrumentation %s: %s",
+                    entry_point.name,
+                    conflict,
+                )
                 continue
-            entry_point.load()().instrument()  # type: ignore
-            logger.info("Instrumented %s", entry_point.name)
+
+            # tell instrumentation to not run dep checks again as we already did it above
+            distro.load_instrumentor(entry_point, skip_dep_check=True)
+            logger.debug("Instrumented %s", entry_point.name)
         except Exception as exc:  # pylint: disable=broad-except
             logger.info("Instrumenting of %s failed", entry_point.name)
+
+# def _load_distros():
+#     for entry_point in iter_entry_points("opentelemetry_distro"):
+#         try:
+#             distro = entry_point.load()()
+#             entry_point.load()().configure()  # type: ignore
+#             logger.info("Distribution %s configured", entry_point.name)
+#         except Exception as exc:  # pylint: disable=broad-except
+#             logger.info("Distribution %s configuration failed", entry_point.name)
+#
+#
+# def _load_instrumentors():
+#     package_to_exclude = os.environ.get(OTEL_PYTHON_DISABLED_INSTRUMENTATIONS, [])
+#     if isinstance(package_to_exclude, str):
+#         package_to_exclude = package_to_exclude.split(",")
+#         # to handle users entering "requests , flask" or "requests, flask" with spaces
+#         package_to_exclude = [x.strip() for x in package_to_exclude]
+#     for entry_point in iter_entry_points("opentelemetry_instrumentor"):
+#         try:
+#             if entry_point.name in package_to_exclude:
+#                 logger.info("Instrumentation skipped for library %s", entry_point.name)
+#                 continue
+#             entry_point.load()().instrument()  # type: ignore
+#             logger.info("Instrumented %s", entry_point.name)
+#         except Exception as exc:  # pylint: disable=broad-except
+#             logger.info("Instrumenting of %s failed", entry_point.name)
 
 
 def _load_configurators():
@@ -70,9 +121,10 @@ class HandlerError(Exception):
     pass
 
 
-_load_distros()
+distro = _load_distros()
+distro.configure()
 _load_configurators()
-_load_instrumentors()
+_load_instrumentors(distro)
 # TODO: move to python-contrib
 AwsLambdaInstrumentor().instrument(skip_dep_check=True)
 
