@@ -24,4 +24,4 @@ opentelemetry-instrumentation-sqlalchemy==0.24b0
 opentelemetry-instrumentation-sqlite3==0.24b0
 opentelemetry-instrumentation-starlette==0.24b0
 opentelemetry-instrumentation-tornado==0.24b0
-opentelemetry-instrumentation-wsgi==0.22b0
+opentelemetry-instrumentation-wsgi==0.24b0
