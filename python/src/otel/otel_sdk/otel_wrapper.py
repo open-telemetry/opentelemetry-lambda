@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 # resource = Resource.create().merge(AwsLambdaResourceDetector().detect())
 # trace.get_tracer_provider.resource = resource
 
-
 def _load_distros():
     for entry_point in iter_entry_points("opentelemetry_distro"):
         try:
+            distro = entry_point.load()()
             entry_point.load()().configure()  # type: ignore
             logger.info("Distribution %s configured", entry_point.name)
         except Exception as exc:  # pylint: disable=broad-except
@@ -70,9 +70,10 @@ class HandlerError(Exception):
     pass
 
 
-_load_distros()
+distro = _load_distros()
+distro.configure()
 _load_configurators()
-_load_instrumentors()
+_load_instrumentors(distro)
 # TODO: move to python-contrib
 AwsLambdaInstrumentor().instrument(skip_dep_check=True)
 
