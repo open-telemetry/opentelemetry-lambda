@@ -1,8 +1,8 @@
-import { NodeTracerConfig, NodeTracerProvider } from '@opentelemetry/node';
+import { NodeTracerConfig, NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import {
   BatchSpanProcessor,
   SDKRegistrationConfig,
-} from '@opentelemetry/tracing';
+} from '@opentelemetry/sdk-trace-base';
 
 // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
 // definitions.
