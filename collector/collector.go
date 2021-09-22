@@ -82,14 +82,15 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
+	cmd := service.NewCommand(c.svc)
 	if args, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_ARGS"); ok {
-		c.svc.Command().SetArgs(strings.Split(args, " "))
+		cmd.SetArgs(strings.Split(args, " "))
 	}
 
 	c.appDone = make(chan struct{})
 	go func() {
 		defer close(c.appDone)
-		appErr := c.svc.Run()
+		appErr := cmd.Execute()
 		if appErr != nil {
 			err = appErr
 		}
