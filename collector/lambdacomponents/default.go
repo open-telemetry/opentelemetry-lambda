@@ -20,14 +20,15 @@ import (
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
-	"go.opentelemetry.io/collector/exporter/prometheusremotewriteexporter"
-	"go.opentelemetry.io/collector/processor/attributesprocessor"
-	"go.opentelemetry.io/collector/processor/filterprocessor"
-	"go.opentelemetry.io/collector/processor/memorylimiter"
-	"go.opentelemetry.io/collector/processor/probabilisticsamplerprocessor"
-	"go.opentelemetry.io/collector/processor/resourceprocessor"
-	"go.opentelemetry.io/collector/processor/spanprocessor"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/memorylimiter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 )
 
 func Components() (component.Factories, error) {
