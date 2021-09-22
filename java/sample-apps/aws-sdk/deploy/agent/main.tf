@@ -21,9 +21,11 @@ module "hello-lambda-function" {
   environment_variables = (var.collector_config_layer_arn == null ?
     {
       AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler",
+      OTEL_METRICS_EXPORTER   = "otlp",
     } :
     {
       AWS_LAMBDA_EXEC_WRAPPER             = "/opt/otel-handler",
+      OTEL_METRICS_EXPORTER               = "otlp",
       OPENTELEMETRY_COLLECTOR_CONFIG_FILE = "/opt/config.yaml"
   })
 
