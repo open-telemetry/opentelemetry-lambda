@@ -9,7 +9,7 @@ plugins {
 data class DependencySet(val group: String, val version: String, val modules: List<String>)
 
 val DEPENDENCY_BOMS = listOf(
-    "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:1.5.2-alpha",
+    "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:1.6.0-alpha",
     "io.grpc:grpc-bom:1.40.1",
     "org.apache.logging.log4j:log4j-bom:2.14.1",
     "software.amazon.awssdk:bom:2.17.29"
@@ -19,7 +19,7 @@ val DEPENDENCIES = listOf(
     "com.amazonaws:aws-lambda-java-core:1.2.1",
     "com.amazonaws:aws-lambda-java-events:3.10.0",
     "com.squareup.okhttp3:okhttp:4.9.1",
-    "io.opentelemetry.javaagent:opentelemetry-javaagent:1.5.2"
+    "io.opentelemetry.javaagent:opentelemetry-javaagent:1.6.0"
 )
 
 javaPlatform {
