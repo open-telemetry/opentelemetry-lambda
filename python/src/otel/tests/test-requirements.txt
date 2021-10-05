@@ -1,3 +1,0 @@
-opentelemetry-distro==0.24b0
-opentelemetry-sdk-extension-aws==1.0.1
-pytest
