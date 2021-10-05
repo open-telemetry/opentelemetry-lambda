@@ -9,6 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  CORE_REPO_SHA: 10208c1be1e720925a80a66f711b8afbe67537f4
 
 jobs:
   PR-Python:

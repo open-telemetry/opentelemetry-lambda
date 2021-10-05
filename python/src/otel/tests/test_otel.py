@@ -1,103 +1,150 @@
-import sys
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import os
+import sys
+from importlib import import_module
+from unittest import mock
 
-awsLambdaEnvDict = {
-    "AWS_EXECUTION_ENV": "AWS_Lambda_python3.8",
-    "AWS_LAMBDA_FUNCTION_MEMORY_SIZE": "128",
-    "AWS_LAMBDA_FUNCTION_NAME": "python-lambda-function-YI0MC6JQ4BMR",
-    "AWS_LAMBDA_FUNCTION_VERSION": "2",
-    "AWS_LAMBDA_LOG_GROUP_NAME": "/aws/lambda/python-lambda-function-YI0MC6JQ4BMR",
-    "AWS_LAMBDA_LOG_STREAM_NAME": "2020/10/06/[$LATEST]33f5c2beeb3a46dda4e9712885809a22",
-    "AWS_LAMBDA_RUNTIME_API": "127.0.0.1:9001",
-    "AWS_REGION": "us-east-1",
-    "AWS_XRAY_CONTEXT_MISSING": "LOG_ERROR",
-    "AWS_XRAY_DAEMON_ADDRESS": "localhost:2000",
-    "LAMBDA_RUNTIME_DIR": "/var/runtime",
-    "LAMBDA_TASK_ROOT": "/var/task",
-    "LANG": "en_US.UTF-8",
-    "LD_LIBRARY_PATH": "/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib",
-    "PATH": "/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin",
-    "PWD": "/var/task",
-    "PYTHONPATH": "/var/runtime",
-    "SHLVL": "0",
-    "TZ": ":UTC",
-    "_AWS_XRAY_DAEMON_ADDRESS": "169.254.79.2",
-    "_AWS_XRAY_DAEMON_PORT": "2000",
-    "_HANDLER": "lambda_function.lambda_handler",
-    "_X_AMZN_TRACE_ID": "Root=1-5fb73311-05e8bb83207fa31d4d9cdb4c;Parent=3328b8445a6dbad2;Sampled=1",
-}
-for k, v in awsLambdaEnvDict.items():
-    os.environ[k] = v
-
-os.environ["ORIG_HANDLER"] = "mock_lambda.handler"
-sys.path.append("otel/otel_sdk")
-
-from otel_wrapper import lambda_handler
-from opentelemetry import trace
+from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
+from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
+    TRACE_ID_FIRST_PART_LENGTH,
+)
+from opentelemetry.semconv.resource import ResourceAttributes
+from opentelemetry.semconv.trace import SpanAttributes
+from opentelemetry.test.test_base import TestBase
 from opentelemetry.trace import SpanKind
-from opentelemetry.sdk.trace.export import (
-    SimpleSpanProcessor,
-    ConsoleSpanExporter,
+
+AWS_LAMBDA_EXEC_WRAPPER = "AWS_LAMBDA_EXEC_WRAPPER"
+_HANDLER = "_HANDLER"
+INSTRUMENTATION_SRC_DIR = os.path.join(
+    *(os.path.dirname(__file__), "..", "otel_sdk")
 )
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
-    InMemorySpanExporter,
-)
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.resource import AwsLambdaResourceDetector
-from opentelemetry.sdk.resources import Resource
 
 
 class MockLambdaContext:
-    pass
+    def __init__(self, aws_request_id, invoked_function_arn):
+        self.invoked_function_arn = invoked_function_arn
+        self.aws_request_id = aws_request_id
 
 
-lambdaContext = MockLambdaContext()
-lambdaContext.invoked_function_arn = "arn://mock-lambda-function-arn"
-lambdaContext.aws_request_id = "mock_aws_request_id"
-
-# TODO: does not work, need upstream fix
-resource = Resource.create().merge(AwsLambdaResourceDetector().detect())
-trace.set_tracer_provider(
-    TracerProvider(
-        resource=resource,
-    )
+MOCK_LAMBDA_CONTEXT = MockLambdaContext(
+    aws_request_id="mock_aws_request_id",
+    invoked_function_arn="arn://mock-lambda-function-arn",
 )
-trace.get_tracer_provider().add_span_processor(
-    SimpleSpanProcessor(ConsoleSpanExporter()),
-)
+MOCK_TRACE_ID = 0x5FB7331105E8BB83207FA31D4D9CDB4C
+MOCK_TRACE_ID_HEX_STR = f"{MOCK_TRACE_ID:032x}"
+MOCK_PARENT_SPAN_ID = 0x3328B8445A6DBAD2
+MOCK_PARENT_SPAN_ID_STR = f"{MOCK_PARENT_SPAN_ID:32x}"
+MOCK_LAMBDA_TRACE_CONTEXT_SAMPLED = f"Root=1-{MOCK_TRACE_ID_HEX_STR[:TRACE_ID_FIRST_PART_LENGTH]}-{MOCK_TRACE_ID_HEX_STR[TRACE_ID_FIRST_PART_LENGTH:]};Parent={MOCK_PARENT_SPAN_ID_STR};Sampled=1"
+MOCK_LAMBDA_TRACE_CONTEXT_NOT_SAMPLED = f"Root=1-{MOCK_TRACE_ID_HEX_STR[:TRACE_ID_FIRST_PART_LENGTH]}-{MOCK_TRACE_ID_HEX_STR[TRACE_ID_FIRST_PART_LENGTH:]};Parent={MOCK_PARENT_SPAN_ID};Sampled=0"
 
 
-in_memory_exporter = InMemorySpanExporter()
-trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(in_memory_exporter))
+def mock_aws_lambda_exec_wrapper():
+    """Mocks automatically instrumenting user Lambda function by pointing
+    `AWS_LAMBDA_EXEC_WRAPPER` to the `otel-instrument` script.
+
+    TODO: It would be better if `moto`'s `mock_lambda` supported setting
+    AWS_LAMBDA_EXEC_WRAPPER so we could make the call to Lambda instead.
+
+    See more:
+    https://aws-otel.github.io/docs/getting-started/lambda/lambda-python
+    """
+    exec(open(os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument")).read())
 
 
-def test_lambda_instrument():
-    in_memory_exporter.clear()
-    lambda_handler("mock", lambdaContext)
-    spans = in_memory_exporter.get_finished_spans()
-    assert len(spans) == 1
+def mock_execute_lambda():
+    if os.environ[AWS_LAMBDA_EXEC_WRAPPER]:
+        globals()[os.environ[AWS_LAMBDA_EXEC_WRAPPER]]()
 
-    span = spans[0]
-    assert span.name == "mock_lambda.handler"
+    module_name, handler_name = os.environ[_HANDLER].split(".")
+    handler_module = import_module(".".join(module_name.split("/")))
+    getattr(handler_module, handler_name)("mock_event", MOCK_LAMBDA_CONTEXT)
 
-    parent_context = span.parent
-    assert parent_context.trace_id == 0x5FB7331105E8BB83207FA31D4D9CDB4C
-    assert parent_context.span_id == 0x3328B8445A6DBAD2
-    assert parent_context.is_remote is True
 
-    assert span.context.trace_id == 0x5FB7331105E8BB83207FA31D4D9CDB4C
+class TestAwsLambdaInstrumentor(TestBase):
+    """AWS Lambda Instrumentation Testsuite"""
 
-    assert span.kind == SpanKind.SERVER
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        sys.path.append(INSTRUMENTATION_SRC_DIR)
 
-    # TODO: waiting OTel Python supports env variable for resource detector
-    resource_atts = span.resource.attributes
-    # assert resource_atts["faas.name"] == "python-lambda-function-YI0MC6JQ4BMR"
-    # assert resource_atts["cloud.region"] == "us-east-1"
-    # assert resource_atts["cloud.provider"] == "aws"
-    # assert resource_atts["faas.version"] == "2"
-    assert resource_atts["telemetry.sdk.language"] == "python"
-    assert resource_atts["telemetry.sdk.name"] == "opentelemetry"
+    def setUp(self):
+        super().setUp()
+        self.common_env_patch = mock.patch.dict(
+            "os.environ",
+            {
+                AWS_LAMBDA_EXEC_WRAPPER: "mock_aws_lambda_exec_wrapper",
+                "AWS_LAMBDA_FUNCTION_NAME": "test-python-lambda-function",
+                "AWS_LAMBDA_FUNCTION_VERSION": "2",
+                "AWS_REGION": "us-east-1",
+                _HANDLER: "mock_user_lambda.handler",
+            },
+        )
+        self.common_env_patch.start()
 
-    attributs = span.attributes
-    assert attributs["faas.execution"] == "mock_aws_request_id"
-    assert attributs["faas.id"] == "arn://mock-lambda-function-arn"
+    def tearDown(self):
+        super().tearDown()
+        self.common_env_patch.stop()
+        AwsLambdaInstrumentor().uninstrument()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        sys.path.remove(INSTRUMENTATION_SRC_DIR)
+
+    def test_active_tracing(self):
+        test_env_patch = mock.patch.dict(
+            "os.environ",
+            {
+                **os.environ,
+                "_X_AMZN_TRACE_ID": MOCK_LAMBDA_TRACE_CONTEXT_SAMPLED,
+            },
+        )
+        test_env_patch.start()
+
+        mock_execute_lambda()
+
+        spans = self.memory_exporter.get_finished_spans()
+
+        assert spans
+
+        self.assertEqual(len(spans), 1)
+        span = spans[0]
+        self.assertEqual(span.name, os.environ["ORIG_HANDLER"])
+        self.assertEqual(span.get_span_context().trace_id, MOCK_TRACE_ID)
+        self.assertEqual(span.kind, SpanKind.SERVER)
+        self.assertSpanHasAttributes(
+            span,
+            {
+                ResourceAttributes.FAAS_ID: MOCK_LAMBDA_CONTEXT.invoked_function_arn,
+                SpanAttributes.FAAS_EXECUTION: MOCK_LAMBDA_CONTEXT.aws_request_id,
+            },
+        )
+
+        # TODO: waiting OTel Python supports env variable for resource detector
+        # resource_atts = span.resource.attributes
+        # assert resource_atts["faas.name"] == "test-python-lambda-function"
+        # assert resource_atts["cloud.region"] == "us-east-1"
+        # assert resource_atts["cloud.provider"] == "aws"
+        # assert resource_atts["faas.version"] == "2"
+
+        parent_context = span.parent
+        self.assertEqual(
+            parent_context.trace_id, span.get_span_context().trace_id
+        )
+        self.assertEqual(parent_context.span_id, MOCK_PARENT_SPAN_ID)
+        self.assertTrue(parent_context.is_remote)
+
+        test_env_patch.stop()
