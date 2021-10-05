@@ -43,7 +43,7 @@ MOCK_LAMBDA_CONTEXT = MockLambdaContext(
     invoked_function_arn="arn://mock-lambda-function-arn",
 )
 MOCK_TRACE_ID = 0x5FB7331105E8BB83207FA31D4D9CDB4C
-MOCK_TRACE_ID_HEX_STR = f"{MOCK_TRACE_ID:032x}"
+MOCK_TRACE_ID_HEX_STR = f"{MOCK_TRACE_ID:32x}"
 MOCK_PARENT_SPAN_ID = 0x3328B8445A6DBAD2
 MOCK_PARENT_SPAN_ID_STR = f"{MOCK_PARENT_SPAN_ID:32x}"
 MOCK_LAMBDA_TRACE_CONTEXT_SAMPLED = f"Root=1-{MOCK_TRACE_ID_HEX_STR[:TRACE_ID_FIRST_PART_LENGTH]}-{MOCK_TRACE_ID_HEX_STR[TRACE_ID_FIRST_PART_LENGTH:]};Parent={MOCK_PARENT_SPAN_ID_STR};Sampled=1"
@@ -60,6 +60,7 @@ def mock_aws_lambda_exec_wrapper():
     See more:
     https://aws-otel.github.io/docs/getting-started/lambda/lambda-python
     """
+    # NOTE: AwsLambdaInstrumentor().instrument() is done at this point
     exec(open(os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument")).read())
 
 
@@ -133,12 +134,17 @@ class TestAwsLambdaInstrumentor(TestBase):
             },
         )
 
-        # TODO: waiting OTel Python supports env variable for resource detector
+        # TODO: Waiting on OTel Python support for setting Resource Detectors
+        # using environment variables. Auto Instrumentation (used by this Lambda
+        # Instrumentation) sets up the global TracerProvider which is the only
+        # time Resource Detectors can be configured.
+        #
         # resource_atts = span.resource.attributes
-        # assert resource_atts["faas.name"] == "test-python-lambda-function"
-        # assert resource_atts["cloud.region"] == "us-east-1"
-        # assert resource_atts["cloud.provider"] == "aws"
-        # assert resource_atts["faas.version"] == "2"
+        # self.assertEqual(resource_atts[ResourceAttributes.CLOUD_PLATFORM], CloudPlatformValues.AWS_LAMBDA.value)
+        # self.assertEqual(resource_atts[ResourceAttributes.CLOUD_PROVIDER], CloudProviderValues.AWS.value)
+        # self.assertEqual(resource_atts[ResourceAttributes.CLOUD_REGION], os.environ["AWS_REGION"])
+        # self.assertEqual(resource_atts[ResourceAttributes.FAAS_NAME], os.environ["AWS_LAMBDA_FUNCTION_NAME"])
+        # self.assertEqual(resource_atts[ResourceAttributes.FAAS_VERSION], os.environ["AWS_LAMBDA_FUNCTION_VERSION"])
 
         parent_context = span.parent
         self.assertEqual(
