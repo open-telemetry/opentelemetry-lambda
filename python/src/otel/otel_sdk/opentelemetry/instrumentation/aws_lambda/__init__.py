@@ -86,8 +86,9 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
             **kwargs: Optional arguments
                 ``tracer_provider``: a TracerProvider, defaults to global
                 ``event_context_extractor``: a method which takes the Lambda
-                    Event as input and extracts an OTel Context from it. Usually
-                    the the context is extract from HTTP headers on the event.
+                    Event as input and extracts an OTel Context from it. By default,
+                    the context is extracted from the HTTP headers of an API Gateway
+                    request.
         """
         tracer = get_tracer(
             __name__, __version__, kwargs.get("tracer_provider")
@@ -134,7 +135,9 @@ def _default_event_context_extractor(lambda_event: Any) -> Context:
     try:
         headers = lambda_event["headers"]
     except (TypeError, KeyError):
-        logger.warning("Failed to extract context from Lambda Event.")
+        logger.debug(
+            "Extracting context from Lambda Event failed: either enable X-Ray active tracing or configure API Gateway to trigger this Lambda function as a pure proxy. Otherwise, generated spans will have an invalid (empty) parent context."
+        )
         headers = {}
     return get_global_textmap().extract(headers)
 
