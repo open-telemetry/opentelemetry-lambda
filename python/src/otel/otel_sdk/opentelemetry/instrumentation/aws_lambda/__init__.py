@@ -86,8 +86,8 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
             **kwargs: Optional arguments
                 ``tracer_provider``: a TracerProvider, defaults to global
                 ``event_context_extractor``: a method which takes the Lambda
-                    Event as input and provides the object which contains the
-                    context as output (usually HTTP headers)
+                    Event as input and extracts an OTel Context from it. Usually
+                    the the context is extract from HTTP headers on the event.
         """
         tracer = get_tracer(
             __name__, __version__, kwargs.get("tracer_provider")
@@ -173,10 +173,6 @@ def _instrument(
             .trace_flags.sampled
         ):
             return parent_context
-
-        logger.debug(
-            "X-Ray propagation failed, using user-configured propagators to extract context from Lambda Event."
-        )
 
         if event_context_extractor:
             parent_context = event_context_extractor(lambda_event)
