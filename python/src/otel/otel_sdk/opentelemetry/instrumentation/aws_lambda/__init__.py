@@ -130,7 +130,7 @@ def _default_event_context_extractor(lambda_event: Any) -> Context:
         lambda_event: user-defined, so it could be anything, but this
             method counts it being a map with a 'headers' key
     Returns:
-        A Context with configuration found in the carrier.
+        A Context with configuration found in the event.
     """
     try:
         headers = lambda_event["headers"]
