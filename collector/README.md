@@ -84,5 +84,5 @@ You can configure arguments passed to the collector command line with the
       ...
       Environment:
         Variables:
-          OPENTELEMETRY_COLLECTOR_ARGS: --log-level=debug
+          OPENTELEMETRY_COLLECTOR_ARGS: --set=service.telemetry.logs.level=debug
 ```
