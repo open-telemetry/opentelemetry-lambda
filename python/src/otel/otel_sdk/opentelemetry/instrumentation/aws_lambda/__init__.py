@@ -62,7 +62,7 @@ from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import (
     SpanKind,
-    Tracer,
+    TracerProvider,
     get_tracer,
     get_tracer_provider,
 )
@@ -84,16 +84,17 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
 
         Args:
             **kwargs: Optional arguments
-                ``tracer_provider``: a TracerProvider, defaults to global
+                ``tracer_provider``: a TracerProvider, defaults to global.
+                    Cannot be used together with `context_to_tracer_provider`,
+                    if both are set, this TracerProvider is used instead.
+                ``context_to_tracer_provider``: a method which takes the Lambda
+                    context as input and provides a TracerProvider as output,
+                    defaults to the global TraceProvider.
                 ``event_context_extractor``: a method which takes the Lambda
                     Event as input and extracts an OTel Context from it. By default,
                     the context is extracted from the HTTP headers of an API Gateway
                     request.
         """
-        tracer = get_tracer(
-            __name__, __version__, kwargs.get("tracer_provider")
-        )
-        event_context_extractor = kwargs.get("event_context_extractor")
 
         lambda_handler = os.environ.get(
             "ORIG_HANDLER", os.environ.get("_HANDLER")
@@ -103,10 +104,11 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
         self._wrapped_function_name = wrapped_names[1]
 
         _instrument(
-            tracer,
             self._wrapped_module_name,
             self._wrapped_function_name,
-            event_context_extractor,
+            tracer_provider=kwargs.get("tracer_provider"),
+            context_to_tracer_provider=kwargs.get("context_to_tracer_provider"),
+            event_context_extractor=kwargs.get("event_context_extractor"),
         )
 
     def _uninstrument(self, **kwargs):
@@ -143,10 +145,11 @@ def _default_event_context_extractor(lambda_event: Any) -> Context:
 
 
 def _instrument(
-    tracer: Tracer,
     wrapped_module_name,
     wrapped_function_name,
-    event_context_extractor=None,
+    tracer_provider: TracerProvider = None,
+    context_to_tracer_provider = None,
+    event_context_extractor = None,
 ):
     def _determine_parent_context(lambda_event: Any) -> Context:
         """Determine the parent context for the current Lambda invocation.
@@ -189,9 +192,18 @@ def _instrument(
             [wrapped_module_name, wrapped_function_name]
         )
 
-        lambda_event = args[0]
+        lambda_event, lambda_context = args[0], args[1]
 
         parent_context = _determine_parent_context(lambda_event)
+
+        if tracer_provider:
+            tracer = get_tracer(__name__, __version__, tracer_provider)
+        else:
+            tracer = get_tracer(
+                __name__,
+                __version__,
+                context_to_tracer_provider(lambda_context),
+            )
 
         with tracer.start_as_current_span(
             name=orig_handler_name, context=parent_context, kind=SpanKind.SERVER
@@ -202,24 +214,13 @@ def _instrument(
                 span.set_attribute(
                     SpanAttributes.FAAS_EXECUTION, lambda_context.aws_request_id
                 )
-                span.set_attribute(
-                    "faas.id", lambda_context.invoked_function_arn
-                )
-
-                # TODO: fix in Collector because they belong resource attrubutes
-                span.set_attribute(
-                    "faas.name", os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
-                )
-                span.set_attribute(
-                    "faas.version",
-                    os.environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
-                )
 
             result = call_wrapped(*args, **kwargs)
 
         # force_flush before function quit in case of Lambda freeze.
-        tracer_provider = get_tracer_provider()
-        tracer_provider.force_flush()
+        provider = tracer_provider or get_tracer_provider()
+        if hasattr(provider, "force_flush"):
+            tracer_provider.force_flush()
 
         return result
 
