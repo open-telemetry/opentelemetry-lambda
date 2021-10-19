@@ -102,11 +102,14 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
         self._wrapped_module_name = wrapped_names[0]
         self._wrapped_function_name = wrapped_names[1]
 
+        flush_timeout = os.environ.get("OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT", 30000)
+
         _instrument(
             tracer,
             self._wrapped_module_name,
             self._wrapped_function_name,
-            event_context_extractor,
+            flush_timeout,
+            event_context_extractor
         )
 
     def _uninstrument(self, **kwargs):
@@ -146,7 +149,8 @@ def _instrument(
     tracer: Tracer,
     wrapped_module_name,
     wrapped_function_name,
-    event_context_extractor=None,
+    flush_timeout,
+    event_context_extractor=None
 ):
     def _determine_parent_context(lambda_event: Any) -> Context:
         """Determine the parent context for the current Lambda invocation.
@@ -219,7 +223,7 @@ def _instrument(
 
         # force_flush before function quit in case of Lambda freeze.
         tracer_provider = get_tracer_provider()
-        tracer_provider.force_flush()
+        tracer_provider.force_flush(flush_timeout)
 
         return result
 
