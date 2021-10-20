@@ -1,44 +1,160 @@
 #!/usr/bin/env python3
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
 
-from os import environ, system
+# Copyright The OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+`otel-instrument`
+
+This script configures and sets up OpenTelemetry Python with the values we
+expect will be used by the common user. It does this by setting the environment
+variables OpenTelemetry uses, and then initializing OpenTelemetry using the
+`opentelemetry-instrument` auto instrumentation script from the
+`opentelemetry-instrumentation` package.
+
+Additionally, this configuration the user is using packages derived from
+`opentelemetry-instrumentation` and `opentelemetry-sdk` in their implementation.
+
+Usage
+-----
+In the configuration of an AWS Lambda function with
+`otel-instrument` at the root level of a Lambda
+Layer:
+
+.. code::
+
+    AWS_LAMBDA_EXEC_WRAPPER = /opt/otel-instrument
+
+"""
+
+import os
 import sys
+from os import environ, execl
 
-# the path to the interpreter and all of the originally intended arguments
-args = sys.argv[1:]
+AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME"
+PYTHONPATH = "PYTHONPATH"
+LAMBDA_RUNTIME_DIR = "LAMBDA_RUNTIME_DIR"
 
-# enable OTel wrapper
-environ["ORIG_HANDLER"] = environ.get("_HANDLER")
-environ["_HANDLER"] = "otel_wrapper.lambda_handler"
+# Update the python paths for packages with `sys.path` and `PYTHONPATH`
 
-# config default traces exporter if missing
-environ.setdefault("OTEL_TRACES_EXPORTER", "otlp_proto_grpc_span")
+# - Expect this `otel-instrument` file to be at the Lambda Layer root. Then, we
+#   know where the OpenTelemetry Python packages are and can add them to the
+#   PYTHONPATH.
 
-# set service name
-if environ.get("OTEL_RESOURCE_ATTRIBUTES") is None:
-    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s" % (
-        environ.get("AWS_LAMBDA_FUNCTION_NAME")
+LAMBDA_LAYER_PKGS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "python")
+)
+
+# - Set Lambda Layer python packages in PYTHONPATH so `opentelemetry-instrument`
+#   script can find them (it needs to find `opentelemetry` find the auto
+#   instrumentation `run()` method)
+
+if PYTHONPATH not in environ:
+    environ[PYTHONPATH] = LAMBDA_LAYER_PKGS_DIR
+elif LAMBDA_LAYER_PKGS_DIR not in environ[PYTHONPATH]:
+    environ[PYTHONPATH] += os.pathsep + LAMBDA_LAYER_PKGS_DIR
+
+# - Set Lambda runtime python packages in PYTHONPATH so
+#   `opentelemetry-instrument` script can find them during auto instrumentation
+#   and instrument them.
+
+if PYTHONPATH not in environ:
+    environ[PYTHONPATH] = os.environ[LAMBDA_RUNTIME_DIR]
+if os.environ[LAMBDA_RUNTIME_DIR] not in environ[PYTHONPATH]:
+    environ[PYTHONPATH] += os.pathsep + os.environ[LAMBDA_RUNTIME_DIR]
+
+# Configure OpenTelemetry Python with environment variables
+
+# - Set Lambda Layer python packages in current python path so we can find them
+#   right away in this script
+
+if LAMBDA_LAYER_PKGS_DIR not in sys.path:
+    sys.path.append(LAMBDA_LAYER_PKGS_DIR)
+
+from opentelemetry.environment_variables import (
+    OTEL_PROPAGATORS,
+    OTEL_TRACES_EXPORTER,
+    OTEL_PYTHON_DISABLED_INSTRUMENTATIONS,
+)
+from opentelemetry.sdk.environment_variables import OTEL_RESOURCE_ATTRIBUTES
+
+# - Set the default Trace Exporter
+
+environ.setdefault(OTEL_TRACES_EXPORTER, "otlp_proto_grpc_span")
+
+# - Set the service name
+
+service_name_resource_attribute = "service.name"
+if environ.get(OTEL_RESOURCE_ATTRIBUTES) is None:
+    environ[OTEL_RESOURCE_ATTRIBUTES] = "%s=%s" % (
+        service_name_resource_attribute,
+        environ.get(AWS_LAMBDA_FUNCTION_NAME),
     )
-elif "service.name=" not in environ.get("OTEL_RESOURCE_ATTRIBUTES"):
-    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s,%s" % (
-        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
-        environ.get("OTEL_RESOURCE_ATTRIBUTES"),
+elif service_name_resource_attribute not in environ.get(
+    OTEL_RESOURCE_ATTRIBUTES
+):
+    environ[OTEL_RESOURCE_ATTRIBUTES] = "%s=%s,%s" % (
+        service_name_resource_attribute,
+        environ.get(AWS_LAMBDA_FUNCTION_NAME),
+        environ.get(OTEL_RESOURCE_ATTRIBUTES),
     )
 
-# TODO: Remove if sdk support resource detector env variable configuration.
+# - Set the Resource Detectors (Resource Attributes)
+#
+#   TODO: waiting on OTel Python support for configuring Resource Detectors from
+#   an environment variable. Replace the bottom code with the following when
+#   this is possible.
+#
+#   environ["OTEL_RESOURCE_DETECTORS"] = "aws_lambda"
+#
 lambda_resource_attributes = (
     "cloud.region=%s,cloud.provider=aws,faas.name=%s,faas.version=%s"
     % (
         environ.get("AWS_REGION"),
-        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
+        environ.get(AWS_LAMBDA_FUNCTION_NAME),
         environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
     )
 )
-environ["OTEL_RESOURCE_ATTRIBUTES"] = "%s,%s" % (
+environ[OTEL_RESOURCE_ATTRIBUTES] = "%s,%s" % (
     lambda_resource_attributes,
-    environ.get("OTEL_RESOURCE_ATTRIBUTES"),
+    environ.get(OTEL_RESOURCE_ATTRIBUTES),
 )
 
-# start the runtime with the extra options
-system(" ".join(args))
+# - Set the default propagators
+
+environ.setdefault(OTEL_PROPAGATORS, "tracecontext,b3,xray")
+
+# - Disable Lambda instrumentation because we will instrument when we know it
+#   patch in a way that is visible to the calling AWS Lambda `boostrap.py` file.
+
+environ[OTEL_PYTHON_DISABLED_INSTRUMENTATIONS] = "aws_lambda"
+
+# - Use a wrapper because instrumentations don't last across parent -> child
+#   processes (i.e. using `excel`) if the child process imports packages
+#   using `getattr(module_name, function_name)`. The child will just import an
+#   uninstrumented package if we don't have `otel_wrapper.py`.
+
+environ["ORIG_HANDLER"] = environ.get("_HANDLER")
+environ["_HANDLER"] = "otel_wrapper.lambda_handler"
+
+# - Call the upstream auto instrumentation script
+
+executable = sys.argv[1]
+
+execl(
+    executable,
+    executable,
+    os.path.join(LAMBDA_LAYER_PKGS_DIR, "bin", "opentelemetry-instrument",),
+    *sys.argv[1:],
+)
