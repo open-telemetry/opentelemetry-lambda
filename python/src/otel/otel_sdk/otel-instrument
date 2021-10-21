@@ -1,44 +1,20 @@
-#!/usr/bin/env python3
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# SPDX-License-Identifier: MIT-0
+#!/bin/bash
 
-from os import environ, system
-import sys
 
-# the path to the interpreter and all of the originally intended arguments
-args = sys.argv[1:]
+# TODO(anuraaga): Loosen parsing of env variable since it's common to use this sort of pattern in shell scripts.
+# https://github.com/open-telemetry/opentelemetry-python/blob/main/opentelemetry-sdk/src/opentelemetry/sdk/resources/__init__.py#L273
+#if [[ $OTEL_RESOURCE_ATTRIBUTES != *"service.name="* ]]; then
+#export OTEL_RESOURCE_ATTRIBUTES="service.name=${AWS_LAMBDA_FUNCTION_NAME},${OTEL_RESOURCE_ATTRIBUTES}"
+#fi
 
-# enable OTel wrapper
-environ["ORIG_HANDLER"] = environ.get("_HANDLER")
-environ["_HANDLER"] = "otel_wrapper.lambda_handler"
+export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
 
-# config default traces exporter if missing
-environ.setdefault("OTEL_TRACES_EXPORTER", "otlp_proto_grpc_span")
+export PATH="/opt/python/bin:$PATH"
+export PYTHONPATH="/opt/python:$PYTHONPATH"
 
-# set service name
-if environ.get("OTEL_RESOURCE_ATTRIBUTES") is None:
-    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s" % (
-        environ.get("AWS_LAMBDA_FUNCTION_NAME")
-    )
-elif "service.name=" not in environ.get("OTEL_RESOURCE_ATTRIBUTES"):
-    environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.name=%s,%s" % (
-        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
-        environ.get("OTEL_RESOURCE_ATTRIBUTES"),
-    )
+export OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER="$_HANDLER"
+# Note, the file structure is important. Lambda does not seem to allow loading the handler if it is placed at a
+# subdirectory such as opentelemetry.instrumentation.lambda.handler, when inside a layer it must be at the top level.
+export _HANDLER="otel_wrapper.lambda_handler"
 
-# TODO: Remove if sdk support resource detector env variable configuration.
-lambda_resource_attributes = (
-    "cloud.region=%s,cloud.provider=aws,faas.name=%s,faas.version=%s"
-    % (
-        environ.get("AWS_REGION"),
-        environ.get("AWS_LAMBDA_FUNCTION_NAME"),
-        environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
-    )
-)
-environ["OTEL_RESOURCE_ATTRIBUTES"] = "%s,%s" % (
-    lambda_resource_attributes,
-    environ.get("OTEL_RESOURCE_ATTRIBUTES"),
-)
-
-# start the runtime with the extra options
-system(" ".join(args))
+exec opentelemetry-instrument "$@"

@@ -25,14 +25,10 @@ Usage
     # Ref Doc: https://docs.aws.amazon.com/lambda/latest/dg/lambda-python.html
 
     import boto3
-    from opentelemetry.instrumentation.aws_lambda import (
-        AwsLambdaInstrumentor
-    )
-
-    # Enable instrumentation
-    AwsLambdaInstrumentor().instrument(skip_dep_check=True)
+    from opentelemetry.instrumentation.aws_lambda import otel_handler
 
     # Lambda function
+    @otel_handler
     def lambda_handler(event, context):
         s3 = boto3.resource('s3')
         for bucket in s3.buckets.all():
@@ -44,16 +40,12 @@ API
 ---
 """
 
+import functools
 import logging
 import os
-from importlib import import_module
 from typing import Any, Collection
 
 from opentelemetry.context.context import Context
-from opentelemetry.instrumentation.aws_lambda.package import _instruments
-from opentelemetry.instrumentation.aws_lambda.version import __version__
-from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
-from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.propagate import get_global_textmap
 from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
     TRACE_HEADER_KEY,
@@ -67,56 +59,8 @@ from opentelemetry.trace import (
     get_tracer_provider,
 )
 from opentelemetry.trace.propagation import get_current_span
-from wrapt import wrap_function_wrapper
 
 logger = logging.getLogger(__name__)
-
-
-class AwsLambdaInstrumentor(BaseInstrumentor):
-    def instrumentation_dependencies(self) -> Collection[str]:
-        return _instruments
-
-    def _instrument(self, **kwargs):
-        """Instruments Lambda Handlers on AWS Lambda.
-
-        See more:
-        https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#instrumenting-aws-lambda
-
-        Args:
-            **kwargs: Optional arguments
-                ``tracer_provider``: a TracerProvider, defaults to global
-                ``event_context_extractor``: a method which takes the Lambda
-                    Event as input and extracts an OTel Context from it. By default,
-                    the context is extracted from the HTTP headers of an API Gateway
-                    request.
-        """
-        tracer = get_tracer(
-            __name__, __version__, kwargs.get("tracer_provider")
-        )
-        event_context_extractor = kwargs.get("event_context_extractor")
-
-        lambda_handler = os.environ.get(
-            "ORIG_HANDLER", os.environ.get("_HANDLER")
-        )
-        wrapped_names = lambda_handler.rsplit(".", 1)
-        self._wrapped_module_name = wrapped_names[0]
-        self._wrapped_function_name = wrapped_names[1]
-
-        flush_timeout = os.environ.get("OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT", 30000)
-
-        _instrument(
-            tracer,
-            self._wrapped_module_name,
-            self._wrapped_function_name,
-            flush_timeout,
-            event_context_extractor
-        )
-
-    def _uninstrument(self, **kwargs):
-        unwrap(
-            import_module(self._wrapped_module_name),
-            self._wrapped_function_name,
-        )
 
 
 def _default_event_context_extractor(lambda_event: Any) -> Context:
@@ -145,52 +89,48 @@ def _default_event_context_extractor(lambda_event: Any) -> Context:
     return get_global_textmap().extract(headers)
 
 
-def _instrument(
-    tracer: Tracer,
-    wrapped_module_name,
-    wrapped_function_name,
-    flush_timeout,
-    event_context_extractor=None
-):
-    def _determine_parent_context(lambda_event: Any) -> Context:
-        """Determine the parent context for the current Lambda invocation.
+def _determine_parent_context(lambda_event: Any) -> Context:
+    """Determine the parent context for the current Lambda invocation.
 
-        See more:
-        https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#determining-the-parent-of-a-span
+    See more:
+    https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#determining-the-parent-of-a-span
 
-        Args:
-            lambda_event: user-defined, so it could be anything, but this
-                method counts it being a map with a 'headers' key
-        Returns:
-            A Context with configuration found in the carrier.
-        """
-        parent_context = None
+    Args:
+        lambda_event: user-defined, so it could be anything, but this
+            method counts it being a map with a 'headers' key
+    Returns:
+        A Context with configuration found in the carrier.
+    """
+    parent_context = None
 
-        xray_env_var = os.environ.get("_X_AMZN_TRACE_ID")
+    xray_env_var = os.environ.get("_X_AMZN_TRACE_ID")
 
-        if xray_env_var:
-            parent_context = AwsXRayFormat().extract(
-                {TRACE_HEADER_KEY: xray_env_var}
-            )
+    if xray_env_var:
+        parent_context = AwsXRayFormat().extract(
+            {TRACE_HEADER_KEY: xray_env_var}
+        )
 
-        if (
+    if (
             parent_context
             and get_current_span(parent_context)
             .get_span_context()
             .trace_flags.sampled
-        ):
-            return parent_context
-
-        if event_context_extractor:
-            parent_context = event_context_extractor(lambda_event)
-        else:
-            parent_context = _default_event_context_extractor(lambda_event)
-
+    ):
         return parent_context
 
-    def _instrumented_lambda_handler_call(call_wrapped, instance, args, kwargs):
+    parent_context = _default_event_context_extractor(lambda_event)
+
+    return parent_context
+
+
+tracer = get_tracer(__name__, "0.16.dev0")
+flush_timeout = int(os.environ.get("OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT", 30000))
+
+def otel_handler(orig_handler):
+    @functools.wraps(orig_handler)
+    def otel_wrapper(*args, **kwargs):
         orig_handler_name = ".".join(
-            [wrapped_module_name, wrapped_function_name]
+            [orig_handler.__module__, orig_handler.__name__]
         )
 
         lambda_event = args[0]
@@ -198,7 +138,7 @@ def _instrument(
         parent_context = _determine_parent_context(lambda_event)
 
         with tracer.start_as_current_span(
-            name=orig_handler_name, context=parent_context, kind=SpanKind.SERVER
+                name=orig_handler_name, context=parent_context, kind=SpanKind.SERVER
         ) as span:
             if span.is_recording():
                 lambda_context = args[1]
@@ -219,16 +159,11 @@ def _instrument(
                     os.environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
                 )
 
-            result = call_wrapped(*args, **kwargs)
+            result = orig_handler(*args, **kwargs)
 
         # force_flush before function quit in case of Lambda freeze.
         tracer_provider = get_tracer_provider()
         tracer_provider.force_flush(flush_timeout)
 
         return result
-
-    wrap_function_wrapper(
-        wrapped_module_name,
-        wrapped_function_name,
-        _instrumented_lambda_handler_call,
-    )
+    return otel_wrapper

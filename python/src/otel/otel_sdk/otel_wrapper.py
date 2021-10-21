@@ -1,110 +1,61 @@
-import logging
+# Copyright 2020, OpenTelemetry Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# TODO: usage
+"""
+The opentelemetry-instrumentation-aws-lambda package allows tracing AWS
+Lambda function.
+
+Usage
+-----
+
+.. code:: python
+    # Copy this snippet into AWS Lambda function
+    # Ref Doc: https://docs.aws.amazon.com/lambda/latest/dg/lambda-python.html
+
+    import boto3
+    from opentelemetry.instrumentation.aws_lambda import otel_handler
+
+    # Lambda function
+    @otel_handler
+    def lambda_handler(event, context):
+        s3 = boto3.resource('s3')
+        for bucket in s3.buckets.all():
+            print(bucket.name)
+
+        return "200 OK"
+
+API
+---
+"""
+
+
 import os
-
 from importlib import import_module
-from pkg_resources import iter_entry_points
 
-from opentelemetry.instrumentation.dependencies import get_dist_dependency_conflicts
-from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
-from opentelemetry.environment_variables import OTEL_PYTHON_DISABLED_INSTRUMENTATIONS
-from opentelemetry.instrumentation.distro import BaseDistro, DefaultDistro
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# TODO: waiting OTel Python supports env variable config for resource detector
-# from opentelemetry.resource import AwsLambdaResourceDetector
-# from opentelemetry.sdk.resources import Resource
-# resource = Resource.create().merge(AwsLambdaResourceDetector().detect())
-# trace.get_tracer_provider.resource = resource
-
-def _load_distros() -> BaseDistro:
-    for entry_point in iter_entry_points("opentelemetry_distro"):
-        try:
-            distro = entry_point.load()()
-            if not isinstance(distro, BaseDistro):
-                logger.debug(
-                    "%s is not an OpenTelemetry Distro. Skipping",
-                    entry_point.name,
-                )
-                continue
-            logger.debug(
-                "Distribution %s will be configured", entry_point.name
-            )
-            return distro
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.debug("Distribution %s configuration failed", entry_point.name)
-    return DefaultDistro()
-
-def _load_instrumentors(distro):
-    package_to_exclude = os.environ.get(OTEL_PYTHON_DISABLED_INSTRUMENTATIONS, [])
-    if isinstance(package_to_exclude, str):
-        package_to_exclude = package_to_exclude.split(",")
-        # to handle users entering "requests , flask" or "requests, flask" with spaces
-        package_to_exclude = [x.strip() for x in package_to_exclude]
-
-    for entry_point in iter_entry_points("opentelemetry_instrumentor"):
-        if entry_point.name in package_to_exclude:
-            logger.debug(
-                "Instrumentation skipped for library %s", entry_point.name
-            )
-            continue
-
-        try:
-            conflict = get_dist_dependency_conflicts(entry_point.dist)
-            if conflict:
-                logger.debug(
-                    "Skipping instrumentation %s: %s",
-                    entry_point.name,
-                    conflict,
-                )
-                continue
-
-            # tell instrumentation to not run dep checks again as we already did it above
-            distro.load_instrumentor(entry_point, skip_dep_check=True)
-            logger.info("Instrumented %s", entry_point.name)
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.debug("Instrumenting of %s failed", entry_point.name)
-
-def _load_configurators():
-    configured = None
-    for entry_point in iter_entry_points("opentelemetry_configurator"):
-        if configured is not None:
-            logger.warning(
-                "Configuration of %s not loaded, %s already loaded",
-                entry_point.name,
-                configured,
-            )
-            continue
-        try:
-            entry_point.load()().configure()  # type: ignore
-            configured = entry_point.name
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.debug("Configuration of %s failed", entry_point.name)
+from opentelemetry.instrumentation.aws_lambda import otel_handler
 
 
-def modify_module_name(module_name):
-    """Returns a valid modified module to get imported"""
-    return ".".join(module_name.split("/"))
+wrapped_handler = None
 
-class HandlerError(Exception):
-    pass
 
-distro = _load_distros()
-distro.configure()
-_load_configurators()
-_load_instrumentors(distro)
-# TODO: move to python-contrib
-AwsLambdaInstrumentor().instrument(skip_dep_check=True)
-
-path = os.environ.get("ORIG_HANDLER", None)
-if path is None:
-    raise HandlerError("ORIG_HANDLER is not defined.")
-parts = path.rsplit(".", 1)
-if len(parts) != 2:
-    raise HandlerError("Value %s for ORIG_HANDLER has invalid format." % path)
-
-(mod_name, handler_name) = parts
-modified_mod_name = modify_module_name(mod_name)
-handler_module = import_module(modified_mod_name)
-lambda_handler = getattr(handler_module, handler_name)
+def lambda_handler(*args, **kwargs):
+    global wrapped_handler
+    if wrapped_handler is None:
+        lambda_handler = os.environ.get("OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER")
+        module_name, func_name = lambda_handler.rsplit('.', 1)
+        module = import_module(module_name)
+        func = getattr(module, func_name)
+        wrapped_handler = otel_handler(func)
+    return wrapped_handler(*args, **kwargs)
