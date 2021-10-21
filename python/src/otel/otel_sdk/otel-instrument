@@ -23,14 +23,17 @@ variables OpenTelemetry uses, and then initializing OpenTelemetry using the
 `opentelemetry-instrument` auto instrumentation script from the
 `opentelemetry-instrumentation` package.
 
-Additionally, this configuration the user is using packages derived from
-`opentelemetry-instrumentation` and `opentelemetry-sdk` in their implementation.
+Additionally, this configuration assumes the user is using packages conforming
+to the `opentelemetry-instrumentation` and `opentelemetry-sdk` specifications.
+
+DO NOT use this script for anything else besides SETTING ENVIRONMENT VARIABLES.
+The final `execl` command starts a new python process which replaces the current
+one. One environment variables are preserved.
 
 Usage
 -----
-In the configuration of an AWS Lambda function with
-`otel-instrument` at the root level of a Lambda
-Layer:
+In the configuration of an AWS Lambda function with this file at the
+root level of a Lambda Layer:
 
 .. code::
 
@@ -48,13 +51,13 @@ LAMBDA_RUNTIME_DIR = "LAMBDA_RUNTIME_DIR"
 
 # Update the python paths for packages with `sys.path` and `PYTHONPATH`
 
-# - Expect this `otel-instrument` file to be at the Lambda Layer root. Then, we
-#   know where the OpenTelemetry Python packages are and can add them to the
-#   PYTHONPATH.
+# - Expect this file to be at the Lambda Layer root. Then, we know where the
+#   OpenTelemetry Python packages are and can add them to the PYTHONPATH.
+#
+#   See more:
+#   https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-path
 
-LAMBDA_LAYER_PKGS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "python")
-)
+LAMBDA_LAYER_PKGS_DIR = os.path.abspath(os.path.join(os.sep, "opt", "python"))
 
 # - Set Lambda Layer python packages in PYTHONPATH so `opentelemetry-instrument`
 #   script can find them (it needs to find `opentelemetry` find the auto
@@ -85,9 +88,11 @@ if LAMBDA_LAYER_PKGS_DIR not in sys.path:
 from opentelemetry.environment_variables import (
     OTEL_PROPAGATORS,
     OTEL_TRACES_EXPORTER,
-    OTEL_PYTHON_DISABLED_INSTRUMENTATIONS,
 )
-from opentelemetry.sdk.environment_variables import OTEL_RESOURCE_ATTRIBUTES
+from opentelemetry.sdk.environment_variables import (
+    OTEL_RESOURCE_ATTRIBUTES,
+    OTEL_SERVICE_NAME,
+)
 
 # - Set the default Trace Exporter
 
@@ -95,20 +100,7 @@ environ.setdefault(OTEL_TRACES_EXPORTER, "otlp_proto_grpc_span")
 
 # - Set the service name
 
-service_name_resource_attribute = "service.name"
-if environ.get(OTEL_RESOURCE_ATTRIBUTES) is None:
-    environ[OTEL_RESOURCE_ATTRIBUTES] = "%s=%s" % (
-        service_name_resource_attribute,
-        environ.get(AWS_LAMBDA_FUNCTION_NAME),
-    )
-elif service_name_resource_attribute not in environ.get(
-    OTEL_RESOURCE_ATTRIBUTES
-):
-    environ[OTEL_RESOURCE_ATTRIBUTES] = "%s=%s,%s" % (
-        service_name_resource_attribute,
-        environ.get(AWS_LAMBDA_FUNCTION_NAME),
-        environ.get(OTEL_RESOURCE_ATTRIBUTES),
-    )
+environ.setdefault(OTEL_SERVICE_NAME, environ.get(AWS_LAMBDA_FUNCTION_NAME))
 
 # - Set the Resource Detectors (Resource Attributes)
 #
@@ -126,24 +118,27 @@ lambda_resource_attributes = (
         environ.get("AWS_LAMBDA_FUNCTION_VERSION"),
     )
 )
-environ[OTEL_RESOURCE_ATTRIBUTES] = "%s,%s" % (
-    lambda_resource_attributes,
-    environ.get(OTEL_RESOURCE_ATTRIBUTES),
-)
+
+if OTEL_RESOURCE_ATTRIBUTES not in environ:
+    environ[OTEL_RESOURCE_ATTRIBUTES] = lambda_resource_attributes
+else:
+    environ[OTEL_RESOURCE_ATTRIBUTES] = "%s,%s" % (
+        lambda_resource_attributes,
+        environ.get(OTEL_RESOURCE_ATTRIBUTES),
+    )
 
 # - Set the default propagators
 
 environ.setdefault(OTEL_PROPAGATORS, "tracecontext,b3,xray")
 
-# - Disable Lambda instrumentation because we will instrument when we know it
-#   patch in a way that is visible to the calling AWS Lambda `boostrap.py` file.
-
-environ[OTEL_PYTHON_DISABLED_INSTRUMENTATIONS] = "aws_lambda"
-
-# - Use a wrapper because instrumentations don't last across parent -> child
-#   processes (i.e. using `excel`) if the child process imports packages
-#   using `getattr(module_name, function_name)`. The child will just import an
-#   uninstrumented package if we don't have `otel_wrapper.py`.
+# - Use a wrapper because AWS Lambda's `python3 /var/runtime/bootstrap.py` will
+#   use `imp.load_module` to load the function from the `_HANDLER` environment
+#   variable. This RELOADS the module and REMOVES any instrumentation patching
+#   done earlier. So we delay instrumentation until `boostrap.py` imports
+#   `otel_wrapper.py` at which we know the patching will be picked up.
+#
+#   See more:
+#   https://docs.python.org/3/library/imp.html#imp.load_module
 
 environ["ORIG_HANDLER"] = environ.get("_HANDLER")
 environ["_HANDLER"] = "otel_wrapper.lambda_handler"
