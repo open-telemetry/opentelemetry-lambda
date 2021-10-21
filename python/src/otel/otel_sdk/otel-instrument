@@ -9,12 +9,11 @@
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
 
-export PATH="/opt/python/bin:$PATH"
-export PYTHONPATH="/opt/python:/var/runtime:$PYTHONPATH"
+export PYTHONPATH="/opt/python:$LAMBDA_TASK_ROOT:$LAMBDA_RUNTIME_DIR:$PYTHONPATH"
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER="$_HANDLER"
 # Note, the file structure is important. Lambda does not seem to allow loading the handler if it is placed at a
 # subdirectory such as opentelemetry.instrumentation.lambda.handler, when inside a layer it must be at the top level.
 export _HANDLER="otel_wrapper.lambda_handler"
 
-exec opentelemetry-instrument "$@"
+exec /opt/python/bin/opentelemetry-instrument "$@"
