@@ -10,7 +10,7 @@
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
 
 export PATH="/opt/python/bin:$PATH"
-export PYTHONPATH="/opt/python:$PYTHONPATH"
+export PYTHONPATH="/opt/python:/var/runtime:$PYTHONPATH"
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER="$_HANDLER"
 # Note, the file structure is important. Lambda does not seem to allow loading the handler if it is placed at a

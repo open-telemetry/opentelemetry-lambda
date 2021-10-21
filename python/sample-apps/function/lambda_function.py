@@ -18,10 +18,12 @@ s3 = boto3.resource("s3")
 
 # lambda function
 def lambda_handler(event, context):
+    print(boto3.__file__)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(callAioHttp())
 
+    print("fetching buckets")
     for bucket in s3.buckets.all():
         print(bucket.name)
 
