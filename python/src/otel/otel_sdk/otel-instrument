@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Copyright The OpenTelemetry Authors
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-: '
+: <<'END_DOCUMENTATION'
 `otel-instrument`
 
 This script configures and sets up OpenTelemetry Python with the values we
@@ -43,7 +43,7 @@ root level of a Lambda Layer:
 
     AWS_LAMBDA_EXEC_WRAPPER = /opt/otel-instrument
 
-'
+END_DOCUMENTATION
 
 # Use constants to access the environment variables we want to use in this
 # script.
@@ -68,17 +68,13 @@ root level of a Lambda Layer:
 #   See more:
 #   https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-path
 
-export LAMBDA_LAYER_PKGS_DIR="/opt/python"
+export LAMBDA_LAYER_PKGS_DIR="/opt/python";
 
 # - Set Lambda Layer python packages in PYTHONPATH so `opentelemetry-instrument`
 #   script can find them (it needs to find `opentelemetry` to find the auto
 #   instrumentation `run()` method later)
 
-if [ -z ${PYTHONPATH} ]; then
-    export PYTHONPATH=$LAMBDA_LAYER_PKGS_DIR;
-else
-    export PYTHONPATH="$LAMBDA_LAYER_PKGS_DIR:$PYTHONPATH";
-fi
+export PYTHONPATH="$LAMBDA_LAYER_PKGS_DIR:$PYTHONPATH";
 
 # - Set Lambda runtime python packages in PYTHONPATH so
 #   `opentelemetry-instrument` script can find them during auto instrumentation
@@ -88,11 +84,7 @@ export PYTHONPATH="$LAMBDA_RUNTIME_DIR:$PYTHONPATH";
 
 # Configure OpenTelemetry Python with environment variables
 
-# - Set the default Trace Exporter
-
-if [ -z ${OTEL_TRACES_EXPORTER} ]; then
-    export OTEL_TRACES_EXPORTER="otlp_proto_grpc_span";
-fi
+# - Uses the default `OTEL_TRACES_EXPORTER` which is set to `otlp_proto_grpc`
 
 # - Set the service name
 
@@ -108,7 +100,7 @@ fi
 #
 #   export OTEL_RESOURCE_DETECTORS="aws_lambda";
 #
-export LAMBDA_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION"
+export LAMBDA_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION";
 
 if [ -z ${OTEL_RESOURCE_ATTRIBUTES} ]; then
     export OTEL_RESOURCE_ATTRIBUTES=$LAMBDA_RESOURCE_ATTRIBUTES;
@@ -116,11 +108,7 @@ else
     export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES,$OTEL_RESOURCE_ATTRIBUTES";
 fi
 
-# - Set the default propagators
-
-if [ -z ${OTEL_PROPAGATORS} ]; then
-    export OTEL_PROPAGATORS="tracecontext,b3,xray";
-fi
+# - Uses the default `OTEL_PROPAGATORS` which is set to `tracecontext,baggage`
 
 # - Use a wrapper because AWS Lambda's `python3 /var/runtime/bootstrap.py` will
 #   use `imp.load_module` to load the function from the `_HANDLER` environment
@@ -137,5 +125,3 @@ export _HANDLER="otel_wrapper.lambda_handler";
 # - Call the upstream auto instrumentation script
 
 python3 $LAMBDA_LAYER_PKGS_DIR/bin/opentelemetry-instrument "$@"
-
-

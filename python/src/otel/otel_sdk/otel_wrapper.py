@@ -51,14 +51,16 @@ class HandlerError(Exception):
 
 AwsLambdaInstrumentor().instrument()
 
-path = os.environ.get("ORIG_HANDLER", None)
+path = os.environ.get("ORIG_HANDLER")
+
 if path is None:
     raise HandlerError("ORIG_HANDLER is not defined.")
-parts = path.rsplit(".", 1)
-if len(parts) != 2:
-    raise HandlerError("Value %s for ORIG_HANDLER has invalid format." % path)
 
-(mod_name, handler_name) = parts
+try:
+    (mod_name, handler_name) = path.rsplit(".", 1)
+except ValueError as e:
+    raise HandlerError("Bad path '{}' for ORIG_HANDLER: {}".format(path, str(e)))
+
 modified_mod_name = modify_module_name(mod_name)
 handler_module = import_module(modified_mod_name)
 lambda_handler = getattr(handler_module, handler_name)
