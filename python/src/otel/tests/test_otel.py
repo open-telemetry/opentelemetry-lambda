@@ -72,12 +72,11 @@ MOCK_W3C_TRACE_STATE_KEY = "vendor_specific_key"
 MOCK_W3C_TRACE_STATE_VALUE = "test_value"
 
 
-def replace_in_file(file_path, search_text, new_text):
-    with fileinput.input(file_path, inplace=True) as file_object:
+def replace_in_file(filename, old_text, new_text):
+    with fileinput.FileInput(filename, inplace=True) as file_object:
         for line in file_object:
-            new_line = line.replace(search_text, new_text)
             # This directs the output to the file, not the console
-            print(new_line, end="")
+            print(line.replace(old_text, new_text), end="")
 
 
 def mock_aws_lambda_exec_wrapper():
@@ -91,25 +90,39 @@ def mock_aws_lambda_exec_wrapper():
     https://aws-otel.github.io/docs/getting-started/lambda/lambda-python
     """
 
-    # NOTE: Even though we run as a subprocess, the python packages are still
-    # patched with instrumentation. However, the environment values changed in
-    # the script have no effect here in the parent process.
+    # NOTE: Because we run as a subprocess, the python packages are NOT patched
+    # with instrumentation. In this test we just make sure we can complete auto
+    # instrumentation without error and the correct environment variabels are
+    # set. A future improvement might have us run `opentelemetry-instrument` in
+    # this process to imitate `otel-instrument`, but our lambda handler does not
+    # call other instrumented libraries so we have no use for it for now.
 
-    subprocess.call(
+    print_environ_program = (
+        "from os import environ;"
+        "print(f\"ORIG_HANDLER={environ['ORIG_HANDLER']}\");"
+        "print(f\"_HANDLER={environ['_HANDLER']}\");"
+    )
+
+    completed_subprocess = subprocess.run(
         [
             os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
             "python3",
             "-c",
-            "pass",
-        ]
+            print_environ_program,
+        ],
+        check=True,
+        stdout=subprocess.PIPE,
+        text=True,
     )
 
-    # NOTE: This should have been done by `otel-instrument`... but because there
-    # is no way to run this bash script so that it can affect this python
-    # environment, we have to COPY and PASTE its duplicate here ourselves.
+    # NOTE: Because `otel-instrument` cannot affect this python environment, we
+    # parse the stdout produced by our test python program to update the
+    # environment in this parent python process.
 
-    os.environ[ORIG_HANDLER] = os.environ[_HANDLER]
-    os.environ[_HANDLER] = "otel_wrapper.lambda_handler"
+    for env_var_line in completed_subprocess.stdout.split("\n"):
+        if env_var_line:
+            env_key, env_value = env_var_line.split("=")
+            os.environ[env_key] = env_value
 
 
 def mock_execute_lambda(event=None):
@@ -159,16 +172,16 @@ class TestAwsLambdaInstrumentor(TestBase):
         super().tearDown()
         self.common_env_patch.stop()
         AwsLambdaInstrumentor().uninstrument()
-        replace_in_file(
-            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
-            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
-            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
-        )
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
         sys.path.remove(INSTRUMENTATION_SRC_DIR)
+        replace_in_file(
+            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
+            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
+        )
 
     def test_active_tracing(self):
         test_env_patch = mock.patch.dict(
