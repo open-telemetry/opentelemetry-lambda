@@ -96,11 +96,13 @@ fi
 #
 #   TODO: waiting on OTel Python support for configuring Resource Detectors from
 #   an environment variable. Replace the bottom code with the following when
-#   this is possible.
+#   this is possible. We will have to download `opentelemetry-sdk-extension-aws`
+#   when that happens to get the resource detector.
 #
 #   export OTEL_RESOURCE_DETECTORS="aws_lambda";
 #
-#   In the meantime, if doing manual instrumentation, we could do the following:
+#   In the meantime, if doing manual instrumentation, (which means we CANNOT use
+#   this script) we could do the following:
 #
 #   import opentelemetry.trace as trace
 #   from opentelemetry.sdk.trace import TracerProvider
