@@ -22,4 +22,6 @@ This will download all dependencies and compile all code. The layer zip file wil
 
 Sample applications are provided to show usage of the above layer.
 
-- [Application using AWS SDK](./sample-apps/aws-sdk) - shows using the wrapper with an application using AWS SDK without code change.
+- Application using AWS SDK - shows using the wrapper with an application using AWS SDK without code change.
+  - [Using layer built from source](./integration-tests/aws-sdk)
+  - [WIP] [Using OTel Public Layer](./sample-apps/aws-sdk) 

@@ -12,8 +12,8 @@ args = sys.argv[1:]
 environ["ORIG_HANDLER"] = environ.get("_HANDLER")
 environ["_HANDLER"] = "otel_wrapper.lambda_handler"
 
-# config OTel
-environ["OTEL_TRACES_EXPORTER"] = "otlp_proto_grpc_span"
+# config default traces exporter if missing
+environ.setdefault("OTEL_TRACES_EXPORTER", "otlp_proto_grpc_span")
 
 # set service name
 if environ.get("OTEL_RESOURCE_ATTRIBUTES") is None:
