@@ -55,9 +55,9 @@ from opentelemetry.instrumentation.aws_lambda.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.propagate import get_global_textmap
-from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
+from opentelemetry.propagators.aws.aws_xray_propagator import (
     TRACE_HEADER_KEY,
-    AwsXRayFormat,
+    AwsXRayPropagator,
 )
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.trace import (
@@ -169,7 +169,7 @@ def _instrument(
         xray_env_var = os.environ.get("_X_AMZN_TRACE_ID")
 
         if xray_env_var:
-            parent_context = AwsXRayFormat().extract(
+            parent_context = AwsXRayPropagator().extract(
                 {TRACE_HEADER_KEY: xray_env_var}
             )
 

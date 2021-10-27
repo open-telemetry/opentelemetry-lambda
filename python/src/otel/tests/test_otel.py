@@ -21,7 +21,7 @@ from unittest import mock
 
 from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
 from opentelemetry.propagate import get_global_textmap
-from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
+from opentelemetry.propagators.aws.aws_xray_propagator import (
     TRACE_ID_FIRST_PART_LENGTH,
     TRACE_ID_VERSION,
 )
