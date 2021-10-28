@@ -100,13 +100,8 @@ fi
 #
 #   export OTEL_RESOURCE_DETECTORS="aws_lambda";
 #
-export LAMBDA_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION";
 
-if [ -z ${OTEL_RESOURCE_ATTRIBUTES} ]; then
-    export OTEL_RESOURCE_ATTRIBUTES=$LAMBDA_RESOURCE_ATTRIBUTES;
-else
-    export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES,$OTEL_RESOURCE_ATTRIBUTES";
-fi
+export OTEL_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION,$OTEL_RESOURCE_ATTRIBUTES";
 
 # - Uses the default `OTEL_PROPAGATORS` which is set to `tracecontext,baggage`
 
