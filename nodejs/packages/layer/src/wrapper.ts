@@ -21,14 +21,14 @@ const { NetInstrumentation } = require('@opentelemetry/instrumentation-net');
 const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
 const { RedisInstrumentation } = require('@opentelemetry/instrumentation-redis');
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { CollectorTraceExporter } from '@opentelemetry/exporter-collector-proto';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-proto';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
   detectResources,
   envDetector,
   processDetector,
 } from '@opentelemetry/resources';
-import { AwsInstrumentation } from 'opentelemetry-instrumentation-aws-sdk';
+import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk';
 
 declare global {
   function configureTracer(defaultConfig: NodeTracerConfig): NodeTracerConfig;
@@ -78,7 +78,7 @@ async function initializeProvider() {
 
   const tracerProvider = new NodeTracerProvider(config);
   tracerProvider.addSpanProcessor(
-    new BatchSpanProcessor(new CollectorTraceExporter())
+    new BatchSpanProcessor(new OTLPTraceExporter())
   );
 
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
