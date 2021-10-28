@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import fileinput
 import os
+import subprocess
 import sys
 from importlib import import_module
+from shutil import which
 from unittest import mock
 
 from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
@@ -33,6 +36,8 @@ AWS_LAMBDA_EXEC_WRAPPER = "AWS_LAMBDA_EXEC_WRAPPER"
 INSTRUMENTATION_SRC_DIR = os.path.join(
     *(os.path.dirname(__file__), "..", "otel_sdk")
 )
+ORIG_HANDLER = "ORIG_HANDLER"
+TOX_PYTHON_DIRECTORY = os.path.dirname(os.path.dirname(which("python3")))
 
 
 class MockLambdaContext:
@@ -67,6 +72,13 @@ MOCK_W3C_TRACE_STATE_KEY = "vendor_specific_key"
 MOCK_W3C_TRACE_STATE_VALUE = "test_value"
 
 
+def replace_in_file(filename, old_text, new_text):
+    with fileinput.FileInput(filename, inplace=True) as file_object:
+        for line in file_object:
+            # This directs the output to the file, not the console
+            print(line.replace(old_text, new_text), end="")
+
+
 def mock_aws_lambda_exec_wrapper():
     """Mocks automatically instrumenting user Lambda function by pointing
     `AWS_LAMBDA_EXEC_WRAPPER` to the `otel-instrument` script.
@@ -77,8 +89,40 @@ def mock_aws_lambda_exec_wrapper():
     See more:
     https://aws-otel.github.io/docs/getting-started/lambda/lambda-python
     """
-    # NOTE: AwsLambdaInstrumentor().instrument() is done at this point
-    exec(open(os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument")).read())
+
+    # NOTE: Because we run as a subprocess, the python packages are NOT patched
+    # with instrumentation. In this test we just make sure we can complete auto
+    # instrumentation without error and the correct environment variabels are
+    # set. A future improvement might have us run `opentelemetry-instrument` in
+    # this process to imitate `otel-instrument`, but our lambda handler does not
+    # call other instrumented libraries so we have no use for it for now.
+
+    print_environ_program = (
+        "from os import environ;"
+        "print(f\"ORIG_HANDLER={environ['ORIG_HANDLER']}\");"
+        "print(f\"_HANDLER={environ['_HANDLER']}\");"
+    )
+
+    completed_subprocess = subprocess.run(
+        [
+            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            "python3",
+            "-c",
+            print_environ_program,
+        ],
+        check=True,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+
+    # NOTE: Because `otel-instrument` cannot affect this python environment, we
+    # parse the stdout produced by our test python program to update the
+    # environment in this parent python process.
+
+    for env_var_line in completed_subprocess.stdout.split("\n"):
+        if env_var_line:
+            env_key, env_value = env_var_line.split("=")
+            os.environ[env_key] = env_value
 
 
 def mock_execute_lambda(event=None):
@@ -104,6 +148,11 @@ class TestAwsLambdaInstrumentor(TestBase):
     def setUpClass(cls):
         super().setUpClass()
         sys.path.append(INSTRUMENTATION_SRC_DIR)
+        replace_in_file(
+            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
+            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
+        )
 
     def setUp(self):
         super().setUp()
@@ -128,6 +177,11 @@ class TestAwsLambdaInstrumentor(TestBase):
     def tearDownClass(cls):
         super().tearDownClass()
         sys.path.remove(INSTRUMENTATION_SRC_DIR)
+        replace_in_file(
+            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
+            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
+        )
 
     def test_active_tracing(self):
         test_env_patch = mock.patch.dict(
