@@ -96,10 +96,29 @@ fi
 #
 #   TODO: waiting on OTel Python support for configuring Resource Detectors from
 #   an environment variable. Replace the bottom code with the following when
-#   this is possible.
+#   this is possible. We will have to download `opentelemetry-sdk-extension-aws`
+#   when that happens to get the resource detector.
 #
 #   export OTEL_RESOURCE_DETECTORS="aws_lambda";
 #
+#   In the meantime, if doing manual instrumentation, (which means we CANNOT use
+#   this script) we could do the following:
+#
+#   import opentelemetry.trace as trace
+#   from opentelemetry.sdk.trace import TracerProvider
+#   from opentelemetry.sdk.extension.aws.resource._lambda import (
+#       AwsLambdaResourceDetector,
+#   )
+#   from opentelemetry.sdk.resources import get_aggregated_resources
+#   trace.set_tracer_provider(
+#       TracerProvider(
+#           resource=get_aggregated_resources(
+#               [
+#                   AwsLambdaResourceDetector(),
+#               ]
+#           ),
+#       )
+#   )
 
 export OTEL_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION,$OTEL_RESOURCE_ATTRIBUTES";
 
