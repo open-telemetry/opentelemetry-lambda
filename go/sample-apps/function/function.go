@@ -78,5 +78,5 @@ func lambda_handler(ctx context.Context) (interface{}, error) {
 }
 
 func main() {
-	lambda.Start(otellambda.WrapHandlerFunction(lambda_handler, xrayconfig.AllRecommendedOptions()...))
+	lambda.Start(otellambda.InstrumentHandler(lambda_handler, xrayconfig.AllRecommendedOptions()...))
 }
