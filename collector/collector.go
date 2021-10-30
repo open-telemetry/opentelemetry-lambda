@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
 	"io"
@@ -36,11 +37,11 @@ var (
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
 type Collector struct {
-	factories      component.Factories
-	parserProvider parserprovider.ParserProvider
-	svc            *service.Collector
-	appDone        chan struct{}
-	stopped        bool
+	factories   component.Factories
+	mapProvider config.MapProvider
+	svc         *service.Collector
+	appDone     chan struct{}
+	stopped     bool
 }
 
 var configFile = getConfig()
@@ -62,7 +63,7 @@ func NewCollector(factories component.Factories) *Collector {
 	var r io.Reader = f
 	col := &Collector{
 		factories:      factories,
-		parserProvider: parserprovider.NewInMemory(r),
+		mapProvider: parserprovider.NewInMemoryMapProvider(r),
 	}
 	return col
 }
@@ -74,7 +75,7 @@ func (c *Collector) Start() error {
 			Description: "Lambda Collector",
 			Version:  Version,
 		},
-		ParserProvider: c.parserProvider,
+		ConfigMapProvider: c.mapProvider,
 		Factories:      c.factories,
 	}
 	var err error
@@ -82,7 +83,7 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
-	cmd := service.NewCommand(c.svc)
+	cmd := service.NewCommand(params)
 	if args, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_ARGS"); ok {
 		cmd.SetArgs(strings.Split(args, " "))
 	}
