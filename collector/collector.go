@@ -76,7 +76,9 @@ func (c *Collector) Start(ctx context.Context) error {
 		return err
 	}
 
+	c.appDone = make(chan struct{})
 	go func() {
+		defer close(c.appDone)
 		appErr := c.svc.Run(ctx)
 		if appErr != nil {
 			err = appErr
