@@ -36,11 +36,11 @@ func main() {
 
 	factories, _ := lambdacomponents.Components()
 	collector := NewCollector(factories)
-	if err := collector.Start(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	if err := collector.Start(ctx); err != nil {
 		log.Fatalf("Failed to start the extension: %v", err)
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -67,7 +68,7 @@ func NewCollector(factories component.Factories) *Collector {
 	return col
 }
 
-func (c *Collector) Start() error {
+func (c *Collector) Start(ctx context.Context) error {
 	params := service.CollectorSettings{
 		BuildInfo: component.BuildInfo{
 			Command:  "otelcol",
@@ -82,6 +83,13 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		appErr := c.svc.Run(ctx)
+		if appErr != nil {
+			err = appErr
+		}
+	}()
 
 	for state := range c.svc.GetStateChannel() {
 		switch state {
