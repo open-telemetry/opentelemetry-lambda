@@ -15,14 +15,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
-	"io"
-	"log"
 	"os"
-	"strings"
 )
 
 var (
@@ -36,11 +35,11 @@ var (
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
 type Collector struct {
-	factories      component.Factories
-	parserProvider parserprovider.ParserProvider
-	svc            *service.Collector
-	appDone        chan struct{}
-	stopped        bool
+	factories   component.Factories
+	mapProvider config.MapProvider
+	svc         *service.Collector
+	appDone     chan struct{}
+	stopped     bool
 }
 
 var configFile = getConfig()
@@ -54,27 +53,21 @@ func getConfig() string {
 }
 
 func NewCollector(factories component.Factories) *Collector {
-	f, err := os.Open(configFile)
-	if err != nil {
-		log.Printf("Reading AOT config from file: %v failed.\n", configFile)
-		panic("Cannot load Collector config.")
-	}
-	var r io.Reader = f
 	col := &Collector{
 		factories:      factories,
-		parserProvider: parserprovider.NewInMemory(r),
+		mapProvider: parserprovider.NewExpandMapProvider(parserprovider.NewFileMapProvider(getConfig())),
 	}
 	return col
 }
 
-func (c *Collector) Start() error {
+func (c *Collector) Start(ctx context.Context) error {
 	params := service.CollectorSettings{
 		BuildInfo: component.BuildInfo{
 			Command:  "otelcol",
 			Description: "Lambda Collector",
 			Version:  Version,
 		},
-		ParserProvider: c.parserProvider,
+		ConfigMapProvider: c.mapProvider,
 		Factories:      c.factories,
 	}
 	var err error
@@ -82,15 +75,11 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
-	cmd := service.NewCommand(c.svc)
-	if args, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_ARGS"); ok {
-		cmd.SetArgs(strings.Split(args, " "))
-	}
 
 	c.appDone = make(chan struct{})
 	go func() {
 		defer close(c.appDone)
-		appErr := cmd.Execute()
+		appErr := c.svc.Run(ctx)
 		if appErr != nil {
 			err = appErr
 		}
