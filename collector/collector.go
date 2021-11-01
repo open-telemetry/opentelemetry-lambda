@@ -83,19 +83,6 @@ func (c *Collector) Start() error {
 	if err != nil {
 		return err
 	}
-	cmd := service.NewCommand(params)
-	if args, ok := os.LookupEnv("OPENTELEMETRY_COLLECTOR_ARGS"); ok {
-		cmd.SetArgs(strings.Split(args, " "))
-	}
-
-	c.appDone = make(chan struct{})
-	go func() {
-		defer close(c.appDone)
-		appErr := cmd.Execute()
-		if appErr != nil {
-			err = appErr
-		}
-	}()
 
 	for state := range c.svc.GetStateChannel() {
 		switch state {
