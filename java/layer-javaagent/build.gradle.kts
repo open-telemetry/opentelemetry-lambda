@@ -17,7 +17,7 @@ dependencies {
     if (agentDependency != null) {
         implementation(agentDependency)
     } else {
-        implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", classifier = "all")
+        implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent")
     }
 }
 
