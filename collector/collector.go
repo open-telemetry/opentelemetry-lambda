@@ -21,8 +21,6 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/service"
 	"go.opentelemetry.io/collector/service/parserprovider"
-	"io"
-	"log"
 	"os"
 )
 
@@ -55,15 +53,9 @@ func getConfig() string {
 }
 
 func NewCollector(factories component.Factories) *Collector {
-	f, err := os.Open(configFile)
-	if err != nil {
-		log.Printf("Reading AOT config from file: %v failed.\n", configFile)
-		panic("Cannot load Collector config.")
-	}
-	var r io.Reader = f
 	col := &Collector{
 		factories:      factories,
-		mapProvider: parserprovider.NewInMemoryMapProvider(r),
+		mapProvider: parserprovider.NewExpandMapProvider(parserprovider.NewFileMapProvider(getConfig())),
 	}
 	return col
 }
