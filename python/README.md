@@ -1,6 +1,6 @@
 # OpenTelemetry Lambda Python
 
-Layers for running Python applications on AWS Lambda with OpenTelemetry.
+Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Python.
 
 ### Sample App 
 

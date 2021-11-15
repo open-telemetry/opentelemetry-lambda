@@ -9,7 +9,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  CORE_REPO_SHA: e65baa4680cd9dafc026ca5ed760e6d2c2232c96
+  CORE_REPO_SHA: 281c97bf8f9e31392859e006e13c9c8eac8967c3
 
 jobs:
   PR-Python:
@@ -20,20 +20,18 @@ jobs:
         python: [3.8]
 
     steps:
-      - uses: actions/checkout@v2
-
+      - name: Checkout this repo
+        uses: actions/checkout@v2
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-
-      - name: Tox
+      - name: Install tox testing package
         working-directory: python/src
         run: |
           pip install tox
           tox
-
-      - name: build layer
+      - name: Build layer
         working-directory: python/src
         run: ./run.sh -b
 

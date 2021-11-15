@@ -11,6 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+This file tests that the `otel-instrument` script included in this repository
+successfully instruments OTel Python in a mock Lambda environment.
+"""
+
 import fileinput
 import os
 import subprocess
@@ -19,8 +25,13 @@ from importlib import import_module
 from shutil import which
 from unittest import mock
 
-from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
-from opentelemetry.propagate import get_global_textmap
+from opentelemetry.environment_variables import OTEL_PROPAGATORS
+from opentelemetry.instrumentation.aws_lambda import (
+    _HANDLER,
+    _X_AMZN_TRACE_ID,
+    ORIG_HANDLER,
+    AwsLambdaInstrumentor,
+)
 from opentelemetry.propagators.aws.aws_xray_propagator import (
     TRACE_ID_FIRST_PART_LENGTH,
     TRACE_ID_VERSION,
@@ -29,14 +40,14 @@ from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.test.test_base import TestBase
 from opentelemetry.trace import SpanKind
+from opentelemetry.trace.propagation.tracecontext import (
+    TraceContextTextMapPropagator,
+)
 
-_HANDLER = "_HANDLER"
-_X_AMZN_TRACE_ID = "_X_AMZN_TRACE_ID"
 AWS_LAMBDA_EXEC_WRAPPER = "AWS_LAMBDA_EXEC_WRAPPER"
-INSTRUMENTATION_SRC_DIR = os.path.join(
+INIT_OTEL_SCRIPTS_DIR = os.path.join(
     *(os.path.dirname(__file__), "..", "otel_sdk")
 )
-ORIG_HANDLER = "ORIG_HANDLER"
 TOX_PYTHON_DIRECTORY = os.path.dirname(os.path.dirname(which("python3")))
 
 
@@ -60,8 +71,9 @@ MOCK_XRAY_TRACE_CONTEXT_NOT_SAMPLED = (
     f"{MOCK_XRAY_TRACE_CONTEXT_COMMON};Sampled=0"
 )
 
-# Read more:
+# See more:
 # https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
+
 MOCK_W3C_TRACE_ID = 0x5CE0E9A56015FEC5AADFA328AE398115
 MOCK_W3C_PARENT_SPAN_ID = 0xAB54A98CEB1F0AD2
 MOCK_W3C_TRACE_CONTEXT_SAMPLED = (
@@ -98,14 +110,14 @@ def mock_aws_lambda_exec_wrapper():
     # call other instrumented libraries so we have no use for it for now.
 
     print_environ_program = (
-        "from os import environ;"
-        "print(f\"ORIG_HANDLER={environ['ORIG_HANDLER']}\");"
-        "print(f\"_HANDLER={environ['_HANDLER']}\");"
+        "import os;"
+        f"print(f\"{ORIG_HANDLER}={{os.environ['{ORIG_HANDLER}']}}\");"
+        f"print(f\"{_HANDLER}={{os.environ['{_HANDLER}']}}\");"
     )
 
     completed_subprocess = subprocess.run(
         [
-            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-instrument"),
             "python3",
             "-c",
             print_environ_program,
@@ -126,18 +138,28 @@ def mock_aws_lambda_exec_wrapper():
 
 
 def mock_execute_lambda(event=None):
-    """Mocks Lambda importing and then calling the method at the current
-    `_HANDLER` environment variable. Like the real Lambda, if
-    `AWS_LAMBDA_EXEC_WRAPPER` is defined, if executes that before `_HANDLER`.
+    """Mocks the AWS Lambda execution. Mocks importing and then calling the
+    method at the current `_HANDLER` environment variable. Like the real Lambda,
+    if `AWS_LAMBDA_EXEC_WRAPPER` is defined, it executes that before `_HANDLER`.
+
+    NOTE: We don't use `moto`'s `mock_lambda` because we are not instrumenting
+    calls to AWS Lambda using the AWS SDK. Instead, we are instrumenting AWS
+    Lambda itself.
 
     See more:
-    https://aws-otel.github.io/docs/getting-started/lambda/lambda-python
-    """
-    if os.environ[AWS_LAMBDA_EXEC_WRAPPER]:
-        globals()[os.environ[AWS_LAMBDA_EXEC_WRAPPER]]()
+    https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper
 
-    module_name, handler_name = os.environ[_HANDLER].split(".")
-    handler_module = import_module(".".join(module_name.split("/")))
+    Args:
+        event: The Lambda event which may or may not be used by instrumentation.
+    """
+
+    # The point of the repo is to test using the script, so we can count on it
+    # being here for every test and do not check for its existence.
+    # if os.environ[AWS_LAMBDA_EXEC_WRAPPER]:
+    globals()[os.environ[AWS_LAMBDA_EXEC_WRAPPER]]()
+
+    module_name, handler_name = os.environ[_HANDLER].rsplit(".", 1)
+    handler_module = import_module(module_name.replace("/", "."))
     getattr(handler_module, handler_name)(event, MOCK_LAMBDA_CONTEXT)
 
 
@@ -147,9 +169,9 @@ class TestAwsLambdaInstrumentor(TestBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        sys.path.append(INSTRUMENTATION_SRC_DIR)
+        sys.path.append(INIT_OTEL_SCRIPTS_DIR)
         replace_in_file(
-            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-instrument"),
             'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
             f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
         )
@@ -160,10 +182,7 @@ class TestAwsLambdaInstrumentor(TestBase):
             "os.environ",
             {
                 AWS_LAMBDA_EXEC_WRAPPER: "mock_aws_lambda_exec_wrapper",
-                "AWS_LAMBDA_FUNCTION_NAME": "test-python-lambda-function",
-                "AWS_LAMBDA_FUNCTION_VERSION": "2",
-                "AWS_REGION": "us-east-1",
-                _HANDLER: "mock_user_lambda.handler",
+                _HANDLER: "mocks.lambda_function.handler",
             },
         )
         self.common_env_patch.start()
@@ -176,9 +195,9 @@ class TestAwsLambdaInstrumentor(TestBase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        sys.path.remove(INSTRUMENTATION_SRC_DIR)
+        sys.path.remove(INIT_OTEL_SCRIPTS_DIR)
         replace_in_file(
-            os.path.join(INSTRUMENTATION_SRC_DIR, "otel-instrument"),
+            os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-instrument"),
             f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
             'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
         )
@@ -188,6 +207,7 @@ class TestAwsLambdaInstrumentor(TestBase):
             "os.environ",
             {
                 **os.environ,
+                # Using Active tracing
                 _X_AMZN_TRACE_ID: MOCK_XRAY_TRACE_CONTEXT_SAMPLED,
             },
         )
@@ -201,7 +221,7 @@ class TestAwsLambdaInstrumentor(TestBase):
 
         self.assertEqual(len(spans), 1)
         span = spans[0]
-        self.assertEqual(span.name, os.environ["ORIG_HANDLER"])
+        self.assertEqual(span.name, os.environ[ORIG_HANDLER])
         self.assertEqual(span.get_span_context().trace_id, MOCK_XRAY_TRACE_ID)
         self.assertEqual(span.kind, SpanKind.SERVER)
         self.assertSpanHasAttributes(
@@ -241,7 +261,7 @@ class TestAwsLambdaInstrumentor(TestBase):
                 # NOT Active Tracing
                 _X_AMZN_TRACE_ID: MOCK_XRAY_TRACE_CONTEXT_NOT_SAMPLED,
                 # NOT using the X-Ray Propagator
-                "OTEL_PROPAGATORS": "tracecontext",
+                OTEL_PROPAGATORS: "tracecontext",
             },
         )
         test_env_patch.start()
@@ -249,69 +269,8 @@ class TestAwsLambdaInstrumentor(TestBase):
         mock_execute_lambda(
             {
                 "headers": {
-                    "traceparent": MOCK_W3C_TRACE_CONTEXT_SAMPLED,
-                    "tracestate": f"{MOCK_W3C_TRACE_STATE_KEY}={MOCK_W3C_TRACE_STATE_VALUE},foo=1,bar=2",
-                }
-            }
-        )
-
-        spans = self.memory_exporter.get_finished_spans()
-
-        assert spans
-
-        self.assertEqual(len(spans), 1)
-        span = spans[0]
-        self.assertEqual(span.get_span_context().trace_id, MOCK_W3C_TRACE_ID)
-
-        parent_context = span.parent
-        self.assertEqual(
-            parent_context.trace_id, span.get_span_context().trace_id
-        )
-        self.assertEqual(parent_context.span_id, MOCK_W3C_PARENT_SPAN_ID)
-        self.assertEqual(len(parent_context.trace_state), 3)
-        self.assertEqual(
-            parent_context.trace_state.get(MOCK_W3C_TRACE_STATE_KEY),
-            MOCK_W3C_TRACE_STATE_VALUE,
-        )
-        self.assertTrue(parent_context.is_remote)
-
-        test_env_patch.stop()
-
-    def test_using_custom_extractor(self):
-        def custom_event_context_extractor(lambda_event):
-            return get_global_textmap().extract(lambda_event["foo"]["headers"])
-
-        test_env_patch = mock.patch.dict(
-            "os.environ",
-            {
-                **os.environ,
-                # DO NOT use `otel-instrument` script, resort to "manual"
-                # instrumentation below
-                AWS_LAMBDA_EXEC_WRAPPER: "",
-                # NOT Active Tracing
-                _X_AMZN_TRACE_ID: MOCK_XRAY_TRACE_CONTEXT_NOT_SAMPLED,
-                # NOT using the X-Ray Propagator
-                "OTEL_PROPAGATORS": "tracecontext",
-            },
-        )
-        test_env_patch.start()
-
-        # NOTE: Instead of using `AWS_LAMBDA_EXEC_WRAPPER` to point `_HANDLER`
-        # to a module which instruments and calls the user `ORIG_HANDLER`, we
-        # leave `_HANDLER` as is and replace `AWS_LAMBDA_EXEC_WRAPPER` with this
-        # line below. This is like "manual" instrumentation for Lambda.
-        AwsLambdaInstrumentor().instrument(
-            event_context_extractor=custom_event_context_extractor,
-            skip_dep_check=True,
-        )
-
-        mock_execute_lambda(
-            {
-                "foo": {
-                    "headers": {
-                        "traceparent": MOCK_W3C_TRACE_CONTEXT_SAMPLED,
-                        "tracestate": f"{MOCK_W3C_TRACE_STATE_KEY}={MOCK_W3C_TRACE_STATE_VALUE},foo=1,bar=2",
-                    }
+                    TraceContextTextMapPropagator._TRACEPARENT_HEADER_NAME: MOCK_W3C_TRACE_CONTEXT_SAMPLED,
+                    TraceContextTextMapPropagator._TRACESTATE_HEADER_NAME: f"{MOCK_W3C_TRACE_STATE_KEY}={MOCK_W3C_TRACE_STATE_VALUE},foo=1,bar=2",
                 }
             }
         )

@@ -1,4 +1,4 @@
-opentelemetry-exporter-otlp==1.6.2
-opentelemetry-distro==0.25b2
+opentelemetry-exporter-otlp==1.7.1
+opentelemetry-distro==0.26b1
 opentelemetry-propagator-aws-xray==1.0.1
-opentelemetry-instrumentation==0.25b2
+opentelemetry-instrumentation==0.26b1
