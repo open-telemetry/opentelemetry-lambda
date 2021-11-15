@@ -99,5 +99,5 @@ func main() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
 
-	lambda.Start(otellambda.InstrumentHandler(lambda_handler(ctx), xrayconfig.RecommendedOptions(tp)... ))
+	lambda.Start(otellambda.InstrumentHandler(lambda_handler(ctx), xrayconfig.WithRecommendedOptions(tp)... ))
 }
