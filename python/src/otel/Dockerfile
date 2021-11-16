@@ -9,10 +9,12 @@ WORKDIR /workspace
 RUN mkdir -p /build && \
   python3 -m pip install -r otel_sdk/requirements.txt -t /build/python && \
   python3 -m pip install -r otel_sdk/requirements-nodeps.txt -t /build/tmp --no-deps && \
+  # We need to use a `/build/tmp/` folder otherwise the instrumentation packages
+  # do not get fully downloaded to the `opentelemetry/instrumentation/` path.
   cp -r /build/tmp/* /build/python/ && \
   rm -rf /build/tmp && \
-  cp -r otel_sdk/* /build/python && \
-  mv /build/python/otel-instrument /build/otel-instrument && \
+  mv otel_sdk/otel_wrapper.py /build/python && \
+  mv otel_sdk/otel-instrument /build && \
   chmod 755 /build/otel-instrument && \
   rm -rf /build/python/boto* && \
   rm -rf /build/python/urllib3* && \
