@@ -17,11 +17,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/collector/service/parserprovider"
+	"log"
 	"os"
+
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configmapprovider"
+	"go.opentelemetry.io/collector/service"
 )
 
 var (
@@ -36,13 +37,11 @@ var (
 // same process as the test executor.
 type Collector struct {
 	factories   component.Factories
-	mapProvider config.MapProvider
+	mapProvider configmapprovider.Provider
 	svc         *service.Collector
 	appDone     chan struct{}
 	stopped     bool
 }
-
-var configFile = getConfig()
 
 func getConfig() string {
 	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
@@ -55,8 +54,8 @@ func getConfig() string {
 
 func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
-		factories:      factories,
-		mapProvider: parserprovider.NewExpandMapProvider(parserprovider.NewFileMapProvider(getConfig())),
+		factories:   factories,
+		mapProvider: configmapprovider.NewExpand(configmapprovider.NewFile(getConfig())),
 	}
 	return col
 }
@@ -64,12 +63,12 @@ func NewCollector(factories component.Factories) *Collector {
 func (c *Collector) Start(ctx context.Context) error {
 	params := service.CollectorSettings{
 		BuildInfo: component.BuildInfo{
-			Command:  "otelcol",
+			Command:     "otelcol",
 			Description: "Lambda Collector",
-			Version:  Version,
+			Version:     Version,
 		},
 		ConfigMapProvider: c.mapProvider,
-		Factories:      c.factories,
+		Factories:         c.factories,
 	}
 	var err error
 	c.svc, err = service.New(params)
