@@ -17,6 +17,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [ amd64, arm64 ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -28,5 +31,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - run: make package
+      - name: Build Collector Executable for ${{ matrix.architecture }} architecture
+        run: GOARCH=${{ matrix.architecture }} make package
         working-directory: collector
