@@ -85,10 +85,16 @@ main() {
 
 	if [[ $build == true ]]; then
 		echo "sam building..."
-		rm -rf .aws-sam
-		rm -rf otel/otel_collector
-		mkdir -p otel/otel_collector
-		cp -r "$collectorPath"/* otel/otel_collector
+
+		echo "run.sh: building the collector..."
+		pushd $collectorPath || exit
+		make package
+		rm build/collector-extension.zip
+		popd || exit
+		rm -rf otel/collector_build/
+		cp -r $collectorPath/build/ otel/collector_build/
+
+		echo "run.sh: Starting sam build."
 		sam build -u -t $template
 	fi
 
