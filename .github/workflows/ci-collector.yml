@@ -34,3 +34,16 @@ jobs:
       - name: Build Collector Executable for ${{ matrix.architecture }} architecture
         run: GOARCH=${{ matrix.architecture }} make package
         working-directory: collector
+      - name: Confirm architecture of built collector
+        working-directory: collector/build/extensions
+        run: |
+          if [ "${{ matrix.architecture }}" = "amd64" ]
+          then
+            SEARCH_STRING=x86
+          elif [ "${{ matrix.architecture }}" = "arm64" ]
+          then
+            SEARCH_STRING=ARM
+          else
+            exit 2
+          fi
+          grep "$SEARCH_STRING" <<< "$(file collector)"
