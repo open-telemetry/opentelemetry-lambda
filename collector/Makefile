@@ -5,7 +5,7 @@ LAYER_NAME:=otel-collector
 
 VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
-GOARCH=${GOARCH-amd64}
+GOARCH ?= amd64
 GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
 BUILD_INFO_IMPORT_PATH=main
 
