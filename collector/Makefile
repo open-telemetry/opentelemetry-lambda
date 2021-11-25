@@ -5,6 +5,7 @@ LAYER_NAME:=otel-collector
 
 VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
+GOARCH=${GOARCH-amd64}
 GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
 BUILD_INFO_IMPORT_PATH=main
 
@@ -17,7 +18,7 @@ clean:
 build: clean
 	@echo Building otel collector extension
 	mkdir -p $(BUILD_SPACE)/extensions
-	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
+	GOOS=linux $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
 package: build
 	@echo Package zip file for collector extension layer
