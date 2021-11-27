@@ -10,6 +10,11 @@ variable "collector_layer_arn" {
   // TODO(anuraaga): Add default when a public layer is published.
 }
 
+variable "collector_config_layer_arn" {
+  type        = string
+  description = "(NOT YET USED) - ARN for the Lambda layer containing the OpenTelemetry collector configuration file"
+}
+
 variable "sdk_layer_arn" {
   type        = string
   description = "ARN for the Lambda layer containing the OpenTelemetry NodeJS Wrapper"

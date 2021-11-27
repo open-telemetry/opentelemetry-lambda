@@ -9,6 +9,11 @@ variable "collector_layer_arn" {
   description = "ARN for the Lambda layer containing the OpenTelemetry collector extension"
 }
 
+variable "collector_config_layer_arn" {
+  type        = string
+  description = "(NOT YET USED) - ARN for the Lambda layer containing the OpenTelemetry collector configuration file"
+}
+
 variable "tracing_mode" {
   type        = string
   description = "Lambda function tracing mode"

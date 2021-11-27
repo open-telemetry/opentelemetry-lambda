@@ -1,26 +1,27 @@
 resource "aws_lambda_layer_version" "sdk_layer" {
   layer_name          = var.sdk_layer_name
-  filename            = "${path.module}/../../../layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip"
-  compatible_runtimes = ["java8", "java8.al2", "java11"]
+  filename            = "${path.module}/${var.sdk_layer_zip_path}"
+  compatible_runtimes = var.compatible_runtimes
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../../layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip")
+  source_code_hash    = filebase64sha256("${path.module}/${var.sdk_layer_zip_path}")
 }
 
 resource "aws_lambda_layer_version" "collector_layer" {
   count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
-  filename            = "${path.module}/../../../../collector/build/collector-extension.zip"
-  compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
+  filename            = "${path.module}/${var.collector_layer_zip_path}"
+  compatible_runtimes = var.compatible_runtimes
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension.zip")
+  source_code_hash    = filebase64sha256("${path.module}/${var.collector_layer_zip_path}")
 }
 
 module "hello-lambda-function" {
-  source                     = "../../../sample-apps/aws-sdk/deploy/agent"
+  source                     = var.function_terraform_source_path
   name                       = var.function_name
+  architecture               = var.architecture
   collector_layer_arn        = var.enable_collector_layer ? aws_lambda_layer_version.collector_layer[0].arn : null
-  sdk_layer_arn              = aws_lambda_layer_version.sdk_layer.arn
   collector_config_layer_arn = var.collector_config_layer_arn
+  sdk_layer_arn              = aws_lambda_layer_version.sdk_layer.arn
   tracing_mode               = var.tracing_mode
 }
 
