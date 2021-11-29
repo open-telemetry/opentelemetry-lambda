@@ -1,22 +1,22 @@
 resource "aws_lambda_layer_version" "sdk_layer" {
   layer_name          = var.sdk_layer_name
-  filename            = "${path.module}/../../packages/layer/build/layer.zip"
+  filename            = "${path.module}/../../../packages/layer/build/layer.zip"
   compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../packages/layer/build/layer.zip")
+  source_code_hash    = filebase64sha256("${path.module}/../../../packages/layer/build/layer.zip")
 }
 
 resource "aws_lambda_layer_version" "collector_layer" {
   count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
-  filename            = "${path.module}/../../../collector/build/collector-extension.zip"
+  filename            = "${path.module}/../../../../collector/build/collector-extension.zip"
   compatible_runtimes = ["nodejs10.x", "nodejs12.x", "nodejs14.x"]
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../../collector/build/collector-extension.zip")
+  source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension.zip")
 }
 
 module "hello-lambda-function" {
-  source              = "../../sample-apps/aws-sdk/deploy"
+  source              = "../../../sample-apps/aws-sdk/deploy"
   name                = var.function_name
   collector_layer_arn = var.enable_collector_layer ? aws_lambda_layer_version.collector_layer[0].arn : null
   sdk_layer_arn       = aws_lambda_layer_version.sdk_layer.arn
