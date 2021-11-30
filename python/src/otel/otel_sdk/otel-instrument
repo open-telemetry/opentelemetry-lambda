@@ -84,7 +84,14 @@ export PYTHONPATH="$LAMBDA_RUNTIME_DIR:$PYTHONPATH";
 
 # Configure OpenTelemetry Python with environment variables
 
-# - Uses the default `OTEL_TRACES_EXPORTER` which is set to `otlp_proto_grpc`
+# - We leave `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` to its default. This is
+#   `http://localhost:4318/v1/traces` because we are using the HTTP exporter
+
+# - Set the trace exporter
+
+if [ -z ${OTEL_TRACES_EXPORTER} ]; then
+    export OTEL_TRACES_EXPORTER=otlp_proto_http;
+fi
 
 # - Set the service name
 
