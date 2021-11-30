@@ -8,7 +8,7 @@ resource "aws_lambda_layer_version" "collector_layer" {
 }
 
 module "hello-lambda-function" {
-  source              = "../../../sample-apps/deploy"
+  source              = "../../../sample-apps/aws-sdk/deploy/wrapper"
   name                = var.function_name
   collector_layer_arn = var.enable_collector_layer ? aws_lambda_layer_version.collector_layer[0].arn : null
   tracing_mode        = var.tracing_mode
