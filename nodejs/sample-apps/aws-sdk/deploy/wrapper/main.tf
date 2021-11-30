@@ -2,11 +2,11 @@ module "hello-lambda-function" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = var.name
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.8"
+  handler       = "index.handler"
+  runtime       = "nodejs14.x"
 
   create_package         = false
-  local_existing_package = "${path.module}/../build/function.zip"
+  local_existing_package = "${path.module}/../../build/function.zip"
 
   memory_size = 384
   timeout     = 20
@@ -17,7 +17,11 @@ module "hello-lambda-function" {
   ])
 
   environment_variables = {
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
+    AWS_LAMBDA_EXEC_WRAPPER     = "/opt/otel-handler"
+    OTEL_TRACES_EXPORTER        = "logging"
+    OTEL_METRICS_EXPORTER       = "logging"
+    OTEL_LOG_LEVEL              = "DEBUG"
+    OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:55681/v1/traces"
   }
 
   tracing_mode = var.tracing_mode
@@ -37,10 +41,11 @@ module "hello-lambda-function" {
 }
 
 module "api-gateway" {
-  source = "../../../utils/terraform/api-gateway-proxy"
+  source = "../../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
   function_name       = module.hello-lambda-function.lambda_function_name
   function_invoke_arn = module.hello-lambda-function.lambda_function_invoke_arn
   enable_xray_tracing = var.tracing_mode == "Active"
 }
+

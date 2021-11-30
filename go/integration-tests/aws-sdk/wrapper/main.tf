@@ -1,14 +1,14 @@
 resource "aws_lambda_layer_version" "collector_layer" {
   count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
-  filename            = "${path.module}/../../../collector/build/collector-extension.zip"
+  filename            = "${path.module}/../../../../collector/build/collector-extension.zip"
   compatible_runtimes = ["provided.al2"]
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../../collector/build/collector-extension.zip")
+  source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension.zip")
 }
 
 module "hello-lambda-function" {
-  source              = "../../sample-apps/deploy"
+  source              = "../../../sample-apps/deploy"
   name                = var.function_name
   collector_layer_arn = var.enable_collector_layer ? aws_lambda_layer_version.collector_layer[0].arn : null
   tracing_mode        = var.tracing_mode

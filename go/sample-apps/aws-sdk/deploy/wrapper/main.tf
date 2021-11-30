@@ -6,7 +6,7 @@ module "hello-lambda-function" {
   runtime       = "provided.al2"
 
   create_package         = false
-  local_existing_package = "${path.module}/../function/build/bootstrap.zip"
+  local_existing_package = "${path.module}/../../../function/build/bootstrap.zip"
 
   memory_size = 384
   timeout     = 20
@@ -32,7 +32,7 @@ module "hello-lambda-function" {
 }
 
 module "api-gateway" {
-  source = "../../../utils/terraform/api-gateway-proxy"
+  source = "../../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
   function_name       = module.hello-lambda-function.lambda_function_name
