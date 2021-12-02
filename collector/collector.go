@@ -81,11 +81,7 @@ func (c *Collector) Start(ctx context.Context) error {
 	go func(runErr chan error) {
 		defer close(c.appDone)
 		err := c.svc.Run(context.Background())
-		if err != nil {
-			runErr <- err
-		} else {
-			runErr <- nil
-		}
+		runErr <- err
 	}(runErr)
 
 	rErr := <-runErr
