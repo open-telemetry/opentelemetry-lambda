@@ -27,3 +27,9 @@ variable "enable_collector_layer" {
   description = "Enables building and usage of a layer for the collector. If false, it means either the SDK layer includes the collector or it is not used."
   default     = true
 }
+
+variable "architecture" {
+  type        = string
+  description = "Lambda function architecture, valid values are arm64 or x86_64"
+  default     = "x86_64"
+}
