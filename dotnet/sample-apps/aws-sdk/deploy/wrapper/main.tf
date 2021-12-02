@@ -1,6 +1,8 @@
 module "hello-lambda-function" {
-  source = "terraform-aws-modules/lambda/aws"
+  source  = "terraform-aws-modules/lambda/aws"
+  version = ">= 2.24.0"
 
+  architectures = compact([var.architecture])
   function_name = var.name
   handler       = "AwsSdkSample::AwsSdkSample.Function::TracingFunctionHandler"
   runtime       = "dotnetcore3.1"
