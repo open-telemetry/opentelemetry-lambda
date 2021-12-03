@@ -78,11 +78,11 @@ func (c *Collector) Start(ctx context.Context) error {
 
 	c.appDone = make(chan struct{})
 	runErr := make(chan error, 1)
-	go func(runErr chan error) {
+	go func() {
 		defer close(c.appDone)
-		err := c.svc.Run(context.Background())
+		err := c.svc.Run(ctx)
 		runErr <- err
-	}(runErr)
+	}()
 
 	rErr := <-runErr
 	if rErr != nil {
