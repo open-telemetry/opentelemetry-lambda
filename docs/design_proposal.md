@@ -59,8 +59,15 @@ In previous technical challenges we mentioned two things: Memory consumption and
 As a prototype, Python is implemented in [current Repo](https://github.com/open-telemetry/opentelemetry-lambda/tree/main/python).
 
 We don’t provide SDK public layers for every language. This is required in the following two cases:
-Languages with auto-instrumentation support, such as Python and Java
-Scripting languages such as Python, Node.js, and Ruby
+Languages with auto-instrumentation support, such as:
+* Python
+* Java
+
+Scripting languages such as:
+* Python
+* Node.js
+* Ruby
+
 At the moment only Python and Java support auto-instrumentation. Other languages such as Go, .Net support library instrumentation only. For these languages, users must explicitly add OpenTelemetry SDK dependencies and instrumentation code, then re-compile the Lambda application to enable library instrumentation. In such cases we would not provide OpenTelemetry SDK layer because it does not help in compilation and deployment.
 
 Java SDK supports auto-instrumentation through javaagent, which will noticeably increase the program’s start time. In performance testing we see around 40 seconds for Lambda cold start if using OpenTelemetry javaagent. This is a concern in terms of providing a public Lambda layer for Java. We do see some users asking for OpenTelemetry Java auto-instrumentation in Lambda and aren’t concerned about long cold start times. For this reason, we still provide a public Lambda layer for Java and remind users of the impact in documentation.
