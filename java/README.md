@@ -3,7 +3,7 @@
 Layers for running Java applications on AWS Lambda with OpenTelemetry.
 
 ## Prerequisites 
-- Supports functions running on Java 11 corretto runtime only. 
+- Supports Lambda functions using Java 11 (Corretto) runtime only. 
 
 ## Provided layers
 
