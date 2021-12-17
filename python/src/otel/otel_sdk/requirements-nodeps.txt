@@ -2,7 +2,6 @@ opentelemetry-instrumentation-aiohttp-client==0.26b1
 opentelemetry-util-http==0.26b1
 asgiref~=3.0
 opentelemetry-instrumentation-asgi==0.26b1
-opentelemetry-instrumentation-aws-lambda==0.26b1
 opentelemetry-instrumentation-asyncpg==0.26b1
 opentelemetry-instrumentation-boto==0.26b1
 opentelemetry-instrumentation-botocore==0.26b1
