@@ -77,13 +77,18 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 
 	c.appDone = make(chan struct{})
+	runErr := make(chan error, 1)
 	go func() {
 		defer close(c.appDone)
-		appErr := c.svc.Run(ctx)
-		if appErr != nil {
-			err = appErr
-		}
+		err := c.svc.Run(ctx)
+		runErr <- err
 	}()
+
+	rErr := <-runErr
+	if rErr != nil {
+		return rErr
+	}
+	close(runErr)
 
 	for state := range c.svc.GetStateChannel() {
 		switch state {
