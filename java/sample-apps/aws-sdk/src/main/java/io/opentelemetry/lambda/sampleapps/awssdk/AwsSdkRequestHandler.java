@@ -4,9 +4,9 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.metrics.GlobalMeterProvider;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +18,11 @@ public class AwsSdkRequestHandler
     implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
   private static final Logger logger = LogManager.getLogger(AwsSdkRequestHandler.class);
-  private static final Meter sampleMeter = GlobalMeterProvider.get().get("aws-otel", "1.0", null);
+  private static final Meter sampleMeter =
+      GlobalOpenTelemetry.getMeterProvider()
+          .meterBuilder("aws-otel")
+          .setInstrumentationVersion("1.0")
+          .build();
   private static final LongUpDownCounter queueSizeCounter =
       sampleMeter
           .upDownCounterBuilder("queueSizeChange")
