@@ -35,11 +35,11 @@ var (
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
 type Collector struct {
-	factories   component.Factories
+	factories      component.Factories
 	configProvider service.ConfigProvider
-	svc         *service.Collector
-	appDone     chan struct{}
-	stopped     bool
+	svc            *service.Collector
+	appDone        chan struct{}
+	stopped        bool
 }
 
 func getConfig() string {
@@ -53,7 +53,7 @@ func getConfig() string {
 
 func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
-		factories:   factories,
+		factories:      factories,
 		configProvider: service.NewDefaultConfigProvider([]string{getConfig()}, nil),
 	}
 	return col
@@ -67,7 +67,7 @@ func (c *Collector) Start(ctx context.Context) error {
 			Version:     Version,
 		},
 		ConfigProvider: c.configProvider,
-		Factories:         c.factories,
+		Factories:      c.factories,
 	}
 	var err error
 	c.svc, err = service.New(params)
