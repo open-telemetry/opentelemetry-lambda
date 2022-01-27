@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents
 
-go 1.16
+go 1.17
 
 require (
   go.opentelemetry.io/collector v0.43.1
