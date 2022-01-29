@@ -141,7 +141,7 @@ fi
 # - Use a wrapper because AWS Lambda's `python3 /var/runtime/bootstrap.py` will
 #   use `imp.load_module` to load the function from the `_HANDLER` environment
 #   variable. This RELOADS the module and REMOVES any instrumentation patching
-#   done earlier. So we delay instrumentation until `boostrap.py` imports
+#   done earlier. So we delay instrumentation until `bootstrap.py` imports
 #   `otel_wrapper.py` at which we know the patching will be picked up.
 #
 #   See more:
