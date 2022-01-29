@@ -76,31 +76,33 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 
 	c.appDone = make(chan struct{})
-	runErr := make(chan error, 1)
+
 	go func() {
 		defer close(c.appDone)
-		err := c.svc.Run(ctx)
-		runErr <- err
+		appErr := c.svc.Run(ctx)
+		if appErr != nil {
+			err = appErr
+		}
 	}()
 
-	rErr := <-runErr
-	if rErr != nil {
-		return rErr
+	for {
+		state := c.svc.GetState()
+
+		// While waiting for collector start, an error was found. Most likely
+		// an invalid custom collector configuration file.
+		if err != nil {
+			return err
+		}
+
+		switch state {
+		case service.Starting:
+			// NoOp
+		case service.Running:
+			return nil
+		default:
+			err = fmt.Errorf("unable to start, otelcol state is %d", state)
+		}
 	}
-	close(runErr)
-
-	state := c.svc.GetState()
-
-	switch state {
-	case service.Starting:
-		// NoOp
-	case service.Running:
-		return err
-	default:
-		err = fmt.Errorf("unable to start, otelcol state is %d", state)
-	}
-
-	return err
 }
 
 func (c *Collector) Stop() error {
