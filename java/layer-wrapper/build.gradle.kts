@@ -5,6 +5,8 @@ plugins {
 dependencies {
     runtimeOnly(project(":awssdk-autoconfigure"))
 
+    runtimeOnly("com.fasterxml.jackson.core:jackson-core")
+
     runtimeOnly("io.grpc:grpc-netty-shaded")
     runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-1.0")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-logging")
