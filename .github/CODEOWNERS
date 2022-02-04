@@ -1,4 +1,1 @@
-# https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
-
-* @anuraaga @codeboten @wangzlei
-
+.github/* @medlypharmacy/platform-infra-product-team
