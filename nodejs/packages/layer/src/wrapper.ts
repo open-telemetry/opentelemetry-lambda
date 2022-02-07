@@ -19,6 +19,7 @@ import {
   DiagLogLevel,
 } from "@opentelemetry/api";
 import { getEnv } from '@opentelemetry/core';
+import { AwsLambdaInstrumentationConfig} from '@opentelemetry/instrumentation-aws-lambda';
 
 // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
 // definitions.
@@ -45,6 +46,7 @@ declare global {
   function configureSdkRegistration(
     defaultSdkRegistration: SDKRegistrationConfig
   ): SDKRegistrationConfig;
+  function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
 }
 
 console.log('Registering OpenTelemetry');
@@ -53,7 +55,7 @@ const instrumentations = [
   new AwsInstrumentation({
     suppressInternalInstrumentation: true,
   }),
-  new AwsLambdaInstrumentation(),
+  new AwsLambdaInstrumentation(typeof configureLambdaInstrumentation === 'function' ? configureLambdaInstrumentation({}) : {}),
   new DnsInstrumentation(),
   new ExpressInstrumentation(),
   new GraphQLInstrumentation(),
