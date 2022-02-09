@@ -2,7 +2,7 @@
   "dependencies": [
     {
       "name": "@medlypharmacy/medly-projen",
-      "version": "2.3.9",
+      "version": "2.3.11",
       "type": "build"
     },
     {

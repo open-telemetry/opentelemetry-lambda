@@ -260,10 +260,10 @@
   dependencies:
     jsonschema "^1.4.0"
 
-"@medlypharmacy/medly-projen@2.3.9":
-  version "2.3.9"
-  resolved "https://npm.pkg.github.com/download/@medlypharmacy/medly-projen/2.3.9/306c2bf33947a389aa8f9f66db907248173d45ebe130b9efc16f84542ad5f0e8#aa72f57669475b98daf43432aa1157e67bbdbf58"
-  integrity sha512-hE8uYuOeuc9bTThINwVXFtTNyoUY1EP0n4pmrnt1T8qjZMDGrzXAVSe4DMjrP6NwEbfQG78+qGU6rrWB9DF/hQ==
+"@medlypharmacy/medly-projen@2.3.11":
+  version "2.3.11"
+  resolved "https://npm.pkg.github.com/download/@medlypharmacy/medly-projen/2.3.11/9d7f4ca8c6e5feb95349cc768abfc3cde79571e7b2177a9880b4ccae8cab92cb#83f40ece1edc6baf09adb1ad93fb59f0789cc78f"
+  integrity sha512-ew6Z1SvwAooGqKSmKjHzWh+8zuT1iqO+knWAsKeDEBbj/Rle761BKhW+hbQ50qmZ2KxF8Y65aeV2FP7PAUgfAg==
   dependencies:
     projen "^0.31.7"
 
