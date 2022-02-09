@@ -30,6 +30,20 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           role-session-name: github-actions-${{ env.TF_ROLE }}-${{ env.REPO_NAME }}
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: Build collector
+        working-directory: collector
+        run: make package
+      - name: Build Node.js wrapper
+        working-directory: nodejs
+        run: npm install
       - name: CodeBuild IAC ${{ env.TF_ROLE }}
         uses: aws-actions/aws-codebuild-run-build@v1.0.4
         with:
