@@ -23,7 +23,7 @@ jobs:
       - name: Set REPO_NAME
         run: echo "REPO_NAME=${GITHUB_REPOSITORY#*\/}" >> $GITHUB_ENV
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1.6.1
+        uses: aws-actions/configure-aws-credentials@master
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}

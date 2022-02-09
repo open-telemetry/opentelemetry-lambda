@@ -1,7 +1,7 @@
 const { CdktfProject } = require('@medlypharmacy/medly-projen');
 const project = new CdktfProject({
   defaultReleaseBranch: 'main',
-  devDeps: ['@medlypharmacy/medly-projen@2.3.3'],
+  devDeps: ['@medlypharmacy/medly-projen@2.3.9'],
   name: 'opentelemetry-lambda',
   enabledEnvs: [
     'dev'

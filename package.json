@@ -18,7 +18,7 @@
     "projen": "npx projen"
   },
   "devDependencies": {
-    "@medlypharmacy/medly-projen": "2.3.3",
+    "@medlypharmacy/medly-projen": "2.3.9",
     "@types/node": "^12.20.15",
     "cdktf": "0.6.4",
     "cdktf-cli": "0.6.4",
