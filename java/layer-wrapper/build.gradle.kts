@@ -3,6 +3,10 @@ plugins {
 }
 
 dependencies {
+    // TODO: Remove this when fix released upstream
+    // See here: https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/5285
+    runtimeOnly("com.fasterxml.jackson.core:jackson-databind")
+
     runtimeOnly(project(":awssdk-autoconfigure"))
 
     runtimeOnly("io.grpc:grpc-netty-shaded")

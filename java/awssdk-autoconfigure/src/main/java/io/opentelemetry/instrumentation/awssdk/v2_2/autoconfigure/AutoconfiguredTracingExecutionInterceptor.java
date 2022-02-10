@@ -43,7 +43,7 @@ public class AutoconfiguredTracingExecutionInterceptor implements ExecutionInter
 
   public AutoconfiguredTracingExecutionInterceptor() {
     delegate =
-        AwsSdkTracing.newBuilder(GlobalOpenTelemetry.get())
+        AwsSdkTracing.builder(GlobalOpenTelemetry.get())
             // TODO(anuraaga): Replace this by adding ability to configure default property values
             // via sdk-extension-autoconfigure.
             .setCaptureExperimentalSpanAttributes(

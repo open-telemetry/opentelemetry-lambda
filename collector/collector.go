@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configmapprovider"
 	"go.opentelemetry.io/collector/service"
 )
 
@@ -36,11 +35,11 @@ var (
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
 type Collector struct {
-	factories   component.Factories
-	mapProvider configmapprovider.Provider
-	svc         *service.Collector
-	appDone     chan struct{}
-	stopped     bool
+	factories      component.Factories
+	configProvider service.ConfigProvider
+	svc            *service.Collector
+	appDone        chan struct{}
+	stopped        bool
 }
 
 func getConfig() string {
@@ -54,8 +53,8 @@ func getConfig() string {
 
 func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
-		factories:   factories,
-		mapProvider: configmapprovider.NewExpand(configmapprovider.NewFile(getConfig())),
+		factories:      factories,
+		configProvider: service.NewDefaultConfigProvider([]string{getConfig()}, nil),
 	}
 	return col
 }
@@ -67,8 +66,8 @@ func (c *Collector) Start(ctx context.Context) error {
 			Description: "Lambda Collector",
 			Version:     Version,
 		},
-		ConfigMapProvider: c.mapProvider,
-		Factories:         c.factories,
+		ConfigProvider: c.configProvider,
+		Factories:      c.factories,
 	}
 	var err error
 	c.svc, err = service.New(params)
@@ -77,30 +76,33 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 
 	c.appDone = make(chan struct{})
-	runErr := make(chan error, 1)
+
 	go func() {
 		defer close(c.appDone)
-		err := c.svc.Run(ctx)
-		runErr <- err
+		appErr := c.svc.Run(ctx)
+		if appErr != nil {
+			err = appErr
+		}
 	}()
 
-	rErr := <-runErr
-	if rErr != nil {
-		return rErr
-	}
-	close(runErr)
+	for {
+		state := c.svc.GetState()
 
-	for state := range c.svc.GetStateChannel() {
+		// While waiting for collector start, an error was found. Most likely
+		// an invalid custom collector configuration file.
+		if err != nil {
+			return err
+		}
+
 		switch state {
 		case service.Starting:
 			// NoOp
 		case service.Running:
-			return err
+			return nil
 		default:
 			err = fmt.Errorf("unable to start, otelcol state is %d", state)
 		}
 	}
-	return err
 }
 
 func (c *Collector) Stop() error {
