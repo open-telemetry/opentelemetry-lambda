@@ -19,7 +19,7 @@ import {
   DiagLogLevel,
 } from "@opentelemetry/api";
 import { getEnv } from '@opentelemetry/core';
-import { AwsLambdaInstrumentationConfig} from '@opentelemetry/instrumentation-aws-lambda';
+import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 
 // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
 // definitions.
