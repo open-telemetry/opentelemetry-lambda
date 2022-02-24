@@ -3,14 +3,9 @@ plugins {
 }
 
 dependencies {
-    // TODO: Remove this when fix released upstream
-    // See here: https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/5285
-    runtimeOnly("com.fasterxml.jackson.core:jackson-databind")
-
     runtimeOnly(project(":awssdk-autoconfigure"))
 
-    runtimeOnly("io.grpc:grpc-netty-shaded")
-    runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-1.0:1.10.1-alpha")
+    runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-events-2.2")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-logging")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp-metrics")
