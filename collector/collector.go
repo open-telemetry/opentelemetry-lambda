@@ -54,7 +54,7 @@ func getConfig() string {
 func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
 		factories:      factories,
-		configProvider: service.NewDefaultConfigProvider([]string{getConfig()}, nil),
+		configProvider: service.MustNewDefaultConfigProvider([]string{getConfig()}, nil),
 	}
 	return col
 }
