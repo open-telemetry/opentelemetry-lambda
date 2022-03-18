@@ -38,10 +38,11 @@ Resources:
   OTelLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: opentelemetry-python-39
-      Description: Opentelemetry Python39 layer
+      LayerName: opentelemetry-python
+      Description: Opentelemetry Python layer
       ContentUri: ./otel
       CompatibleRuntimes:
         - python3.9
+        - python3.8
     Metadata:
       BuildMethod: makefile

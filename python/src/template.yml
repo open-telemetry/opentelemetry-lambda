@@ -5,16 +5,17 @@ Parameters:
   LayerName:
     Type: String
     Description: Lambda layer name to be published
-    Default: opentelemetry-python-39
+    Default: opentelemetry-python
 Resources:
   OTelLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: !Ref LayerName
-      Description: Opentelemetry Python39 layer
+      Description: Opentelemetry Python layer
       ContentUri: ./otel
       CompatibleRuntimes:
         - python3.9
+        - python3.8
     Metadata:
       BuildMethod: makefile
   api:

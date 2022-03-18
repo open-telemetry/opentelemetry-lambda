@@ -30,7 +30,7 @@ publish-layer: package
 	@echo Publishing collector extension layer...
 	aws s3 mb s3://$(BUCKET_NAME)
 	aws s3 cp $(BUILD_SPACE)/collector-extension.zip s3://$(BUCKET_NAME)
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --content S3Bucket=$(BUCKET_NAME),S3Key=collector-extension.zip --compatible-runtimes nodejs12.x nodejs10.x java11 python3.8 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --content S3Bucket=$(BUCKET_NAME),S3Key=collector-extension.zip --compatible-runtimes nodejs12.x nodejs10.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
 	@echo Clearing cached files...
 	aws s3 rm s3://$(BUCKET_NAME)/collector-extension.zip
 	aws s3 rb s3://$(BUCKET_NAME)
