@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: OpenTelemetry Python Lambda layer for Python 3.9 Runtime
+Description: OpenTelemetry Python Lambda layer for Python
 Resources:
   api:
     Type: AWS::Serverless::Api
