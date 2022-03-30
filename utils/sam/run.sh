@@ -12,6 +12,7 @@ echo_usage() {
 	echo " -n <specify layer name>"
 	echo " -l <show layer arn>"
 	echo " -s <stack name>"
+	echo " -rt <runtime>"
 }
 
 is_sample() {
@@ -37,7 +38,7 @@ main() {
 
 	collectorPath=${COLLECTOR_PATH-"../../collector"}
 
-	while getopts "hbdxlr:t:s:n:" opt; do
+	while getopts "hbdxlr:t:s:n:rt:" opt; do
 		case "${opt}" in
 		h)
 			echo_usage
@@ -64,6 +65,9 @@ main() {
 		s)
 			stack="${OPTARG}"
 			;;
+	  rt)
+	    runtime="${OPTARG}"
+	    ;;
 		\?)
 			echo "Invalid option: -${OPTARG}" >&2
 			exit 1

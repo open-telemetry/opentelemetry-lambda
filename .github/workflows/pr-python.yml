@@ -17,15 +17,25 @@ jobs:
 
     strategy:
       matrix:
-        python: [3.9]
+        python: [ 3.8, 3.9 ]
 
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
       - name: Setup Python for OTel Python SDK
+        if: ${{ matrix.python == 3.8 }}
+        env:
+          runtime: python3.8
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: 3.8
+      - name: Setup Python for OTel Python SDK
+        if: ${{ matrix.python == 3.9 }}
+        env:
+          runtime: python3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
       - name: Install tox testing package
         working-directory: python/src
         run: |
