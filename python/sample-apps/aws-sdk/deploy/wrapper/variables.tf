@@ -28,7 +28,7 @@ variable "architecture" {
   default     = "x86_64"
 }
 
-variable "python_runtime" {
+variable "runtime" {
   type        = string
   description = "Run time variable for lambda function"
   default     = "python3.9"

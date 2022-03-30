@@ -5,7 +5,7 @@ module "hello-lambda-function" {
   architectures = compact([var.architecture])
   function_name = var.name
   handler       = "lambda_function.lambda_handler"
-  runtime       = var.python_runtime
+  runtime       = var.runtime
 
   create_package         = false
   local_existing_package = "${path.module}/../../../build/function.zip"
