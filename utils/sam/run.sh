@@ -34,6 +34,7 @@ main() {
 	region=${AWS_REGION-$(aws configure get region)}
 	stack=${OTEL_LAMBDA_STACK-"otel-stack"}
 	layerName=${OTEL_LAMBDA_LAYER-"otel-layer"}
+	runtime=${runtime}
 
 
 	collectorPath=${COLLECTOR_PATH-"../../collector"}
