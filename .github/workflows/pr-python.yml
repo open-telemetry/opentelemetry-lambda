@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        python: [3.8]
+        python: [3.8, 3.9]
 
     steps:
       - name: Checkout this repo
