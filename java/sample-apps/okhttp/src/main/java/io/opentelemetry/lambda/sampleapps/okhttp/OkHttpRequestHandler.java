@@ -5,7 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.instrumentation.okhttp.v3_0.OkHttpTracing;
+import io.opentelemetry.instrumentation.okhttp.v3_0.OkHttpTelemetry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import okhttp3.OkHttpClient;
@@ -26,7 +26,7 @@ public class OkHttpRequestHandler
 
     OkHttpClient client =
         new OkHttpClient.Builder()
-            .addInterceptor(OkHttpTracing.create(GlobalOpenTelemetry.get()).newInterceptor())
+            .addInterceptor(OkHttpTelemetry.create(GlobalOpenTelemetry.get()).newInterceptor())
             .build();
 
     APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
