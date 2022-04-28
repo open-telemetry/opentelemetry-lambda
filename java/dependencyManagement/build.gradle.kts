@@ -11,7 +11,7 @@ data class DependencySet(val group: String, val version: String, val modules: Li
 val DEPENDENCY_BOMS = listOf(
     "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:1.13.1-alpha",
     "org.apache.logging.log4j:log4j-bom:2.17.2",
-    "software.amazon.awssdk:bom:2.17.178"
+    "software.amazon.awssdk:bom:2.17.179"
 )
 
 val DEPENDENCIES = listOf(
