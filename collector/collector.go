@@ -52,9 +52,16 @@ func getConfig() string {
 }
 
 func NewCollector(factories component.Factories) *Collector {
+
+	cfgSet 				:= service.ConfigProviderSettings{}
+	cfgSet.Locations 	= []string{getConfig()}
+	cfgProvider,err     := service.NewConfigProvider(cfgSet)
 	col := &Collector{
 		factories:      factories,
-		configProvider: service.MustNewDefaultConfigProvider([]string{getConfig()}, nil),
+		configProvider: cfgProvider,
+	}
+	if err != nil{
+		panic(err)
 	}
 	return col
 }
