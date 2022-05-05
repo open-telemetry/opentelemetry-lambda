@@ -17,15 +17,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/mapconverter/expandmapconverter"
 	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
 	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
 	"go.opentelemetry.io/collector/config/mapprovider/yamlmapprovider"
-	"log"
-	"os"
-
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/service"
 )
 
@@ -57,9 +57,9 @@ func getConfig() string {
 }
 
 func NewCollector(factories component.Factories) *Collector {
+	providers := []config.MapProvider{filemapprovider.New(), envmapprovider.New(), yamlmapprovider.New()}
+	mapProvider := make(map[string]config.MapProvider, len(providers))
 
-	providers		:= []config.MapProvider{filemapprovider.New(), envmapprovider.New(), yamlmapprovider.New()}
-	mapProvider		:= make(map[string]config.MapProvider, len(providers))
 	for _, provider := range providers {
 		mapProvider[provider.Scheme()] = provider
 	}
@@ -69,13 +69,15 @@ func NewCollector(factories component.Factories) *Collector {
 		MapProviders:  mapProvider,
 		MapConverters: []config.MapConverterFunc{expandmapconverter.New()},
 	}
-	cfgProvider,err     := service.NewConfigProvider(cfgSet)
+	cfgProvider, err := service.NewConfigProvider(cfgSet)
+
+	if err != nil {
+		log.Panicf("error on creating config provider: %v\n", err)
+	}
+
 	col := &Collector{
 		factories:      factories,
 		configProvider: cfgProvider,
-	}
-	if err != nil{
-		log.Panicf("error on creating config provider: %v\n" ,err)
 	}
 	return col
 }
