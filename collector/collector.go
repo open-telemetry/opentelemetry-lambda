@@ -21,6 +21,11 @@ import (
 	"os"
 
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/mapconverter/expandmapconverter"
+	"go.opentelemetry.io/collector/config/mapprovider/envmapprovider"
+	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
+	"go.opentelemetry.io/collector/config/mapprovider/yamlmapprovider"
 	"go.opentelemetry.io/collector/service"
 )
 
@@ -52,9 +57,27 @@ func getConfig() string {
 }
 
 func NewCollector(factories component.Factories) *Collector {
+	providers := []config.MapProvider{filemapprovider.New(), envmapprovider.New(), yamlmapprovider.New()}
+	mapProvider := make(map[string]config.MapProvider, len(providers))
+
+	for _, provider := range providers {
+		mapProvider[provider.Scheme()] = provider
+	}
+
+	cfgSet := service.ConfigProviderSettings{
+		Locations:     []string{getConfig()},
+		MapProviders:  mapProvider,
+		MapConverters: []config.MapConverterFunc{expandmapconverter.New()},
+	}
+	cfgProvider, err := service.NewConfigProvider(cfgSet)
+
+	if err != nil {
+		log.Panicf("error on creating config provider: %v\n", err)
+	}
+
 	col := &Collector{
 		factories:      factories,
-		configProvider: service.NewDefaultConfigProvider([]string{getConfig()}, nil),
+		configProvider: cfgProvider,
 	}
 	return col
 }

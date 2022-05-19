@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER="$_HANDLER"
-export _HANDLER="io.opentelemetry.instrumentation.awslambda.v1_0.TracingRequestApiGatewayWrapper"
+export _HANDLER="io.opentelemetry.instrumentation.awslambdaevents.v2_2.TracingRequestApiGatewayWrapper"
 
 if [[ $OTEL_RESOURCE_ATTRIBUTES != *"service.name="* ]]; then
   export OTEL_RESOURCE_ATTRIBUTES="service.name=${AWS_LAMBDA_FUNCTION_NAME},${OTEL_RESOURCE_ATTRIBUTES}"

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: OpenTelemetry Python Lambda layer for Python 3.8 Runtime
+Description: OpenTelemetry Python Lambda layer for Python
 Resources:
   api:
     Type: AWS::Serverless::Api
@@ -12,7 +12,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       CodeUri: ./function
       Description: Build OTel Python Lambda Sample from scratch
       MemorySize: 512
@@ -38,10 +38,11 @@ Resources:
   OTelLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: opentelemetry-python-38
-      Description: Opentelemetry Python38 layer
+      LayerName: opentelemetry-python
+      Description: Opentelemetry Python layer
       ContentUri: ./otel
       CompatibleRuntimes:
+        - python3.9
         - python3.8
     Metadata:
       BuildMethod: makefile
