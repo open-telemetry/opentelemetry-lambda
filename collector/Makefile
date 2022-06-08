@@ -10,7 +10,8 @@ GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
 BUILD_INFO_IMPORT_PATH=main
 
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION) \
--X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter.collectorDistribution=opentelemetry-collector-lambda"
+-X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter.collectorDistribution=opentelemetry-collector-lambda \
+-X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsprometheusremotewriteexporter.collectorDistribution=opentelemetry-collector-lambda"
 
 clean:
 	rm -rf build/
