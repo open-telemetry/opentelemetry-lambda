@@ -51,5 +51,8 @@ def lambda_handler(event, context):
 
         print(bucket.name)
 
+    print("forcing flush")
+    provider.force_flush()
+    print("forced flush")
     time.sleep(300)
     return {"statusCode": 200, "body": json.dumps(os.environ.get("_X_AMZN_TRACE_ID"))}
