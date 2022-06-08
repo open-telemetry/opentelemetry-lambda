@@ -7,6 +7,11 @@ receivers:
 exporters:
   logging:
     loglevel: debug
+  awsprometheusremotewrite:
+    endpoint: "https://aps-workspaces.eu-west-1.amazonaws.com/workspaces/ws-f95ea95b-5b07-4072-ba9e-4dcee1538d73/api/v1/remote_write"
+    aws_auth:
+      service: "aps"
+      region: "eu-west-1"
 
 service:
   pipelines:
@@ -15,4 +20,4 @@ service:
       exporters: [logging]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      exporters: [logging, awsprometheusremotewrite]
