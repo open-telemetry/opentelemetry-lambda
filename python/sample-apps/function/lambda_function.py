@@ -10,6 +10,10 @@ from opentelemetry import _metrics
 from opentelemetry.exporter.otlp.proto.grpc._metric_exporter import (
     OTLPMetricExporter,
 )
+import opentelemetry.exporter.otlp.proto.grpc.version
+
+print( "opentelemetry.exporter.otlp.proto.grpc version", opentelemetry.exporter.otlp.proto.grpc.version.__version__)
+
 from opentelemetry._metrics import (
     get_meter_provider,
     set_meter_provider,
@@ -22,9 +26,8 @@ reader = PeriodicExportingMetricReader(exporter)
 provider = MeterProvider(metric_readers=[reader])
 set_meter_provider(provider)
 
-
 meter = get_meter_provider().get_meter("otel_stack_function", "0.1.2")
-print(os.environ)
+
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -45,14 +48,15 @@ def lambda_handler(event, context):
     
     counter = meter.create_counter(name="first_counter", description="TODO", unit="1",)
 
+    i = 0
     for bucket in s3.buckets.all():
-        counter.add(1, attributes={"hello": bucket.name})
-        print("CounterAdd")
+        i = i + 1
+        # print(bucket.name)
+        
+    counter.add(i, attributes={"invocation": context.aws_request_id})
 
-        print(bucket.name)
-
-    print("forcing flush")
-    provider.force_flush()
-    print("forced flush")
-    time.sleep(300)
+    provider.force_flush() # needed to be sure that metrics are sent to OTel before shutting down the worker
+    time.sleep(1)  # This is needed because at the moment there is no API to force the collector to push the message before the Worker is suspended
+    
+    
     return {"statusCode": 200, "body": json.dumps(os.environ.get("_X_AMZN_TRACE_ID"))}

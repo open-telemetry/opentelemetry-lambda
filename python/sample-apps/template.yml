@@ -31,8 +31,7 @@ Resources:
       Environment:
         Variables:
           AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-instrument
-          OTEL_METRICS_EXPORTER: otlp_proto_http
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python  # needed because https://github.com/open-telemetry/opentelemetry-python/issues/2717 / when new release of library is released this should be solved and can be removed 
       Tracing: Active
       Layers:
         - !Ref OTelLayer
