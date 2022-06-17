@@ -12,17 +12,18 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 
 ## Extension Layer Language Support
 
-* ### [Python Lambda Layer](python/README.md)
-* ### [Java Lambda Layer](java/README.md)
-* ### [NodeJS Lambda Layer](nodejs/README.md)
-* ### [.NET Lambda Layer](dotnet/README.md)
+* ### [Python + Collector Lambda Layer](python/README.md)
+* ### [Java + Collector Lambda Layer](java/README.md)
+* ### [NodeJS + Collector Lambda Layer](nodejs/README.md)
+* ### [.NET + Collector Lambda Layer](dotnet/README.md)
+* ### [Collector Lambda Layer](collector/README.md)
 
 
 ## FAQ
 * **What exporters/recievers/processors are included from the OpenTelemetry Collector?**
-    > For a full list of currently included components, see [here](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18).
+    > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository does not provide pre-build Lambda layers. They must be built manually and saved in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
 
 ## Design Proposal
-To get a better understanding of the proposed design for the OpenTelemetry Lamda extension, you can the [Design Proposal here.](docs/design_proposal.md)
+To get a better understanding of the proposed design for the OpenTelemetry Lamda extension, you can see the [Design Proposal here.](docs/design_proposal.md)
