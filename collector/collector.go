@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
@@ -43,7 +44,8 @@ type Collector struct {
 	factories      component.Factories
 	configProvider service.ConfigProvider
 	svc            *service.Collector
-	appDone        chan struct{}
+	svcDone        chan struct{}
+	svcErr         error
 	stopped        bool
 }
 
@@ -92,47 +94,54 @@ func (c *Collector) Start(ctx context.Context) error {
 		ConfigProvider: c.configProvider,
 		Factories:      c.factories,
 	}
-	var err error
-	c.svc, err = service.New(params)
+	svc, err := service.New(params)
 	if err != nil {
 		return err
 	}
 
-	c.appDone = make(chan struct{})
+	c.svc = svc
+	c.svcDone = make(chan struct{})
 
 	go func() {
-		defer close(c.appDone)
-		appErr := c.svc.Run(ctx)
-		if appErr != nil {
-			err = appErr
-		}
+		defer close(c.svcDone)
+		c.svcErr = c.svc.Run(ctx)
 	}()
 
 	for {
-		state := c.svc.GetState()
-
-		// While waiting for collector start, an error was found. Most likely
-		// an invalid custom collector configuration file.
-		if err != nil {
-			return err
-		}
-
-		switch state {
-		case service.Starting:
-			// NoOp
-		case service.Running:
-			return nil
-		default:
-			err = fmt.Errorf("unable to start, otelcol state is %d", state)
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("unable to start - outer context is closed with error: %w", ctx.Err())
+		case <-c.svcDone:
+			return fmt.Errorf("unable to start - otelcol exited prematurely with error: %w", c.svcErr)
+		// Using a very short interval because there's not much
+		// for the extension to do until the collector is started.
+		case <-time.After(1 * time.Millisecond):
+			state := c.svc.GetState()
+			switch state {
+			case service.Starting:
+				// Keep waiting...
+			case service.Running:
+				return nil
+			default:
+				<-c.svcDone
+				return fmt.Errorf("unable to start - unexpected otelcol state %d (%s): %w", state, state, c.svcErr)
+			}
 		}
 	}
 }
 
-func (c *Collector) Stop() error {
+func (c *Collector) Stop() {
 	if !c.stopped {
 		c.stopped = true
 		c.svc.Shutdown()
 	}
-	<-c.appDone
-	return nil
+	<-c.svcDone
+}
+
+func (c *Collector) Done() <-chan struct{} {
+	return c.svcDone
+}
+
+func (c *Collector) Err() error {
+	return c.svcErr
 }

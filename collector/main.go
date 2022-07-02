@@ -66,6 +66,13 @@ func processEvents(ctx context.Context, collector *Collector) {
 		select {
 		case <-ctx.Done():
 			return
+		case <-collector.Done():
+			if err := collector.Err(); err != nil {
+				logln("Error:", err)
+			}
+			logln("Collector is done before the SHUTDOWN event")
+			logln("Exiting")
+			return
 		default:
 			logln("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
