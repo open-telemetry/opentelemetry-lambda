@@ -6,7 +6,7 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponent
 
 require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.0.0
-	go.opentelemetry.io/collector v0.51.0
+	go.opentelemetry.io/collector v0.54.0
 )
 
 require (
