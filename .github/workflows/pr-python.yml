@@ -34,7 +34,7 @@ jobs:
       - name: Set up Go for ADOT Collector
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.17'
+          go-version: '^1.18'
       - name: Build Python Layer which includes ADOT Collector
         working-directory: python/src
         run: ./run.sh -b
