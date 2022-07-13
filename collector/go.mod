@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector
 
-go 1.18
+go 1.17
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents => ./lambdacomponents
 

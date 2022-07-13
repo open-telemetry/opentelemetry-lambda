@@ -23,7 +23,7 @@ module "hello-lambda-function" {
     OTEL_TRACES_EXPORTER        = "logging"
     OTEL_METRICS_EXPORTER       = "logging"
     OTEL_LOG_LEVEL              = "DEBUG"
-    OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318/v1/traces"
+    OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318/"
   }
 
   tracing_mode = var.tracing_mode
