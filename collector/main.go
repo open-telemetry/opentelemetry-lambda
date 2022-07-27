@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -24,15 +25,18 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
+	"go.uber.org/zap"
 )
 
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
+	logger          = zap.NewExample()
 )
 
 func main() {
-	logln("Launching OpenTelemetry Lambda extension, version: ", Version)
+
+	logger.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
 	factories, _ := lambdacomponents.Components()
 	collector := NewCollector(factories)
@@ -47,8 +51,8 @@ func main() {
 	go func() {
 		s := <-sigs
 		cancel()
-		logln("Received", s)
-		logln("Exiting")
+		logger.Debug(fmt.Sprintf("Received", s))
+		logger.Debug("Exiting")
 	}()
 
 	res, err := extensionClient.Register(ctx, extensionName)
@@ -56,7 +60,7 @@ func main() {
 		log.Fatalf("Cannot register extension: %v", err)
 	}
 
-	logln("Register response:", prettyPrint(res))
+	logger.Debug("Register ", zap.String("response :", prettyPrint(res)))
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, collector)
 }
@@ -67,7 +71,7 @@ func processEvents(ctx context.Context, collector *Collector) {
 		case <-ctx.Done():
 			return
 		default:
-			logln("Waiting for event...")
+			logger.Debug("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
 				logln("Error:", err)
@@ -75,12 +79,12 @@ func processEvents(ctx context.Context, collector *Collector) {
 				return
 			}
 
-			logln("Received event:", prettyPrint(res))
+			logger.Debug("Received ", zap.String("event :", prettyPrint(res)))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
 				collector.Stop() // TODO: handle return values
-				logln("Received SHUTDOWN event")
-				logln("Exiting")
+				logger.Debug("Received SHUTDOWN event")
+				logger.Debug("Exiting")
 				return
 			}
 		}
