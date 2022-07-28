@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"go.opentelemetry.io/collector/component"
@@ -27,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/service"
+	"go.uber.org/zap"
 )
 
 var (
@@ -52,7 +52,7 @@ func getConfig() string {
 	if !ex {
 		return "/opt/collector-config/config.yaml"
 	}
-	log.Printf("Using config file at path %v", val)
+	log.Debug("Got config", zap.String("path", val))
 	return val
 }
 
@@ -72,7 +72,7 @@ func NewCollector(factories component.Factories) *Collector {
 	cfgProvider, err := service.NewConfigProvider(cfgSet)
 
 	if err != nil {
-		log.Panicf("error on creating config provider: %v\n", err)
+		log.Fatal("Failed to create config provider", zap.Error(err))
 	}
 
 	col := &Collector{

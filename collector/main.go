@@ -16,8 +16,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
+	stdlog "log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -31,19 +30,24 @@ import (
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
-	logger          = zap.NewExample()
 )
 
-func main() {
+var log *zap.Logger
 
-	logger.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
+func main() {
+	log, err := zap.NewProduction()
+	if err != nil {
+		stdlog.Fatalf("Failed to create logger: %v", err)
+	}
+
+	log.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
 	factories, _ := lambdacomponents.Components()
 	collector := NewCollector(factories)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if err := collector.Start(ctx); err != nil {
-		log.Fatalf("Failed to start the extension: %v", err)
+		log.Fatal("Failed to start", zap.Error(err))
 	}
 
 	sigs := make(chan os.Signal, 1)
@@ -51,16 +55,15 @@ func main() {
 	go func() {
 		s := <-sigs
 		cancel()
-		logger.Debug(fmt.Sprintf("Received", s))
-		logger.Debug("Exiting")
+		log.Debug("Received signal, exiting", zap.String("signal", s.String()))
 	}()
 
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
-		log.Fatalf("Cannot register extension: %v", err)
+		log.Fatal("Failed to register extension", zap.Error(err))
 	}
 
-	logger.Debug("Register ", zap.String("response :", prettyPrint(res)))
+	log.Debug("Register succeeded", zap.String("extension", extensionName), zap.Any("response", res))
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, collector)
 }
@@ -71,22 +74,23 @@ func processEvents(ctx context.Context, collector *Collector) {
 		case <-ctx.Done():
 			return
 		default:
-			logger.Debug("Waiting for event...")
+			log.Debug("Waiting for event")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
-				logln("Error:", err)
-				logln("Exiting")
+				log.Error("Extension client failed to get next event, exiting", zap.Error(err))
 				return
 			}
 
-			logger.Debug("Received ", zap.String("event :", prettyPrint(res)))
+			log.Debug("Received event", zap.Any("event", res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
-				collector.Stop() // TODO: handle return values
-				logger.Debug("Received SHUTDOWN event")
-				logger.Debug("Exiting")
+				log.Debug("Received SHUTDOWN event, exiting")
+				if err := collector.Stop(); err != nil {
+					log.Error("Collector did not shut down gracefully", zap.Error(err))
+				}
 				return
 			}
+			log.Debug("Event processed successfully")
 		}
 	}
 }
