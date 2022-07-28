@@ -27,17 +27,17 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.1.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.30.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.30.0",
-    "@opentelemetry/instrumentation": "^0.30.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.31.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.31.0",
+    "@opentelemetry/instrumentation": "^0.31.0",
     "@opentelemetry/instrumentation-aws-lambda": "^0.32.0",
     "@opentelemetry/instrumentation-aws-sdk": "^0.8.0",
     "@opentelemetry/instrumentation-dns": "^0.29.0",
     "@opentelemetry/instrumentation-express": "^0.30.0",
     "@opentelemetry/instrumentation-graphql": "^0.29.0",
-    "@opentelemetry/instrumentation-grpc": "^0.30.0",
+    "@opentelemetry/instrumentation-grpc": "^0.31.0",
     "@opentelemetry/instrumentation-hapi": "^0.29.0",
-    "@opentelemetry/instrumentation-http": "^0.30.0",
+    "@opentelemetry/instrumentation-http": "^0.31.0",
     "@opentelemetry/instrumentation-ioredis": "^0.30.0",
     "@opentelemetry/instrumentation-koa": "^0.30.0",
     "@opentelemetry/instrumentation-mongodb": "^0.31.0",
@@ -47,8 +47,8 @@
     "@opentelemetry/instrumentation-redis": "^0.32.0",
     "@opentelemetry/propagator-aws-xray": "^1.1.0",
     "@opentelemetry/resource-detector-aws": "^1.1.1",
-    "@opentelemetry/resources": "^1.4.0",
-    "@opentelemetry/sdk-trace-base": "^1.4.0",
-    "@opentelemetry/sdk-trace-node": "^1.4.0"
+    "@opentelemetry/resources": "^1.5.0",
+    "@opentelemetry/sdk-trace-base": "^1.5.0",
+    "@opentelemetry/sdk-trace-node": "^1.5.0"
   }
 }
