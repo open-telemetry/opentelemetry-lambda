@@ -3,13 +3,13 @@ name: "Pull Request (Python)"
 on:
   pull_request:
     paths:
-    - 'python/**'
+      - 'python/**'
     branches:
       - main
 
 env:
   AWS_REGION: us-east-1
-  CORE_REPO_SHA: 281c97bf8f9e31392859e006e13c9c8eac8967c3
+  CORE_REPO_SHA: e45d833bd06b9309ce82f8e6085eeb2b7948edad
 
 jobs:
   PR-Python:
