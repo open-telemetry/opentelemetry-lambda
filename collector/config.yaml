@@ -3,28 +3,18 @@ receivers:
     protocols:
       grpc:
       http:
-      
-# extensions:
-#   sigv4auth:
-#     # service: "aps"
-#     region: "eu-west-1"
-    
 
 exporters:
   logging:
     loglevel: debug
   awsprometheusremotewrite:
-    endpoint: "https://aps-workspaces.eu-west-1.amazonaws.com/workspaces/ws-f95ea95b-5b07-4072-ba9e-4dcee1538d73/api/v1/remote_write"
+    # endpoint should point to your Amazon Managed Service for Prometheus endpoint URL - value below is provided for reference 
+    endpoint: "https://aps-workspaces.{REGION}.amazonaws.com/workspaces/ws-00000000-0000-0000-0000-000000000000/api/v1/remote_write"
     aws_auth:
       service: "aps"
-      region: "eu-west-1"
-    
+      region: "REGION"
 
 service:
-  # extensions: [sigv4auth]
-  telemetry:
-    logs:
-      level: debug
   pipelines:
     traces:
       receivers: [otlp]
@@ -32,4 +22,3 @@ service:
     metrics:
       receivers: [otlp]
       exporters: [logging, awsprometheusremotewrite]
-      # exporters: [logging]
