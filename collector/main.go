@@ -16,8 +16,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -26,24 +24,29 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
-	logger          = zap.NewExample()
+	logger          *zap.SugaredLogger
 )
 
 func main() {
+	configureLogger()
+	defer logger.Sync()
 
-	logger.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
+	zap.NewExample()
+
+	logger.Debugw("Launching OpenTelemetry Lambda extension", "version", Version)
 
 	factories, _ := lambdacomponents.Components()
 	collector := NewCollector(factories)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if err := collector.Start(ctx); err != nil {
-		log.Fatalf("Failed to start the extension: %v", err)
+		logger.Fatalf("Failed to start the extension: %v", err)
 	}
 
 	sigs := make(chan os.Signal, 1)
@@ -51,18 +54,34 @@ func main() {
 	go func() {
 		s := <-sigs
 		cancel()
-		logger.Debug(fmt.Sprintf("Received", s))
+		logger.Debugf("Received: %s", s.String())
 		logger.Debug("Exiting")
 	}()
 
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
-		log.Fatalf("Cannot register extension: %v", err)
+		logger.Fatalf("Cannot register extension: %v", err)
 	}
 
-	logger.Debug("Register ", zap.String("response :", prettyPrint(res)))
+	logger.Debugw("Register", "response", res)
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, collector)
+}
+
+func configureLogger() {
+	atom := zap.NewAtomicLevel()
+
+	level, err := zapcore.ParseLevel(os.Getenv("OPENTELEMETRY_COLLECTOR_LOG_LEVEL"))
+	if err != nil {
+		level = zap.DebugLevel
+	}
+
+	atom.SetLevel(level)
+
+	l := zap.New(zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), os.Stdout, atom))
+	zap.ReplaceGlobals(l)
+
+	logger = l.Sugar()
 }
 
 func processEvents(ctx context.Context, collector *Collector) {
@@ -74,12 +93,12 @@ func processEvents(ctx context.Context, collector *Collector) {
 			logger.Debug("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
-				logln("Error:", err)
-				logln("Exiting")
+				logger.Errorf("[%s] Error: %v", extensionName, err)
+				logger.Debugf("[%s] Exiting", extensionName)
 				return
 			}
 
-			logger.Debug("Received ", zap.String("event :", prettyPrint(res)))
+			logger.Debugw("Received", "event", res)
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
 				collector.Stop() // TODO: handle return values
