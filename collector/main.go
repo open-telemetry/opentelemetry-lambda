@@ -37,8 +37,6 @@ func main() {
 	configureLogger()
 	defer logger.Sync()
 
-	zap.NewExample()
-
 	logger.Debugw("Launching OpenTelemetry Lambda extension", "version", Version)
 
 	factories, _ := lambdacomponents.Components()
