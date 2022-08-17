@@ -69,7 +69,7 @@ func main() {
 func configureLogger() {
 	atom := zap.NewAtomicLevel()
 
-	level, err := zapcore.ParseLevel(os.Getenv("OPENTELEMETRY_COLLECTOR_LOG_LEVEL"))
+	level, err := zapcore.ParseLevel(os.Getenv("OPENTELEMETRY_EXTENSION_LOG_LEVEL"))
 	if err != nil {
 		level = zap.DebugLevel
 	}
