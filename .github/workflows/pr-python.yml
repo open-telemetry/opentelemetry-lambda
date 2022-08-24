@@ -9,6 +9,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  #copied the core repo sha from here:https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/.github/workflows/test.yml#L9
+  CORE_REPO_SHA: ece57231cde5bb5656775a62f027cab0b1c76fce
 
 jobs:
   PR-Python:
@@ -16,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        python: [3.8, 3.9]
+        python: [3.8, 3.9, 3.10]
 
     steps:
       - name: Checkout this repo
