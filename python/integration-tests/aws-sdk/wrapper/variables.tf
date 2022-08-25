@@ -37,5 +37,5 @@ variable "architecture" {
 variable "runtime" {
   type        = string
   description = "Python runtime version used for sample Lambda Function"
-  default     = "python3.10"
+  default     = "python3.9"
 }

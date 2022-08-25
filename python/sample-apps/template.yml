@@ -12,7 +12,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: lambda_function.lambda_handler
-      Runtime: python3.10
+      Runtime: python3.9
       CodeUri: ./function
       Description: Build OTel Python Lambda Sample from scratch
       MemorySize: 512
@@ -44,6 +44,5 @@ Resources:
       CompatibleRuntimes:
         - python3.8
         - python3.9
-        - python3.10
     Metadata:
       BuildMethod: makefile

@@ -93,6 +93,12 @@ if [ -z ${OTEL_TRACES_EXPORTER} ]; then
     export OTEL_TRACES_EXPORTER=otlp_proto_http;
 fi
 
+# - Set the metrics exporter
+
+if [ -z ${OTEL_METRICS_EXPORTER} ]; then
+    export OTEL_METRICS_EXPORTER=none;
+fi
+
 # - Set the service name
 
 if [ -z ${OTEL_SERVICE_NAME} ]; then
