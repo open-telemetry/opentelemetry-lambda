@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
@@ -63,10 +64,18 @@ func Components() (component.Factories, error) {
 		errs = append(errs, err)
 	}
 
+	extensions, err := component.MakeExtensionFactoryMap(
+		sigv4authextension.NewFactory(),
+		)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
 	factories := component.Factories{
 		Receivers:  receivers,
 		Exporters:  exporters,
 		Processors: processors,
+		Extensions: extensions,
 	}
 
 	return factories, multierr.Combine(errs...)
