@@ -7,12 +7,17 @@ receivers:
 exporters:
   logging:
     loglevel: debug
+  dynatrace:
+    endpoint: ${DT_METRICS_API_ENDPOINT}
+    api_token: ${DT_METRICS_INGESTION_TOKEN}
+    default_dimensions:
+      MetricDataSource: isg-data-store
+    tls:
+      insecure_skip_verify: true
+    timeout: 30s
 
 service:
   pipelines:
-    traces:
-      receivers: [otlp]
-      exporters: [logging]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      exporters: [dynatrace]

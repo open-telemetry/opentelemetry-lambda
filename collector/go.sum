@@ -404,6 +404,8 @@ github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96/go.mod h1:Qh8CwZ
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
+github.com/dynatrace-oss/dynatrace-metric-utils-go v0.5.0 h1:wHGPJSXvwKQVf/XfhjUPyrhpcPKWNy8F3ikH+eiwoBg=
+github.com/dynatrace-oss/dynatrace-metric-utils-go v0.5.0/go.mod h1:PseHFo8Leko7J4A/TfZ6kkHdkzKBLUta6hRZR/OEbbc=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
@@ -1066,11 +1068,14 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/dynatraceexporter v0.58.0 h1:PsE0OvFLHYi4QpGWRU82PucT+mwN8KKCSn1/rLkBPRE=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/dynatraceexporter v0.58.0/go.mod h1:uJgqqV/RXvtqMZiTvs8cxpCaMeQLC6m8zaKyiLYEUZs=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.58.0 h1:ovHsAwGdArmnlASWMftZNrf4ffY62O3JMVzqe77RT/k=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.58.0/go.mod h1:mHuwfNvJUxYnnUQcuvubI7QTO3AN8ybbMH5Gd9F0uvc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.58.0 h1:eqB4w3VcDozHkgGC1BCj6QRdjnhePl3WTskOmMc/Fxs=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.58.0/go.mod h1:WPSckGbVrEjx49fvymsMty5hh+fQy+wiTOMPllNscV8=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.58.0 h1:n/vVF8cJVkAY7hgvEbUSyFMMek/gZ/I6FeswFLaGXPs=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.58.0/go.mod h1:VM0VtAFsTqvWhzEZnmUajEOlrl/s91LgYPh099yrtYg=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.58.0 h1:/MUjXRmZp29tfAznIRnUswyBnSIcxF2F7Lhibi/3Ew8=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.58.0/go.mod h1:se3IqyShxI0ktuzJDFhShD9+bd/4Q3e/vNcCPlBTEGo=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.58.0 h1:kzOTdxkYNeBe3QQTJfHmPfssh/cc6Cj2m0WnBLIowis=

@@ -3,6 +3,7 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents
 go 1.18
 
 require (
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/dynatraceexporter v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.58.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.58.0
