@@ -20,8 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 // RegisterResponse is the body of the response for /register
@@ -85,7 +86,7 @@ func NewClient(awsLambdaRuntimeAPI string) *Client {
 }
 
 // Register will register the extension with the Extensions API.
-func (e *Client) Register(ctx context.Context, filename string) (*RegisterResponse, error) {
+func (e *Client) Register(ctx context.Context, logger *zap.SugaredLogger, filename string) (*RegisterResponse, error) {
 	const action = "/register"
 	url := e.baseURL + action
 
@@ -107,7 +108,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 		return nil, err
 	}
 	e.extensionID = resp.Header.Get(extensionIdentiferHeader)
-	log.Printf("Registered extension ID: %q", e.extensionID)
+	logger.Debugf("Registered extension ID: %q", e.extensionID)
 
 	return &registerResp, nil
 }

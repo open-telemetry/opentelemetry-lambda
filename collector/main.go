@@ -56,7 +56,7 @@ func main() {
 		logger.Debug("Exiting")
 	}()
 
-	res, err := extensionClient.Register(ctx, extensionName)
+	res, err := extensionClient.Register(ctx, logger, extensionName)
 	if err != nil {
 		logger.Fatalf("Cannot register extension: %v", err)
 	}
@@ -71,7 +71,7 @@ func configureLogger() {
 
 	level, err := zapcore.ParseLevel(os.Getenv("OPENTELEMETRY_EXTENSION_LOG_LEVEL"))
 	if err != nil {
-		level = zap.DebugLevel
+		level = zap.InfoLevel
 	}
 
 	atom.SetLevel(level)
