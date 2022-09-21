@@ -2,8 +2,9 @@
 
 Layers for running Java applications on AWS Lambda with OpenTelemetry.
 
-## Prerequisites 
-- Supports Lambda functions using Java 11 (Corretto) runtime only. 
+## Prerequisites
+
+- Supports Lambda functions using Java 11 (Corretto) runtime only.
 
 ## Provided layers
 
@@ -21,6 +22,7 @@ generally need to use this along with provisioned concurrency and warmup request
 requests without causing timeouts on initial requests while it initializes.
 
 ### Wrapper
+
 [OpenTelemetry Lambda Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/aws-lambda-1.0/library)
 and [OpenTelemetry SDK](https://github.com/open-telemetry/opentelemetry-java) are bundled into the
 `java/lib` directory to be available on the classpath of the Lambda function. No code change is
@@ -28,6 +30,7 @@ needed to instrument the execution of your function, but you will need to set th
 environment variable pointing to the appropriate wrapper for the type of handler.
 
 - `/opt/otel-handler` - for wrapping regular handlers (implementing RequestHandler)
+- `/opt/otel-sqs-handler` - for wrapping SQS-triggered function handlers (implementing RequestHandler)
 - `/opt/otel-proxy-handler` - for wrapping regular handlers (implementing RequestHandler) proxied through API Gateway, enabling HTTP context propagation
 - `/opt/otel-stream-handler` - for wrapping streaming handlers (implementing RequestStreamHandler), enabling HTTP context propagation for HTTP requests
 
@@ -61,8 +64,8 @@ The layer zip file will be present at `./layer-wrapper/build/distributions/opent
 Sample applications are provided to show usage the above layers.
 
 - [Application using AWS SDK](./sample-apps/aws-sdk) - shows how both the wrapper and agent can be used
-with an application using AWS SDK without code change.
+  with an application using AWS SDK without code change.
 
 - [Application using OkHttp](./sample-apps/okhttp) - shows the manual initialization of OkHttp
-library instrumentation for use with the wrapper. The agent would be usable without such a code change
-at the expense of the cold start overhead it introduces.
+  library instrumentation for use with the wrapper. The agent would be usable without such a code change
+  at the expense of the cold start overhead it introduces.
