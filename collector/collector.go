@@ -65,9 +65,11 @@ func NewCollector(factories component.Factories) *Collector {
 	}
 
 	cfgSet := service.ConfigProviderSettings{
-		Locations:     []string{getConfig()},
-		MapProviders:  mapProvider,
-		MapConverters: []confmap.Converter{expandconverter.New()},
+		ResolverSettings: confmap.ResolverSettings{
+			URIs:       []string{getConfig()},
+			Providers:  mapProvider,
+			Converters: []confmap.Converter{expandconverter.New()},
+		},
 	}
 	cfgProvider, err := service.NewConfigProvider(cfgSet)
 
