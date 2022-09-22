@@ -13,6 +13,7 @@ require (
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	github.com/antonmedv/expr v1.9.0 // indirect
+	github.com/aws/aws-sdk-go v1.44.96 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.16.14 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.18 // indirect
@@ -41,6 +42,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/knadh/koanf v1.4.3 // indirect
@@ -53,8 +55,11 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mostynb/go-grpc-compression v1.1.17 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter v0.60.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.60.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.60.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.60.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/xray v0.60.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.60.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.60.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.60.0 // indirect

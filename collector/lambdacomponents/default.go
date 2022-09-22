@@ -25,6 +25,7 @@ import (
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
@@ -47,6 +48,7 @@ func Components() (component.Factories, error) {
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
 		prometheusremotewriteexporter.NewFactory(),
+		awsxrayexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

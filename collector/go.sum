@@ -175,6 +175,8 @@ github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/
 github.com/aws/aws-sdk-go v1.38.35/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.40.11/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.42.31/go.mod h1:OGr6lGMAKGlG9CVrYnWYDKIyb829c6EVBRjxqjmPepc=
+github.com/aws/aws-sdk-go v1.44.96 h1:S9paaqnJ0AJ95t5AB+iK8RM6YNZN0W0Lek1gOVJsEr8=
+github.com/aws/aws-sdk-go v1.44.96/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.9.2/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2 v1.16.14 h1:db6GvO4Z2UqHt5gvT0lr6J5x5P+oQ7bdRzczVaRekMU=
@@ -870,6 +872,7 @@ github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8/go.mod h1:Nht
 github.com/jmespath/go-jmespath v0.0.0-20160803190731-bd40a432e4c7/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/jmespath/go-jmespath v0.3.0/go.mod h1:9QtRXoHjLGCJ5IBSaohpXITPlowMeeYCZ7fLUTSywik=
+github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
@@ -1073,10 +1076,16 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter v0.60.0 h1:TysvUe189g9QcJ6cs7kIn7Y3WAk8tvJ++waN02yDXo4=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter v0.60.0/go.mod h1:Mnbk6zjM4d/v45F24rPqe+eNgkXB77wKnWTUvbje8N4=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.60.0 h1:HptgZUqv7gCEUdCuW+L3QSpqBt4TOSe+KqZuKZDf7hM=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.60.0/go.mod h1:4yxe0eTbOSAHJNxZZbGnDe/BbuDK15fCtDoVO98TbKI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.60.0 h1:GF3USTyKrtxmOrf+guQ7jXEr4SFQmO3ZQD+feC/+UfQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.60.0/go.mod h1:TC16qJNXPtRGUd97s2yP86t6KyNsHaDsTBTHh1jGtQA=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.60.0 h1:rMq3zGRgxor/Cy44sD18UeegO9NmWu+x0BzhQA7nYic=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.60.0/go.mod h1:N/9xv3LYpkrdRGxIBm8Os+7UFma2CK7czByBs0NyujE=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/xray v0.60.0 h1:XtuKFsF+bOWvp/USM9xnTp80dPt/YtmcnAO7lWJYLrk=
+github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/xray v0.60.0/go.mod h1:eWXSho1btydzilU/LQuzonK8n+FENjIwZ92hDjCID/4=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.60.0 h1:rmwITDHPgpZ1US1AjHrPp1qUsox+OEwQ+PHsQkbO9v0=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.60.0 h1:L5ug/ZKhVnyh1Bmygph/6dKS32VhsJeb7ggYbEV9EmY=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.60.0/go.mod h1:XJ02iUcUxcP94hMUkwofboLNoUHKkrb/yb1S/cNL/Nk=
