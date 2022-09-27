@@ -54,7 +54,7 @@ resource "aws_lambda_provisioned_concurrency_config" "lambda_api" {
 module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
- name                = var.name
+  name                = var.name
   function_name       = aws_lambda_alias.provisioned.function_name
   function_qualifier  = aws_lambda_alias.provisioned.name
   function_invoke_arn = aws_lambda_alias.provisioned.invoke_arn

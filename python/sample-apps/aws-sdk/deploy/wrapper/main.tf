@@ -12,7 +12,7 @@ module "hello-lambda-function" {
 
   memory_size = 384
   timeout     = 20
-  publish    = true
+  publish     = true
 
   layers = compact([
     var.collector_layer_arn,
