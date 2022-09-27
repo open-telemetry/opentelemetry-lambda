@@ -12,6 +12,7 @@ module "hello-lambda-function" {
 
   memory_size = 384
   timeout     = 20
+  publish     = true
 
   layers = compact([
     var.collector_layer_arn,
@@ -42,12 +43,25 @@ module "hello-lambda-function" {
   }
 }
 
+resource "aws_lambda_alias" "provisioned" {
+  name             = "provisioned"
+  function_name    = module.hello-lambda-function.lambda_function_name
+  function_version = module.hello-lambda-function.lambda_function_version
+}
+
+resource "aws_lambda_provisioned_concurrency_config" "lambda_api" {
+  function_name                     = aws_lambda_alias.provisioned.function_name
+  provisioned_concurrent_executions = 2
+  qualifier                         = aws_lambda_alias.provisioned.name
+}
+
 module "api-gateway" {
   source = "../../../../../utils/terraform/api-gateway-proxy"
 
   name                = var.name
-  function_name       = module.hello-lambda-function.lambda_function_name
-  function_invoke_arn = module.hello-lambda-function.lambda_function_invoke_arn
+  function_name       = aws_lambda_alias.provisioned.function_name
+  function_qualifier  = aws_lambda_alias.provisioned.name
+  function_invoke_arn = aws_lambda_alias.provisioned.invoke_arn
   enable_xray_tracing = var.tracing_mode == "Active"
 }
 

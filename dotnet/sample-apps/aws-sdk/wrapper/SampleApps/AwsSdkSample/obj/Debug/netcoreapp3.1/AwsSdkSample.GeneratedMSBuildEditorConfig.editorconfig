@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = AwsSdkSample
+build_property.ProjectDir = /Users/kausika/Documents/Main_Workspace/OTEL/opentelemetry-lambda/dotnet/sample-apps/aws-sdk/wrapper/SampleApps/AwsSdkSample/
