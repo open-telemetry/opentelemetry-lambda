@@ -16,7 +16,7 @@ module "hello-lambda-function" {
 
   layers = compact([
     var.collector_layer_arn,
-    var.sdk_layer_arn
+    var.sdk_layer_arn,
   ])
 
   environment_variables = {
@@ -44,7 +44,7 @@ module "hello-lambda-function" {
 }
 
 resource "aws_lambda_alias" "provisioned" {
-  name             = "provisioned"
+  name             = var.name
   function_name    = module.hello-lambda-function.lambda_function_name
   function_version = module.hello-lambda-function.lambda_function_version
 }
