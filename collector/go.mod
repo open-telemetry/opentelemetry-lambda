@@ -4,6 +4,12 @@ go 1.18
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents => ./lambdacomponents
 
+// fixes ambiguous import error: found package cloud.google.com/go/compute/metadata in multiple modules:
+//        cloud.google.com/go
+//        cloud.google.com/go/compute
+// Force cloud.google.com/go to be at least v0.100.2, so that the metadata is not present.
+replace cloud.google.com/go => cloud.google.com/go v0.100.2
+
 require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.0.0
 	go.opentelemetry.io/collector v0.61.0
