@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda"
@@ -21,19 +21,19 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-func lambda_handler(ctx context.Context) func(ctx context.Context) (interface{}, error) {
-	// init aws config
-	cfg, err := awsConfig.LoadDefaultConfig(ctx)
+func lambdaHandler(ctx context.Context) func(ctx context.Context) (interface{}, error) {
+	// Initialize AWS config.
+	cfg, err := awsconfig.LoadDefaultConfig(ctx)
 	if err != nil {
 		panic("configuration error, " + err.Error())
 	}
 
-	// instrument all aws clients
+	// Instrument all AWS clients.
 	otelaws.AppendMiddlewares(&cfg.APIOptions)
-
-	// S3
+	// Create an instrumented S3 client from the config.
 	s3Client := s3.NewFromConfig(cfg)
-	// HTTP
+	
+	// Create an instrumented HTTP client.
 	httpClient := &http.Client{
 		Transport: otelhttp.NewTransport(
 			http.DefaultTransport,
@@ -100,5 +100,5 @@ func main() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(xray.Propagator{})
 
-	lambda.Start(otellambda.InstrumentHandler(lambda_handler(ctx), xrayconfig.WithRecommendedOptions(tp)... ))
+	lambda.Start(otellambda.InstrumentHandler(lambdaHandler(ctx), xrayconfig.WithRecommendedOptions(tp)... ))
 }
