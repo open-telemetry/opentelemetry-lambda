@@ -4,7 +4,7 @@ Nuget package and layer for running .NET applications on AWS Lambda with OpenTel
 
 ## Provided SDK
 
-[OpenTelemetry Lambda SDK for .NET](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Contrib.Instrumentation.AWSLambda) includes tracing APIs to instrument Lambda handler and is provided on [Nuget](https://www.nuget.org/packages/OpenTelemetry.Contrib.Instrumentation.AWSLambda/1.1.0-beta1). Follow the instructions on [user guide](https://aws-otel.github.io/docs/getting-started/lambda/lambda-dotnet#instrumentation) to manually instrument the Lambda handler.
+[OpenTelemetry Lambda SDK for .NET](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.AWSLambda) includes tracing APIs to instrument Lambda handler and is provided on [Nuget](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda/1.1.0-beta2). Follow the instructions on [user guide](https://aws-otel.github.io/docs/getting-started/lambda/lambda-dotnet#instrumentation) to manually instrument the Lambda handler.
 For other instrumentations, such as http, you'll need to include the corresponding library instrumentation from the [instrumentation project](https://github.com/open-telemetry/opentelemetry-dotnet) and modify your code to initialize it in your function.
 
 ## Provided Layer
