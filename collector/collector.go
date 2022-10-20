@@ -27,6 +27,8 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -45,6 +47,7 @@ type Collector struct {
 	svc            *service.Collector
 	appDone        chan struct{}
 	stopped        bool
+	sp             *spanProcessor
 }
 
 func getConfig() string {
@@ -80,6 +83,7 @@ func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
 		factories:      factories,
 		configProvider: cfgProvider,
+		sp:             newSpanProcessor(),
 	}
 	return col
 }
@@ -87,7 +91,7 @@ func NewCollector(factories component.Factories) *Collector {
 func (c *Collector) Start(ctx context.Context) error {
 	params := service.CollectorSettings{
 		BuildInfo: component.BuildInfo{
-			Command:     "otelcol",
+			Command:     "otelcol-lambda",
 			Description: "Lambda Collector",
 			Version:     Version,
 		},
@@ -123,6 +127,10 @@ func (c *Collector) Start(ctx context.Context) error {
 		case service.Starting:
 			// NoOp
 		case service.Running:
+			tp := otel.GetTracerProvider()
+			if stp, ok := (tp).(*trace.TracerProvider); ok {
+				stp.RegisterSpanProcessor(c.sp)
+			}
 			return nil
 		default:
 			err = fmt.Errorf("unable to start, otelcol state is %d", state)

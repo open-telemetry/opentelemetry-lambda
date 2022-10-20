@@ -22,10 +22,12 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
-	"go.uber.org/zap"
 )
 
 var (
@@ -86,6 +88,10 @@ func processEvents(ctx context.Context, collector *Collector) {
 				logger.Debug("Received SHUTDOWN event")
 				logger.Debug("Exiting")
 				return
+			}
+
+			for collector.sp.activeSpanCount() > 0 {
+				time.Sleep(1 * time.Millisecond)
 			}
 		}
 	}
