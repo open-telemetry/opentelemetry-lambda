@@ -5,7 +5,7 @@ import {
   SDKRegistrationConfig,
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { InstrumentationBase, registerInstrumentations } from '@opentelemetry/instrumentation';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
   detectResources,
@@ -47,11 +47,12 @@ declare global {
     defaultSdkRegistration: SDKRegistrationConfig
   ): SDKRegistrationConfig;
   function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
+  function configureInstrumentations(instrumentations: InstrumentationBase[]): InstrumentationBase[]
 }
 
 console.log('Registering OpenTelemetry');
 
-const instrumentations = [
+const baseInstrumentations = [
   new AwsInstrumentation({
     suppressInternalInstrumentation: true,
   }),
@@ -74,6 +75,8 @@ const instrumentations = [
 // configure lambda logging
 const logLevel = getEnv().OTEL_LOG_LEVEL
 diag.setLogger(new DiagConsoleLogger(), logLevel)
+
+const instrumentations = (typeof configureInstrumentations === 'function' ? configureInstrumentations(baseInstrumentations) : baseInstrumentations);
 
 // Register instrumentations synchronously to ensure code is patched even before provider is ready.
 registerInstrumentations({
