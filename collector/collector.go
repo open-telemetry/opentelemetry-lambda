@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/extensionconverter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
@@ -27,8 +28,6 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -47,7 +46,6 @@ type Collector struct {
 	svc            *service.Collector
 	appDone        chan struct{}
 	stopped        bool
-	sp             *spanProcessor
 }
 
 func getConfig() string {
@@ -71,7 +69,7 @@ func NewCollector(factories component.Factories) *Collector {
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig()},
 			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(), extensionconverter.New(map[string]interface{}{"lambda": map[string]interface{}{}})},
 		},
 	}
 	cfgProvider, err := service.NewConfigProvider(cfgSet)
@@ -83,7 +81,6 @@ func NewCollector(factories component.Factories) *Collector {
 	col := &Collector{
 		factories:      factories,
 		configProvider: cfgProvider,
-		sp:             newSpanProcessor(),
 	}
 	return col
 }
@@ -127,10 +124,6 @@ func (c *Collector) Start(ctx context.Context) error {
 		case service.Starting:
 			// NoOp
 		case service.Running:
-			tp := otel.GetTracerProvider()
-			if stp, ok := (tp).(*trace.TracerProvider); ok {
-				stp.RegisterSpanProcessor(c.sp)
-			}
 			return nil
 		default:
 			err = fmt.Errorf("unable to start, otelcol state is %d", state)

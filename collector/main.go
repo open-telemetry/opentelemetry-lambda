@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extension/lambdaextension"
 	"log"
 	"os"
 	"os/signal"
@@ -34,6 +35,7 @@ var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	logger          = zap.NewExample()
+	sp              = newSpanProcessor()
 )
 
 func main() {
@@ -41,6 +43,8 @@ func main() {
 	logger.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
 	factories, _ := lambdacomponents.Components()
+	lambdaFactory := lambdaextension.NewFactory(sp)
+	factories.Extensions[lambdaFactory.Type()] = lambdaFactory
 	collector := NewCollector(factories)
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -90,7 +94,13 @@ func processEvents(ctx context.Context, collector *Collector) {
 				return
 			}
 
-			for collector.sp.activeSpanCount() > 0 {
+			select {
+			case <-sp.waitCh:
+			case <-time.After(1000 * time.Millisecond):
+			}
+
+			for c := sp.activeSpanCount(); c > 0; c = sp.activeSpanCount() {
+				logger.Info("Waiting for quiescence", zap.Int("active_spans", c))
 				time.Sleep(1 * time.Millisecond)
 			}
 		}

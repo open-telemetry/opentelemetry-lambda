@@ -16,11 +16,15 @@ type spanProcessor struct {
 	// Cannot keep track of the active Spans per name because the Span interface,
 	// allows the name to be changed, and that will leak memory.
 	activeSpansStore sync.Map
+
+	waitCh chan struct{}
 }
 
 // newSpanProcessor returns a new spanProcessor.
 func newSpanProcessor() *spanProcessor {
-	return &spanProcessor{}
+	return &spanProcessor{
+		waitCh: make(chan struct{}),
+	}
 }
 
 // OnStart adds span as active and reports it with zpages.
@@ -28,6 +32,10 @@ func (ssm *spanProcessor) OnStart(_ context.Context, span sdktrace.ReadWriteSpan
 	sc := span.SpanContext()
 	if sc.IsValid() {
 		ssm.activeSpansStore.Store(spanKey(sc), span)
+	}
+	select {
+	case ssm.waitCh <- struct{}{}:
+	default:
 	}
 }
 
