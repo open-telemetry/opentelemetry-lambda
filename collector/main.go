@@ -17,20 +17,21 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionAPI"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryAPI"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 	"go.uber.org/zap"
 )
 
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
-	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
+	extensionClient = extensionAPI.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	logger          = zap.NewExample()
 )
 
@@ -61,11 +62,24 @@ func main() {
 	}
 
 	logger.Debug("Register ", zap.String("response :", prettyPrint(res)))
+
+	listener := telemetryAPI.NewListener(logger)
+	addr, err := listener.Start()
+	if err != nil {
+		log.Fatalf("Cannot start TelemetryAPI Listener: %v", err)
+	}
+
+	telemetryClient := telemetryAPI.NewClient(logger)
+	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr)
+	if err != nil {
+		log.Fatalf("Cannot register TelemetryAPI client: %v", err)
+	}
+
 	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx, collector)
+	processEvents(ctx, collector, listener)
 }
 
-func processEvents(ctx context.Context, collector *Collector) {
+func processEvents(ctx context.Context, collector *Collector, listener *telemetryAPI.Listener) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -78,11 +92,17 @@ func processEvents(ctx context.Context, collector *Collector) {
 				logln("Exiting")
 				return
 			}
-
 			logger.Debug("Received ", zap.String("event :", prettyPrint(res)))
+
+			err = listener.Wait(ctx, res.RequestID)
+			if err != nil {
+				logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
+			}
+
 			// Exit if we receive a SHUTDOWN event
-			if res.EventType == extension.Shutdown {
+			if res.EventType == extensionAPI.Shutdown {
 				collector.Stop() // TODO: handle return values
+				listener.Shutdown()
 				logger.Debug("Received SHUTDOWN event")
 				logger.Debug("Exiting")
 				return

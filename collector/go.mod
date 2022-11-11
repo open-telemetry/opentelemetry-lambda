@@ -11,6 +11,7 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponent
 replace cloud.google.com/go => cloud.google.com/go v0.100.2
 
 require (
+	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.0.0
 	go.opentelemetry.io/collector v0.62.1
 	go.uber.org/zap v1.23.0
