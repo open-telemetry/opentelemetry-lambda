@@ -87,7 +87,7 @@ func NewCollector(factories component.Factories) *Collector {
 func (c *Collector) Start(ctx context.Context) error {
 	params := service.CollectorSettings{
 		BuildInfo: component.BuildInfo{
-			Command:     "otelcol",
+			Command:     "otelcol-lambda",
 			Description: "Lambda Collector",
 			Version:     Version,
 		},
