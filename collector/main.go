@@ -17,14 +17,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionAPI"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryAPI"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionAPI"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryAPI"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 	"go.uber.org/zap"
 )
