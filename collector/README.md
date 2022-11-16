@@ -33,7 +33,7 @@ Alternatively, to configure the OpenTelemetry Lambda Extension via CloudFormatio
 
 ## Configuration
 
-By default, OpenTelemetry Collector Lambda layer exports telemetry data to AWS backends. To customize the collector configuration, add a `collector.yaml` to your function and specifiy its location via the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` environment file.
+By default, OpenTelemetry Collector Lambda layer exports telemetry data to AWS backends. To customize the collector configuration, add a `collector.yaml` to your function and specify its location via the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` environment file.
 
 Here is a sample configuration file:
 
@@ -74,8 +74,9 @@ You can configure environment variables via CloudFormation template as well:
           OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector.yaml
 ```
 
-You can configure arguments passed to the collector command line with the
-`OPENTELEMETRY_COLLECTOR_ARGS` environment variable.
+In addition to local files, the OpenTelemetry Collector Lambda layer may be configured through HTTP or S3 URIs
+provided in the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` environment variable.  For instance, to load configuration
+from an S3 object using a CloudFormation template:
 
 ```yaml
   Function:
@@ -84,5 +85,7 @@ You can configure arguments passed to the collector command line with the
       ...
       Environment:
         Variables:
-          OPENTELEMETRY_COLLECTOR_ARGS: --set=service.telemetry.logs.level=debug
+          OPENTELEMETRY_COLLECTOR_CONFIG_FILE: s3://<bucket_name>.s3.<region>.amazonaws.com/collector_config.yaml
 ```
+
+Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.

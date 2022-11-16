@@ -20,11 +20,13 @@ import (
 	"log"
 	"os"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
+	"go.opentelemetry.io/collector/confmap/provider/httpprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/service"
 )
@@ -52,12 +54,12 @@ func getConfig() string {
 	if !ex {
 		return "/opt/collector-config/config.yaml"
 	}
-	log.Printf("Using config file at path %v", val)
+	log.Printf("Using config at %v", val)
 	return val
 }
 
 func NewCollector(factories component.Factories) *Collector {
-	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New()}
+	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New(), httpprovider.New(), s3provider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
 
 	for _, provider := range providers {
