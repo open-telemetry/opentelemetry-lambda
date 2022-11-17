@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
@@ -68,7 +69,7 @@ func NewCollector(factories component.Factories) *Collector {
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig()},
 			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
 		},
 	}
 	cfgProvider, err := service.NewConfigProvider(cfgSet)
