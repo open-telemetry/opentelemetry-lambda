@@ -26,67 +26,105 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
-	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
-	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
-	logger          = zap.NewExample()
+	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 )
 
 func main() {
+	logger := initLogger()
+	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
-	logger.Debug("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
+	ctx, lm := newLifecycleManager(context.Background(), logger)
 
-	factories, _ := lambdacomponents.Components()
-	collector := NewCollector(factories)
-	ctx, cancel := context.WithCancel(context.Background())
+	// Will block until shutdown event is received or cancelled via the context.
+	lm.processEvents(ctx)
+}
 
-	if err := collector.Start(ctx); err != nil {
-		log.Fatalf("Failed to start the extension: %v", err)
-	}
+type lifecycleManager struct {
+	logger          *zap.Logger
+	collector       *Collector
+	extensionClient *extension.Client
+}
+
+func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Context, *lifecycleManager) {
+	ctx, cancel := context.WithCancel(ctx)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		s := <-sigs
 		cancel()
-		logger.Debug(fmt.Sprintf("Received", s))
-		logger.Debug("Exiting")
+		logger.Info("received signal", zap.String("signal", s.String()))
 	}()
 
+	extensionClient := extension.NewClient(logger, os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		log.Fatalf("Cannot register extension: %v", err)
 	}
 
-	logger.Debug("Register ", zap.String("response :", prettyPrint(res)))
-	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx, collector)
+	logger.Debug("register extension", zap.Any("response :", res))
+
+	factories, _ := lambdacomponents.Components()
+	collector := NewCollector(logger, factories)
+
+	if err = collector.Start(ctx); err != nil {
+		logger.Fatal("Failed to start the extension", zap.Error(err))
+		extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err))
+	}
+
+	return ctx, &lifecycleManager{
+		logger:          logger.Named("lifecycleManager"),
+		collector:       collector,
+		extensionClient: extensionClient,
+	}
 }
 
-func processEvents(ctx context.Context, collector *Collector) {
+func (lm *lifecycleManager) processEvents(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			logger.Debug("Waiting for event...")
-			res, err := extensionClient.NextEvent(ctx)
+			lm.logger.Debug("Waiting for event...")
+			res, err := lm.extensionClient.NextEvent(ctx)
 			if err != nil {
-				logln("Error:", err)
-				logln("Exiting")
+				lm.logger.Warn("error waiting for extension event", zap.Error(err))
+				lm.extensionClient.ExitError(ctx, fmt.Sprintf("error waiting for extension event: %v", err))
 				return
 			}
 
-			logger.Debug("Received ", zap.String("event :", prettyPrint(res)))
+			lm.logger.Debug("Received ", zap.Any("event :", res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
-				collector.Stop() // TODO: handle return values
-				logger.Debug("Received SHUTDOWN event")
-				logger.Debug("Exiting")
+				lm.logger.Info("Received SHUTDOWN event")
+				err = lm.collector.Stop()
+				if err != nil {
+					lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err))
+				}
 				return
 			}
 		}
 	}
+}
+
+func initLogger() *zap.Logger {
+	lvl := zap.NewAtomicLevelAt(zapcore.InfoLevel)
+
+	envLvl := os.Getenv("OPENTELEMETRY_EXTENSION_LOG_LEVEL")
+	userLvl, err := zap.ParseAtomicLevel(envLvl)
+	if err == nil {
+		lvl = userLvl
+	}
+
+	l := zap.New(zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), os.Stdout, lvl))
+
+	if err != nil && envLvl != "" {
+		l.Warn("unable to parse log level from environment", zap.Error(err))
+	}
+
+	return l
 }

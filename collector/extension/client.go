@@ -19,9 +19,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 // RegisterResponse is the body of the response for /register
@@ -73,14 +74,16 @@ type Client struct {
 	baseURL     string
 	httpClient  *http.Client
 	extensionID string
+	logger      *zap.Logger
 }
 
 // NewClient returns a Lambda Extensions API client.
-func NewClient(awsLambdaRuntimeAPI string) *Client {
+func NewClient(logger *zap.Logger, awsLambdaRuntimeAPI string) *Client {
 	baseURL := fmt.Sprintf("http://%s/2020-01-01/extension", awsLambdaRuntimeAPI)
 	return &Client{
 		baseURL:    baseURL,
 		httpClient: &http.Client{},
+		logger:     logger.Named("extensionAPI.Client"),
 	}
 }
 
@@ -107,7 +110,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 		return nil, err
 	}
 	e.extensionID = resp.Header.Get(extensionIdentiferHeader)
-	log.Printf("Registered extension ID: %q", e.extensionID)
+	e.logger.Debug("Registered extension", zap.String("ID", e.extensionID))
 
 	return &registerResp, nil
 }
@@ -179,7 +182,7 @@ func (e *Client) doRequest(req *http.Request, out interface{}) (*http.Response, 
 		return nil, fmt.Errorf("request failed with status %s", resp.Status)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
