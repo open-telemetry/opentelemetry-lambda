@@ -88,6 +88,13 @@ func (lm *lifecycleManager) processEvents(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
+		case <-collector.Done():
+			if err := collector.Err(); err != nil {
+				logln("Error:", err)
+			}
+			logln("Collector is done before the SHUTDOWN event")
+			logln("Exiting")
+			return
 		default:
 			lm.logger.Debug("Waiting for event...")
 			res, err := lm.extensionClient.NextEvent(ctx)
