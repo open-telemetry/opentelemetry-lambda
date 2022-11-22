@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
@@ -28,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/service"
+	"go.uber.org/zap"
 )
 
 var (
@@ -48,16 +48,17 @@ type Collector struct {
 	stopped        bool
 }
 
-func getConfig() string {
+func getConfig(logger *zap.Logger) string {
 	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
 	if !ex {
 		return "/opt/collector-config/config.yaml"
 	}
-	log.Printf("Using config file at path %v", val)
+	logger.Info("Using config URI from environment", zap.String("uri", val))
 	return val
 }
 
-func NewCollector(factories component.Factories) *Collector {
+func NewCollector(logger *zap.Logger, factories component.Factories) *Collector {
+	l := logger.Named("NewCollector")
 	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
 
@@ -67,7 +68,7 @@ func NewCollector(factories component.Factories) *Collector {
 
 	cfgSet := service.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
-			URIs:       []string{getConfig()},
+			URIs:       []string{getConfig(l)},
 			Providers:  mapProvider,
 			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
 		},
@@ -75,7 +76,7 @@ func NewCollector(factories component.Factories) *Collector {
 	cfgProvider, err := service.NewConfigProvider(cfgSet)
 
 	if err != nil {
-		log.Panicf("error on creating config provider: %v\n", err)
+		l.Fatal("error creating config provider", zap.Error(err))
 	}
 
 	col := &Collector{
