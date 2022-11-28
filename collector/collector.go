@@ -123,9 +123,9 @@ func (c *Collector) Start(ctx context.Context) error {
 		}
 
 		switch state {
-		case service.Starting:
+		case service.StateStarting:
 			// NoOp
-		case service.Running:
+		case service.StateRunning:
 			return nil
 		default:
 			err = fmt.Errorf("unable to start, otelcol state is %d", state)
