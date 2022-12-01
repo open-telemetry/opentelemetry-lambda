@@ -1,7 +1,7 @@
 resource "aws_lambda_layer_version" "sdk_layer" {
   layer_name          = var.sdk_layer_name
   filename            = "${path.module}/../../../packages/layer/build/layer.zip"
-  compatible_runtimes = ["nodejs12.x", "nodejs14.x", "nodejs16.x"]
+  compatible_runtimes = ["nodejs14.x", "nodejs16.x", "nodejs18.x"]
   license_info        = "Apache-2.0"
   source_code_hash    = filebase64sha256("${path.module}/../../../packages/layer/build/layer.zip")
 }
@@ -10,7 +10,7 @@ resource "aws_lambda_layer_version" "collector_layer" {
   count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
   filename            = "${path.module}/../../../../collector/build/collector-extension.zip"
-  compatible_runtimes = ["nodejs12.x", "nodejs14.x", "nodejs16.x"]
+  compatible_runtimes = ["nodejs14.x", "nodejs16.x", "nodejs18.x"]
   license_info        = "Apache-2.0"
   source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension.zip")
 }
