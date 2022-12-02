@@ -34,13 +34,16 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
-func Components() (component.Factories, error) {
+func Components(extensionID string) (component.Factories, error) {
 	var errs []error
 
 	receivers, err := receiver.MakeFactoryMap(
 		otlpreceiver.NewFactory(),
+		telemetryapireceiver.NewFactory(extensionID),
 	)
 	if err != nil {
 		errs = append(errs, err)
