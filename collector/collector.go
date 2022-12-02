@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
