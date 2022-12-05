@@ -109,11 +109,6 @@ func (lm *lifecycleManager) processEvents(ctx context.Context) {
 				return
 			}
 
-			err = lm.listener.Wait(ctx, res.RequestID)
-			if err != nil {
-				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
-			}
-
 			lm.logger.Debug("Received ", zap.Any("event :", res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extensionapi.Shutdown {
@@ -124,6 +119,11 @@ func (lm *lifecycleManager) processEvents(ctx context.Context) {
 					lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err))
 				}
 				return
+			}
+
+			err = lm.listener.Wait(ctx, res.RequestID)
+			if err != nil {
+				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
 			}
 		}
 	}

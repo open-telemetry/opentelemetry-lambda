@@ -123,7 +123,7 @@ func (s *Listener) Wait(ctx context.Context, reqID string) error {
 			s.logger.Debug("looking for platform.runtimeDone event")
 			items, err := s.queue.Get(10)
 			if err != nil {
-				return fmt.Errorf("unable to get telemtry events from queue: %w", err)
+				return fmt.Errorf("unable to get telemetry events from queue: %w", err)
 			}
 
 			for _, item := range items {
