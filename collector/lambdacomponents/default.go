@@ -35,6 +35,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
@@ -66,6 +67,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		probabilisticsamplerprocessor.NewFactory(),
 		resourceprocessor.NewFactory(),
 		spanprocessor.NewFactory(),
+		coldstartprocessor.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

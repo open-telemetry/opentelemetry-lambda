@@ -10,6 +10,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.69.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.69.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.69.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.69.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.69.0
 	go.opentelemetry.io/collector v0.69.1
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.69.1
@@ -128,5 +129,7 @@ require (
 replace cloud.google.com/go => cloud.google.com/go v0.107.0
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../
+
+replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor => ../processor/coldstartprocessor
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver => ../receiver/telemetryapireceiver
