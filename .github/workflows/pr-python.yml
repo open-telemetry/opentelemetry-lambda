@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Python for OTel Python SDK
         uses: actions/setup-python@v2
         with:

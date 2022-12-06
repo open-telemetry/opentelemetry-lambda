@@ -21,7 +21,7 @@ jobs:
       matrix:
         architecture: [ amd64, arm64 ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.19'
