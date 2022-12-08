@@ -15,7 +15,7 @@ val DEPENDENCY_BOMS = listOf(
 )
 
 val DEPENDENCIES = listOf(
-    "com.amazonaws:aws-lambda-java-core:1.2.1",
+    "com.amazonaws:aws-lambda-java-core:1.2.2",
     "com.amazonaws:aws-lambda-java-events:3.11.0",
     "com.squareup.okhttp3:okhttp:4.10.0",
     "io.opentelemetry.javaagent:opentelemetry-javaagent:1.19.2"
