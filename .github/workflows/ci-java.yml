@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           java-version: 15
-      - uses: burrunan/gradle-cache-action@v1.10
+      - uses: burrunan/gradle-cache-action@v1.15
         with:
           remote-build-cache-proxy-enabled: false
           arguments: build --stacktrace
