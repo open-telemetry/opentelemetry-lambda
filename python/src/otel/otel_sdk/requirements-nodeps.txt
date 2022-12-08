@@ -6,7 +6,7 @@ opentelemetry-instrumentation-asyncpg==0.35b0
 opentelemetry-instrumentation-boto==0.35b0
 opentelemetry-instrumentation-botocore==0.35b0
 opentelemetry-instrumentation-celery==0.35b0
-opentelemetry-instrumentation-dbapi==0.35b0
+opentelemetry-instrumentation-dbapi==0.35b2
 opentelemetry-instrumentation-django==0.35b0
 opentelemetry-instrumentation-elasticsearch==0.35b0
 opentelemetry-instrumentation-fastapi==0.35b0
