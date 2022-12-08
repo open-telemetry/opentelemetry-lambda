@@ -15,7 +15,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.0.0
 	go.opentelemetry.io/collector v0.66.0
 	go.opentelemetry.io/collector/component v0.66.0
-	go.uber.org/zap v1.23.0
+	go.uber.org/zap v1.24.0
 )
 
 require (
