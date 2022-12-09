@@ -17,13 +17,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/extension"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -46,7 +46,8 @@ func main() {
 type lifecycleManager struct {
 	logger          *zap.Logger
 	collector       *Collector
-	extensionClient *extension.Client
+	extensionClient *extensionapi.Client
+	listener        *telemetryapi.Listener
 }
 
 func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Context, *lifecycleManager) {
@@ -60,13 +61,23 @@ func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Conte
 		logger.Info("received signal", zap.String("signal", s.String()))
 	}()
 
-	extensionClient := extension.NewClient(logger, os.Getenv("AWS_LAMBDA_RUNTIME_API"))
+	extensionClient := extensionapi.NewClient(logger, os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
-		log.Fatalf("Cannot register extension: %v", err)
+		logger.Fatal("Cannot register extension", zap.Error(err))
 	}
 
-	logger.Debug("register extension", zap.Any("response :", res))
+	listener := telemetryapi.NewListener(logger)
+	addr, err := listener.Start()
+	if err != nil {
+		logger.Fatal("Cannot start Telemetry API Listener", zap.Error(err))
+	}
+
+	telemetryClient := telemetryapi.NewClient(logger)
+	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr)
+	if err != nil {
+		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
+	}
 
 	factories, _ := lambdacomponents.Components()
 	collector := NewCollector(logger, factories)
@@ -80,6 +91,7 @@ func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Conte
 		logger:          logger.Named("lifecycleManager"),
 		collector:       collector,
 		extensionClient: extensionClient,
+		listener:        listener,
 	}
 }
 
@@ -99,13 +111,19 @@ func (lm *lifecycleManager) processEvents(ctx context.Context) {
 
 			lm.logger.Debug("Received ", zap.Any("event :", res))
 			// Exit if we receive a SHUTDOWN event
-			if res.EventType == extension.Shutdown {
+			if res.EventType == extensionapi.Shutdown {
 				lm.logger.Info("Received SHUTDOWN event")
+				lm.listener.Shutdown()
 				err = lm.collector.Stop()
 				if err != nil {
 					lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err))
 				}
 				return
+			}
+
+			err = lm.listener.Wait(ctx, res.RequestID)
+			if err != nil {
+				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
 			}
 		}
 	}

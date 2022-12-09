@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package extension
+package extensionapi
 
 import (
 	"bytes"
@@ -30,6 +30,7 @@ type RegisterResponse struct {
 	FunctionName    string `json:"functionName"`
 	FunctionVersion string `json:"functionVersion"`
 	Handler         string `json:"handler"`
+	ExtensionID     string
 }
 
 // NextEventResponse is the response for /event/next
@@ -112,6 +113,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 	e.extensionID = resp.Header.Get(extensionIdentiferHeader)
 	e.logger.Debug("Registered extension", zap.String("ID", e.extensionID))
 
+	registerResp.ExtensionID = e.extensionID
 	return &registerResp, nil
 }
 
