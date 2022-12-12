@@ -34,7 +34,7 @@ jobs:
           pip install tox
           tox
       - name: Set up Go for ADOT Collector
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: '^1.19'
       - name: Build Python Layer which includes ADOT Collector
