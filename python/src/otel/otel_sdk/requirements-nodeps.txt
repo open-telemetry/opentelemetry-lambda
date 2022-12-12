@@ -18,7 +18,7 @@ opentelemetry-instrumentation-mysql==0.35b2
 opentelemetry-instrumentation-psycopg2==0.35b0
 opentelemetry-instrumentation-pymemcache==0.35b0
 opentelemetry-instrumentation-pymongo==0.35b0
-opentelemetry-instrumentation-pymysql==0.35b2
+opentelemetry-instrumentation-pymysql==0.36b0
 opentelemetry-instrumentation-pyramid==0.35b0
 opentelemetry-instrumentation-redis==0.35b0
 opentelemetry-instrumentation-requests==0.35b0
