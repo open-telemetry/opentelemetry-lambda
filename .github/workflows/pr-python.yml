@@ -25,7 +25,7 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v3
       - name: Setup Python for OTel Python SDK
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Install tox testing package
