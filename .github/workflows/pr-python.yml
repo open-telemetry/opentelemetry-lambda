@@ -11,7 +11,7 @@ env:
   AWS_REGION: us-east-1
   # Copied this CORE_REPO_SHA from
   # https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/.github/workflows/test.yml#L9
-  CORE_REPO_SHA: 2ac9e646af8d6420f13e7e3b2508586f3efb435a
+  CORE_REPO_SHA: v1.14.0
 
 jobs:
   PR-Python:
