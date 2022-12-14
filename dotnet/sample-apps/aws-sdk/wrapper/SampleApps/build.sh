@@ -1,15 +1,16 @@
 #!/bin/sh
+set -e
 
 GOARCH=${GOARCH-amd64}
 
 # Chosen from Microsoft's documentation for Runtime Identifier (RIDs)
 # See more: https://docs.microsoft.com/en-us/dotnet/core/rid-catalog#linux-rids
-if [ $GOARCH = "amd64" ]; then
+if [ "$GOARCH" = "amd64" ]; then
     DOTNET_LINUX_ARCH=x64
-elif [ $GOARCH = "arm64" ]; then
+elif [ "$GOARCH" = "arm64" ]; then
     DOTNET_LINUX_ARCH=arm64
 else
-    echo "Invalid GOARCH value `$GOARCH` received."
+    echo "Invalid GOARCH value $(GOARCH) received."
     exit 2
 fi
 
@@ -20,5 +21,5 @@ dotnet publish \
     --framework "netcoreapp3.1" /p:GenerateRuntimeConfigurationFiles=true \
     --runtime linux-$DOTNET_LINUX_ARCH \
     --self-contained false
-cd build/dotnet || exit
-zip -r ../function.zip *
+cd build/dotnet
+zip -r ../function.zip ./*
