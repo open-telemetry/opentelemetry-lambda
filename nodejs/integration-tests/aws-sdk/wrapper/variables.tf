@@ -19,7 +19,7 @@ variable "function_name" {
 variable "tracing_mode" {
   type        = string
   description = "Lambda function tracing mode"
-  default     = "PassThrough"
+  default     = "Active"
 }
 
 variable "enable_collector_layer" {

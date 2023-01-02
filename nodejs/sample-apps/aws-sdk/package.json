@@ -13,7 +13,7 @@
     "precompile": "tsc --version",
     "prepare": "npm run compile",
     "compile": "tsc -p .",
-    "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
+    "postcompile": "copyfiles 'package*.json' build/src/ && copyfiles 'config.yaml' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
   },
   "keywords": [
     "opentelemetry",

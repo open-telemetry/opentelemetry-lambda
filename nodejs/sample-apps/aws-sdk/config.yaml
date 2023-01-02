@@ -1,0 +1,44 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  logging:
+    loglevel: debug
+  otlp:
+    endpoint: "otel-traces.coralogix.com:443"
+    headers:
+      "Authorization": "Bearer "
+      "CX-Application-Name": "appname"
+      "CX-Subsystem-Name": "subsystem"
+      ApplicationName: "appname"
+      ApiName: "subsystem"
+  otlp/metrics:
+    endpoint: "otel-metrics.coralogix.com:443"
+    headers:
+      "Authorization": "Bearer "
+      "CX-Application-Name": "appname"
+      "CX-Subsystem-Name": "subsystem"
+      ApplicationName: "appname"
+      ApiName: "subsystem"
+  otlp/logs:
+    endpoint: "otel-logs.coralogix.com:443"
+    headers:
+      "Authorization": "Bearer "
+      "CX-Application-Name": "appname"
+      "CX-Subsystem-Name": "subsystem"
+      ApplicationName: "appname"
+      ApiName: "subsystem"
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, otlp/metrics]
+    logs:
+      receivers: [otlp]
+      exporters: [logging, otlp/logs]
+    traces:
+      receivers: [otlp]
+      exporters: [logging, otlp]
