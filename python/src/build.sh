@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 mkdir -p build
 docker build -t aws-otel-lambda-python-layer otel
