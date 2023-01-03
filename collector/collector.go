@@ -28,7 +28,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/httpprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
-	"go.opentelemetry.io/collector/service"
+	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
 )
 
@@ -44,8 +44,8 @@ var (
 // same process as the test executor.
 type Collector struct {
 	factories      component.Factories
-	configProvider service.ConfigProvider
-	svc            *service.Collector
+	configProvider otelcol.ConfigProvider
+	svc            *otelcol.Collector
 	appDone        chan struct{}
 	stopped        bool
 }
@@ -68,14 +68,14 @@ func NewCollector(logger *zap.Logger, factories component.Factories) *Collector 
 		mapProvider[provider.Scheme()] = provider
 	}
 
-	cfgSet := service.ConfigProviderSettings{
+	cfgSet := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig(l)},
 			Providers:  mapProvider,
 			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
 		},
 	}
-	cfgProvider, err := service.NewConfigProvider(cfgSet)
+	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)
 
 	if err != nil {
 		l.Fatal("error creating config provider", zap.Error(err))
@@ -89,7 +89,7 @@ func NewCollector(logger *zap.Logger, factories component.Factories) *Collector 
 }
 
 func (c *Collector) Start(ctx context.Context) error {
-	params := service.CollectorSettings{
+	params := otelcol.CollectorSettings{
 		BuildInfo: component.BuildInfo{
 			Command:     "otelcol-lambda",
 			Description: "Lambda Collector",
@@ -99,7 +99,7 @@ func (c *Collector) Start(ctx context.Context) error {
 		Factories:      c.factories,
 	}
 	var err error
-	c.svc, err = service.New(params)
+	c.svc, err = otelcol.NewCollector(params)
 	if err != nil {
 		return err
 	}
@@ -124,9 +124,9 @@ func (c *Collector) Start(ctx context.Context) error {
 		}
 
 		switch state {
-		case service.StateStarting:
+		case otelcol.StateStarting:
 			// NoOp
-		case service.StateRunning:
+		case otelcol.StateRunning:
 			return nil
 		default:
 			err = fmt.Errorf("unable to start, otelcol state is %d", state)
