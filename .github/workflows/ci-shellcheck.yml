@@ -13,9 +13,9 @@ jobs:
 
       - name: Run shellcheck
         run: >-
-          find . -type f | 
-          grep -v '.git/' | 
-          xargs -n 30 file | 
+          find . -type f |
+          grep -v '.git' |
+          xargs -n 30 file |
           grep -i shell |
           awk -F':' '{print $1}' |
           xargs shellcheck
