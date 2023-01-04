@@ -30,7 +30,7 @@
     "@opentelemetry/exporter-trace-otlp-proto": "^0.34.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.34.0",
     "@opentelemetry/instrumentation": "^0.34.0",
-    "@opentelemetry/instrumentation-aws-lambda": "^0.34.0",
+    "@coralogix/instrumentation-aws-lambda": "0.34.2-SNAPSHOT",
     "@opentelemetry/instrumentation-aws-sdk": "^0.10.0",
     "@opentelemetry/instrumentation-dns": "^0.31.0",
     "@opentelemetry/instrumentation-express": "^0.32.0",
