@@ -37,7 +37,7 @@ const { MySQLInstrumentation } = require('@opentelemetry/instrumentation-mysql')
 const { NetInstrumentation } = require('@opentelemetry/instrumentation-net');
 const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
 const { RedisInstrumentation } = require('@opentelemetry/instrumentation-redis');
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 
 declare global {
   // in case of downstream configuring span processors etc
