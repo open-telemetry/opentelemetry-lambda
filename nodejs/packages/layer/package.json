@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.3.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.34.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.34.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.34.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.34.0",
     "@opentelemetry/instrumentation": "^0.34.0",
     "@coralogix/instrumentation-aws-lambda": "0.34.2-SNAPSHOT",
     "@opentelemetry/instrumentation-aws-sdk": "^0.10.0",
