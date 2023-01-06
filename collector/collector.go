@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -48,6 +49,7 @@ type Collector struct {
 	svc            *otelcol.Collector
 	appDone        chan struct{}
 	stopped        bool
+	logger         *zap.Logger
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -84,6 +86,7 @@ func NewCollector(logger *zap.Logger, factories component.Factories) *Collector 
 	col := &Collector{
 		factories:      factories,
 		configProvider: cfgProvider,
+		logger:         logger,
 	}
 	return col
 }
@@ -97,6 +100,9 @@ func (c *Collector) Start(ctx context.Context) error {
 		},
 		ConfigProvider: c.configProvider,
 		Factories:      c.factories,
+		LoggingOptions: []zap.Option{zap.WrapCore(func(_ zapcore.Core) zapcore.Core {
+			return c.logger.Core()
+		})},
 	}
 	var err error
 	c.svc, err = otelcol.NewCollector(params)
