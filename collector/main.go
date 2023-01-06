@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
@@ -40,7 +41,7 @@ func main() {
 	ctx, lm := newLifecycleManager(context.Background(), logger)
 
 	// Will block until shutdown event is received or cancelled via the context.
-	lm.processEvents(ctx)
+	logger.Info("done", zap.Error(lm.run(ctx)))
 }
 
 type lifecycleManager struct {
@@ -48,6 +49,7 @@ type lifecycleManager struct {
 	collector       *Collector
 	extensionClient *extensionapi.Client
 	listener        *telemetryapi.Listener
+	wg              sync.WaitGroup
 }
 
 func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Context, *lifecycleManager) {
@@ -79,23 +81,35 @@ func newLifecycleManager(ctx context.Context, logger *zap.Logger) (context.Conte
 		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
 	}
 
-	factories, _ := lambdacomponents.Components()
-	collector := NewCollector(logger, factories)
-
-	if err = collector.Start(ctx); err != nil {
-		logger.Fatal("Failed to start the extension", zap.Error(err))
-		extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err))
-	}
-
-	return ctx, &lifecycleManager{
+	lm := &lifecycleManager{
 		logger:          logger.Named("lifecycleManager"),
-		collector:       collector,
 		extensionClient: extensionClient,
 		listener:        listener,
 	}
+
+	go lm.processEvents(ctx)
+
+	factories, _ := lambdacomponents.Components()
+	lm.collector = NewCollector(logger, factories)
+
+	return ctx, lm
+}
+
+func (lm *lifecycleManager) run(ctx context.Context) error {
+	if err := lm.collector.Start(ctx); err != nil {
+		lm.logger.Warn("Failed to start the extension", zap.Error(err))
+		lm.extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err))
+		return err
+	}
+
+	lm.wg.Wait()
+	return nil
 }
 
 func (lm *lifecycleManager) processEvents(ctx context.Context) {
+	lm.wg.Add(1)
+	defer lm.wg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():
