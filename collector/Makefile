@@ -31,7 +31,7 @@ for-all-target: $(GOMODULES)
 clean:
 	rm -rf build/
 
-build: clean gotest gotidy
+build: clean
 	@echo Building otel collector extension
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
