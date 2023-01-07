@@ -27,7 +27,7 @@ benchmark:
 .PHONY: fmt
 fmt:
 	gofmt -w -s ./
-	goimports -w  -local go.opentelemetry.io/collector ./
+	goimports -w  -local github.com/open-telemetry/opentelemetry-lambda/collector ./
 
 .PHONY: tidy
 tidy:
@@ -44,7 +44,7 @@ generate:
 
 .PHONY: impi
 impi:
-	@$(IMPI) --local go.opentelemetry.io/collector --scheme stdThirdPartyLocal ./...
+	@$(IMPI) --local github.com/open-telemetry/opentelemetry-lambda/collector --scheme stdThirdPartyLocal ./...
 
 .PHONY: moddownload
 moddownload:
