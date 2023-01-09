@@ -153,7 +153,7 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	traceData := ptrace.NewTraces()
 	rs := traceData.ResourceSpans().AppendEmpty()
 	ss := rs.ScopeSpans().AppendEmpty()
-	ss.Scope().SetName("receiver/telemetryapi")
+	ss.Scope().SetName("github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi")
 	span := ss.Spans().AppendEmpty()
 	span.SetSpanID(newSpanID())
 	span.SetName("platform.initRuntimeDone")
