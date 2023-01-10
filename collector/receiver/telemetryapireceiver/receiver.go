@@ -102,7 +102,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	}
 
 	for _, el := range slice {
-		r.logger.Info(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
+		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		switch el.Type {
 		// Function initialization started.
 		case "platform.initStart":
