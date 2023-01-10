@@ -31,13 +31,11 @@ const (
 var errConfigNotTelemetryAPI = errors.New("config was not a Telemetry API receiver config")
 
 // NewFactory creates a new receiver factory
-func NewFactory(extensionID string) receiver.Factory {
+func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
 		typeStr,
 		func() component.Config {
-			return &Config{
-				extensionID: extensionID,
-			}
+			return &Config{}
 		},
 		receiver.WithTraces(createTracesReceiver, stability))
 }

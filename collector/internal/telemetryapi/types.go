@@ -14,6 +14,8 @@
 
 package telemetryapi
 
+import "context"
+
 // EventType represents the type of log events in Lambda
 type EventType string
 
@@ -24,6 +26,8 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformRuntimeDone is used when runtime has been stopped.
+	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
 	// Extension is used is to receive log events emitted by the extension
@@ -88,6 +92,10 @@ type SubscribeRequest struct {
 
 type Event struct {
 	Time   string         `json:"time"`
-	Type   string         `json:"type"`
+	Type   EventType      `json:"type"`
 	Record map[string]any `json:"record"`
+}
+
+type EventHandler interface {
+	HandleEvent(ctx context.Context, e Event) error
 }

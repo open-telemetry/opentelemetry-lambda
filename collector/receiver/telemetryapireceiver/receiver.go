@@ -18,15 +18,11 @@ import (
 	"context"
 	crand "crypto/rand"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/golang-collections/go-datastructures/queue"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -38,37 +34,15 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
 
-const defaultListenerPort = "4325"
-const initialQueueSize = 5
-
 type telemetryAPIReceiver struct {
-	httpServer            *http.Server
 	logger                *zap.Logger
-	queue                 *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
 	nextConsumer          consumer.Traces
 	lastPlatformStartTime string
 	lastPlatformEndTime   string
-	extensionID           string
 	resource              pcommon.Resource
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
-	address := listenOnAddress()
-	r.logger.Info("Listening for requests", zap.String("address", address))
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", r.httpHandler)
-	r.httpServer = &http.Server{Addr: address, Handler: mux}
-	go func() {
-		_ = r.httpServer.ListenAndServe()
-	}()
-
-	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(ctx, r.extensionID, fmt.Sprintf("http://%s/", address))
-	if err != nil {
-		r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
-		return err
-	}
 	return nil
 }
 
@@ -94,71 +68,54 @@ func newTraceID() pcommon.TraceID {
 	return tid
 }
 
-// httpHandler handles the requests coming from the Telemetry API.
-// Everytime Telemetry API sends events, this function will read them from the response body
-// and put into a synchronous queue to be dispatched later.
+// HandleEvent handles events received by the telemetryapi.
 // Logging or printing besides the error cases below is not recommended if you have subscribed to
 // receive extension logs. Otherwise, logging here will cause Telemetry API to send new logs for
 // the printed lines which may create an infinite loop.
-func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Request) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		r.logger.Error("error reading body", zap.Error(err))
-		return
-	}
-
-	var slice []event
-	if err := json.Unmarshal(body, &slice); err != nil {
-		r.logger.Error("error unmarshalling body", zap.Error(err))
-		return
-	}
-
-	for _, el := range slice {
-		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
-		switch el.Type {
-		// Function initialization started.
-		case string(telemetryapi.PlatformInitStart):
-			r.logger.Info(fmt.Sprintf("Init start: %s", r.lastPlatformStartTime), zap.Any("event", el))
-			r.lastPlatformStartTime = el.Time
+func (r *telemetryAPIReceiver) HandleEvent(ctx context.Context, event telemetryapi.Event) error {
+	r.logger.Debug(fmt.Sprintf("Event: %s", event.Type), zap.Any("event", event))
+	switch event.Type {
+	// Function initialization started.
+	case telemetryapi.PlatformInitStart:
+		r.logger.Info(fmt.Sprintf("Init start: %s", r.lastPlatformStartTime), zap.Any("event", event))
+		r.lastPlatformStartTime = event.Time
 		// Function initialization completed.
-		case string(telemetryapi.PlatformInitRuntimeDone):
-			r.logger.Info(fmt.Sprintf("Init end: %s", r.lastPlatformEndTime), zap.Any("event", el))
-			r.lastPlatformEndTime = el.Time
-		}
-		// TODO: add support for additional events, see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api.html
-		// A report of function initialization.
-		// case "platform.initReport":
-		// Function invocation started.
-		// case "platform.start":
-		// The runtime finished processing an event with either success or failure.
-		// case "platform.runtimeDone":
-		// A report of function invocation.
-		// case "platform.report":
-		// Runtime restore started (reserved for future use)
-		// case "platform.restoreStart":
-		// Runtime restore completed (reserved for future use)
-		// case "platform.restoreRuntimeDone":
-		// Report of runtime restore (reserved for future use)
-		// case "platform.restoreReport":
-		// The extension subscribed to the Telemetry API.
-		// case "platform.telemetrySubscription":
-		// Lambda dropped log entries.
-		// case "platform.logsDropped":
+	case telemetryapi.PlatformInitRuntimeDone:
+		r.logger.Info(fmt.Sprintf("Init end: %s", r.lastPlatformEndTime), zap.Any("event", event))
+		r.lastPlatformEndTime = event.Time
 	}
+	// TODO: add support for additional events, see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api.html
+	// A report of function initialization.
+	// case "platform.initReport":
+	// Function invocation started.
+	// case "platform.start":
+	// The runtime finished processing an event with either success or failure.
+	// case "platform.runtimeDone":
+	// A report of function invocation.
+	// case "platform.report":
+	// Runtime restore started (reserved for future use)
+	// case "platform.restoreStart":
+	// Runtime restore completed (reserved for future use)
+	// case "platform.restoreRuntimeDone":
+	// Report of runtime restore (reserved for future use)
+	// case "platform.restoreReport":
+	// The extension subscribed to the Telemetry API.
+	// case "platform.telemetrySubscription":
+	// Lambda dropped log entries.
+	// case "platform.logsDropped":
+
 	if len(r.lastPlatformStartTime) > 0 && len(r.lastPlatformEndTime) > 0 {
 		if td, err := r.createPlatformInitSpan(r.lastPlatformStartTime, r.lastPlatformEndTime); err == nil {
 			err := r.nextConsumer.ConsumeTraces(context.Background(), td)
-			if err == nil {
-				r.lastPlatformEndTime = ""
-				r.lastPlatformStartTime = ""
-			} else {
+			if err != nil {
 				r.logger.Error("error receiving traces", zap.Error(err))
+				return err
 			}
+			r.lastPlatformEndTime = ""
+			r.lastPlatformStartTime = ""
 		}
 	}
-
-	r.logger.Debug("logEvents received", zap.Int("count", len(slice)), zap.Int64("queue_length", r.queue.Len()))
-	slice = nil
+	return nil
 }
 
 func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace.Traces, error) {
@@ -212,23 +169,11 @@ func newTelemetryAPIReceiver(
 			r.Attributes().PutStr(resourceAttribute, val)
 		}
 	}
-	return &telemetryAPIReceiver{
+	receiver := telemetryAPIReceiver{
 		logger:       set.Logger,
-		queue:        queue.New(initialQueueSize),
 		nextConsumer: next,
-		extensionID:  cfg.extensionID,
 		resource:     r,
-	}, nil
-}
-
-func listenOnAddress() string {
-	envAwsLocal, ok := os.LookupEnv("AWS_SAM_LOCAL")
-	var addr string
-	if ok && envAwsLocal == "true" {
-		addr = ":" + defaultListenerPort
-	} else {
-		addr = "sandbox:" + defaultListenerPort
 	}
-
-	return addr
+	telemetryapi.RegisterHandler(&receiver)
+	return &receiver, nil
 }

@@ -16,12 +16,14 @@ package lifecycle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -30,14 +32,16 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
 
-type MockCollector struct {
-	err error
+type mockCollector struct {
+	err     error
+	stopped bool
 }
 
-func (c *MockCollector) Start(ctx context.Context) error {
+func (c *mockCollector) Start(ctx context.Context) error {
 	return c.err
 }
-func (c *MockCollector) Stop() error {
+func (c *mockCollector) Stop() error {
+	c.stopped = true
 	return c.err
 }
 
@@ -46,21 +50,21 @@ func TestRun(t *testing.T) {
 	ctx := context.Background()
 	// test with an error
 	lm := manager{
-		collector:       &MockCollector{err: fmt.Errorf("test start error")},
+		collector:       &mockCollector{err: fmt.Errorf("test start error")},
 		logger:          logger,
 		extensionClient: extensionapi.NewClient(logger, ""),
 	}
 	require.Error(t, lm.Run(ctx))
 	// test with no waitgroup
 	lm = manager{
-		collector:       &MockCollector{},
+		collector:       &mockCollector{},
 		logger:          logger,
 		extensionClient: extensionapi.NewClient(logger, ""),
 	}
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
 	lm = manager{
-		collector:       &MockCollector{},
+		collector:       &mockCollector{},
 		logger:          logger,
 		extensionClient: extensionapi.NewClient(logger, ""),
 	}
@@ -125,7 +129,7 @@ func TestProcessEvents(t *testing.T) {
 			require.NoError(t, err)
 
 			lm := manager{
-				collector:       &MockCollector{err: tc.collectorError},
+				collector:       &mockCollector{err: tc.collectorError},
 				logger:          logger,
 				listener:        telemetryapi.NewListener(logger),
 				extensionClient: extensionapi.NewClient(logger, u.Host),
@@ -137,8 +141,107 @@ func TestProcessEvents(t *testing.T) {
 			} else {
 				require.NoError(t, lm.processEvents(ctx))
 			}
-
 		})
 	}
+}
 
+func TestHandleEvent(t *testing.T) {
+	type test struct {
+		name             string
+		err              error
+		serverResponses  []string
+		collectorError   error
+		event            telemetryapi.Event
+		collectorStopped bool
+		requestID        string
+	}
+	testCases := []test{
+		{
+			name: "HandleEvent with event not platform.runtimeDone",
+			serverResponses: []string{
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"INVOKE", "record":{}, "requestId":"1234"}`,
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}, "requestId":"1234"}`,
+			},
+			event: telemetryapi.Event{
+				Type: telemetryapi.PlatformInitRuntimeDone,
+			},
+			requestID: "1234",
+		},
+		{
+			name: "HandleEvent with event platform.runtimeDone require ID match",
+			serverResponses: []string{
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"INVOKE", "record":{}, "requestId":"1234"}`,
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}, "requestId":"1234"}`,
+			},
+			event: telemetryapi.Event{
+				Type: telemetryapi.PlatformRuntimeDone,
+				Record: map[string]any{
+					"requestId": "1234",
+				},
+			},
+			collectorStopped: true,
+			requestID:        "1234",
+		},
+		{
+			name: "HandleEvent with event platform.runtimeDone require ID does not match",
+			serverResponses: []string{
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"INVOKE", "record":{}, "requestId":"1234"}`,
+				`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}, "requestId":"1234"}`,
+			},
+			err: errors.New("request ID doesn't match"),
+			event: telemetryapi.Event{
+				Type: telemetryapi.PlatformRuntimeDone,
+			},
+			collectorStopped: true,
+			requestID:        "1234",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			logger := zaptest.NewLogger(t)
+			responseIndex := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(200)
+				w.Write([]byte(tc.serverResponses[responseIndex]))
+				responseIndex++
+				_, err := io.ReadAll(r.Body)
+				require.NoError(t, err, "failed to read request body: %v", err)
+			}))
+			defer server.Close()
+			u, err := url.Parse(server.URL)
+			require.NoError(t, err)
+
+			collector := &mockCollector{err: tc.collectorError}
+			lm := manager{
+				collector:       collector,
+				logger:          logger,
+				listener:        telemetryapi.NewListener(logger),
+				extensionClient: extensionapi.NewClient(logger, fmt.Sprintf("%s", u.Host)),
+			}
+			go lm.processEvents(context.Background())
+
+			// loop until processEvents is waiting for HandleEvent
+			waiting := false
+			for !waiting {
+				time.Sleep(10 * time.Millisecond)
+				lm.reqIDLock.RLock()
+				if lm.reqID == tc.requestID {
+					waiting = true
+				}
+				lm.reqIDLock.RUnlock()
+			}
+
+			err = lm.HandleEvent(context.Background(), tc.event)
+			if tc.err != nil {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			if tc.collectorStopped {
+				lm.wg.Wait()
+			}
+			require.Equal(t, tc.collectorStopped, collector.stopped)
+		})
+	}
 }

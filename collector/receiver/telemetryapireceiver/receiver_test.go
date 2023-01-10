@@ -16,41 +16,15 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 
 import (
 	"context"
-	"net/http/httptest"
-	"strings"
+	"fmt"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
-
-func TestListenOnAddress(t *testing.T) {
-	testCases := []struct {
-		desc     string
-		testFunc func(*testing.T)
-	}{
-		{
-			desc: "listen on address without AWS_SAM_LOCAL env variable",
-			testFunc: func(t *testing.T) {
-				addr := listenOnAddress()
-				require.EqualValues(t, "sandbox:4325", addr)
-			},
-		},
-		{
-			desc: "listen on address with AWS_SAM_LOCAL env variable",
-			testFunc: func(t *testing.T) {
-				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress()
-				require.EqualValues(t, ":4325", addr)
-			},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.desc, tc.testFunc)
-	}
-}
 
 type mockConsumer struct {
 	consumed int
@@ -68,31 +42,23 @@ func (c *mockConsumer) Capabilities() consumer.Capabilities {
 func TestHandler(t *testing.T) {
 	testCases := []struct {
 		desc          string
-		body          string
+		events        []telemetryapi.Event
 		expectedSpans int
 	}{
 		{
-			desc: "empty body",
-			body: `{}`,
+			desc:   "empty event",
+			events: []telemetryapi.Event{{}},
 		},
 		{
-			desc: "invalid json",
-			body: `invalid json`,
+			desc:   "start event",
+			events: []telemetryapi.Event{{Type: "platform.initStart"}},
 		},
 		{
-			desc: "valid event",
-			body: `[{"time":"", "type":"", "record": {}}]`,
-		},
-		{
-			desc: "valid event",
-			body: `[{"time":"", "type":"platform.initStart", "record": {}}]`,
-		},
-		{
-			desc: "valid start/end events",
-			body: `[
-				{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {}},
-				{"time":"2006-01-02T15:04:05.000Z", "type":"platform.initRuntimeDone", "record": {}}
-			]`,
+			desc: "start and end events",
+			events: []telemetryapi.Event{
+				{Time: "2006-01-02T15:04:04.000Z", Type: "platform.initStart"},
+				{Time: "2006-01-02T15:04:05.000Z", Type: "platform.initRuntimeDone"},
+			},
 			expectedSpans: 1,
 		},
 	}
@@ -105,10 +71,10 @@ func TestHandler(t *testing.T) {
 				receivertest.NewNopCreateSettings(),
 			)
 			require.NoError(t, err)
-			req := httptest.NewRequest("POST",
-				"http://localhost:4323/someevent", strings.NewReader(tc.body))
-			rec := httptest.NewRecorder()
-			r.httpHandler(rec, req)
+			for _, e := range tc.events {
+				fmt.Println(e)
+				require.NoError(t, r.HandleEvent(context.Background(), e))
+			}
 			require.Equal(t, tc.expectedSpans, consumer.consumed)
 		})
 	}

@@ -47,6 +47,9 @@ type manager struct {
 	extensionClient *extensionapi.Client
 	listener        *telemetryapi.Listener
 	wg              sync.WaitGroup
+	handlerWG       sync.WaitGroup
+	reqID           string
+	reqIDLock       sync.RWMutex
 }
 
 func NewManager(ctx context.Context, logger *zap.Logger, version string) (context.Context, *manager) {
@@ -84,13 +87,19 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		listener:        listener,
 	}
 
+	telemetryapi.RegisterHandler(lm)
 	go func() {
 		if err := lm.processEvents(ctx); err != nil {
 			lm.logger.Warn("Failed to process events", zap.Error(err))
 		}
 	}()
+	go func() {
+		if err := listener.DispatchEvents(ctx); err != nil {
+			logger.Warn("Error dispatching events", zap.Error(err))
+		}
+	}()
 
-	factories, _ := lambdacomponents.Components(res.ExtensionID)
+	factories, _ := lambdacomponents.Components()
 	lm.collector = collector.NewCollector(logger, factories, version)
 
 	return ctx, lm
@@ -113,6 +122,7 @@ func (lm *manager) processEvents(ctx context.Context) error {
 	lm.wg.Add(1)
 	defer lm.wg.Done()
 
+	lm.handlerWG.Add(1)
 	for {
 		select {
 		case <-ctx.Done():
@@ -141,11 +151,25 @@ func (lm *manager) processEvents(ctx context.Context) error {
 				}
 				return err
 			}
-
-			err = lm.listener.Wait(ctx, res.RequestID)
-			if err != nil {
-				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
-			}
+			lm.reqIDLock.Lock()
+			lm.reqID = res.RequestID
+			lm.reqIDLock.Unlock()
+			lm.handlerWG.Wait()
 		}
 	}
+}
+
+func (lm *manager) HandleEvent(ctx context.Context, event telemetryapi.Event) error {
+	lm.logger.Warn("Event processed", zap.Any("event", event))
+	if event.Type != telemetryapi.PlatformRuntimeDone {
+		return nil
+	}
+
+	defer lm.handlerWG.Done()
+	lm.reqIDLock.RLock()
+	defer lm.reqIDLock.RUnlock()
+	if event.Record["requestId"] == lm.reqID {
+		return nil
+	}
+	return fmt.Errorf("request ID doesn't match")
 }

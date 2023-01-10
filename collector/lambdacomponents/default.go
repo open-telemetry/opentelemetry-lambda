@@ -38,12 +38,12 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
-func Components(extensionID string) (otelcol.Factories, error) {
+func Components() (otelcol.Factories, error) {
 	var errs []error
 
 	receivers, err := receiver.MakeFactoryMap(
 		otlpreceiver.NewFactory(),
-		telemetryapireceiver.NewFactory(extensionID),
+		telemetryapireceiver.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

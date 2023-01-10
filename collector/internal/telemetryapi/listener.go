@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/golang-collections/go-datastructures/queue"
@@ -29,6 +30,17 @@ import (
 
 const defaultListenerPort = "4323"
 const initialQueueSize = 5
+
+var (
+	eventHandlers []EventHandler
+	handlerLock   sync.RWMutex
+)
+
+func RegisterHandler(handler EventHandler) {
+	handlerLock.Lock()
+	defer handlerLock.Unlock()
+	eventHandlers = append(eventHandlers, handler)
+}
 
 // Listener is used to listen to the Telemetry API
 type Listener struct {
@@ -117,13 +129,25 @@ func (s *Listener) Shutdown() {
 	}
 }
 
-func (s *Listener) Wait(ctx context.Context, reqID string) error {
+func (s *Listener) handleEvent(ctx context.Context, e Event) error {
+	handlerLock.RLock()
+	defer handlerLock.RUnlock()
+	for _, listener := range eventHandlers {
+		if err := listener.HandleEvent(ctx, e); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DispatchEvents loops through the items in the queue and dispatches them
+// to all registered event listeners.
+func (s *Listener) DispatchEvents(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			s.logger.Debug("looking for platform.runtimeDone event")
 			items, err := s.queue.Get(10)
 			if err != nil {
 				return fmt.Errorf("unable to get telemetry events from queue: %w", err)
@@ -135,13 +159,8 @@ func (s *Listener) Wait(ctx context.Context, reqID string) error {
 					s.logger.Warn("non-Event found in queue", zap.Any("item", item))
 					continue
 				}
-				s.logger.Debug("Event processed", zap.Any("event", i))
-				if i.Type != "platform.runtimeDone" {
-					continue
-				}
-
-				if i.Record["requestId"] == reqID {
-					return nil
+				if err := s.handleEvent(ctx, i); err != nil {
+					return err
 				}
 			}
 		}

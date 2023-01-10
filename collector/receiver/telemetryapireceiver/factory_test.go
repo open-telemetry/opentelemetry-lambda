@@ -32,16 +32,16 @@ func TestNewFactory(t *testing.T) {
 		{
 			desc: "creates a new factory with correct type",
 			testFunc: func(t *testing.T) {
-				factory := NewFactory("test")
+				factory := NewFactory()
 				require.EqualValues(t, typeStr, factory.Type())
 			},
 		},
 		{
 			desc: "creates a new factory with valid default config",
 			testFunc: func(t *testing.T) {
-				factory := NewFactory("test")
+				factory := NewFactory()
 
-				var expectedCfg component.Config = &Config{extensionID: "test"}
+				var expectedCfg component.Config = &Config{}
 
 				require.Equal(t, expectedCfg, factory.CreateDefaultConfig())
 			},
@@ -49,7 +49,7 @@ func TestNewFactory(t *testing.T) {
 		{
 			desc: "creates a new factory and CreateTracesReceiver returns no error",
 			testFunc: func(t *testing.T) {
-				factory := NewFactory("test")
+				factory := NewFactory()
 				cfg := factory.CreateDefaultConfig()
 				_, err := factory.CreateTracesReceiver(
 					context.Background(),
@@ -63,7 +63,7 @@ func TestNewFactory(t *testing.T) {
 		{
 			desc: "creates a new factory and CreateTracesReceiver returns error with incorrect config",
 			testFunc: func(t *testing.T) {
-				factory := NewFactory("test")
+				factory := NewFactory()
 				_, err := factory.CreateTracesReceiver(
 					context.Background(),
 					receivertest.NewNopCreateSettings(),
