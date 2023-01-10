@@ -14,6 +14,7 @@ require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.68.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.0.0
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.68.0
 	go.opentelemetry.io/collector/component v0.68.0
@@ -41,6 +42,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.17.7 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

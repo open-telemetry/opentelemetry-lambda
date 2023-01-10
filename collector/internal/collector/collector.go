@@ -33,8 +33,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
-// same process as the test executor.
+type CollectorWrapper interface {
+	Start(ctx context.Context) error
+	Stop() error
+}
+
+// Collector runs a single otelcol as a go routine within the
+// same process as the executor.
 type Collector struct {
 	factories      component.Factories
 	configProvider otelcol.ConfigProvider
