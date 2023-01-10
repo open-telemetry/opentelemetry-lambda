@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package collector
 
 import (
 	"context"
@@ -33,14 +33,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	// Version variable will be replaced at link time after `make` has been run.
-	Version = "latest"
-
-	// GitHash variable will be replaced at link time after `make` has been run.
-	GitHash = "<NOT PROPERLY GENERATED>"
-)
-
 // Collector implements the OtelcolRunner interfaces running a single otelcol as a go routine within the
 // same process as the test executor.
 type Collector struct {
@@ -50,6 +42,7 @@ type Collector struct {
 	appDone        chan struct{}
 	stopped        bool
 	logger         *zap.Logger
+	version        string
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -61,7 +54,7 @@ func getConfig(logger *zap.Logger) string {
 	return val
 }
 
-func NewCollector(logger *zap.Logger, factories component.Factories) *Collector {
+func NewCollector(logger *zap.Logger, factories component.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
 	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New(), httpprovider.New(), s3provider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
@@ -87,6 +80,7 @@ func NewCollector(logger *zap.Logger, factories component.Factories) *Collector 
 		factories:      factories,
 		configProvider: cfgProvider,
 		logger:         logger,
+		version:        version,
 	}
 	return col
 }
@@ -96,7 +90,7 @@ func (c *Collector) Start(ctx context.Context) error {
 		BuildInfo: component.BuildInfo{
 			Command:     "otelcol-lambda",
 			Description: "Lambda Collector",
-			Version:     Version,
+			Version:     c.version,
 		},
 		ConfigProvider: c.configProvider,
 		Factories:      c.factories,
