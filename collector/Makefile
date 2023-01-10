@@ -1,3 +1,5 @@
+include ./Makefile.Common
+
 BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
 BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
@@ -11,6 +13,20 @@ BUILD_INFO_IMPORT_PATH=main
 
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION) \
 -X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter.collectorDistribution=opentelemetry-collector-lambda"
+
+ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
+
+GOMODULES = $(ALL_MODULES) $(PWD)
+
+# Define a delegation target for each module
+.PHONY: $(GOMODULES)
+$(GOMODULES):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) -C $@ $(TARGET)
+
+# Triggers each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(GOMODULES)
 
 clean:
 	rm -rf build/
@@ -35,3 +51,11 @@ publish-layer: package
 	aws s3 rm s3://$(BUCKET_NAME)/collector-extension.zip
 	aws s3 rb s3://$(BUCKET_NAME)
 	@echo OpenTelemetry Collector layer published.
+
+.PHONY: gotidy
+gotidy:
+	@$(MAKE) for-all-target TARGET="tidy"
+
+.PHONY: gotest
+gotest:
+	@$(MAKE) for-all-target TARGET="test"

@@ -10,6 +10,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.68.0
+	go.opentelemetry.io/collector v0.68.0
 	go.opentelemetry.io/collector/component v0.68.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.68.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.68.0
@@ -74,7 +75,6 @@ require (
 	github.com/tidwall/wal v1.1.7 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/collector v0.68.0 // indirect
 	go.opentelemetry.io/collector/confmap v0.68.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.68.0 // indirect
 	go.opentelemetry.io/collector/featuregate v0.68.0 // indirect
