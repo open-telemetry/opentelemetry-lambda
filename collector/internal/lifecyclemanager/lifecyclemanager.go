@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package lifecyclemanager
+package lifecycle
 
 import (
 	"context"
@@ -34,7 +34,7 @@ var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 )
 
-type lifecycleManager struct {
+type manager struct {
 	logger          *zap.Logger
 	collector       *collector.Collector
 	extensionClient *extensionapi.Client
@@ -42,7 +42,7 @@ type lifecycleManager struct {
 	wg              sync.WaitGroup
 }
 
-func New(ctx context.Context, logger *zap.Logger, version string) (context.Context, *lifecycleManager) {
+func NewManager(ctx context.Context, logger *zap.Logger, version string) (context.Context, *manager) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sigs := make(chan os.Signal, 1)
