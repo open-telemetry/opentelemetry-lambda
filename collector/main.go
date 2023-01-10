@@ -18,7 +18,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/lifecyclemanager"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/lifecycle"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -35,7 +35,7 @@ func main() {
 	logger := initLogger()
 	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
-	ctx, lm := lifecyclemanager.New(context.Background(), logger, Version)
+	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version)
 
 	// Will block until shutdown event is received or cancelled via the context.
 	logger.Info("done", zap.Error(lm.Run(ctx)))

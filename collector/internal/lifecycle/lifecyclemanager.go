@@ -71,8 +71,8 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
 	}
 
-	lm := &lifecycleManager{
-		logger:          logger.Named("lifecycleManager"),
+	lm := &manager{
+		logger:          logger.Named("lifecycle.manager"),
 		extensionClient: extensionClient,
 		listener:        listener,
 	}
@@ -85,7 +85,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 	return ctx, lm
 }
 
-func (lm *lifecycleManager) Run(ctx context.Context) error {
+func (lm *manager) Run(ctx context.Context) error {
 	if err := lm.collector.Start(ctx); err != nil {
 		lm.logger.Warn("Failed to start the extension", zap.Error(err))
 		lm.extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err))
@@ -96,7 +96,7 @@ func (lm *lifecycleManager) Run(ctx context.Context) error {
 	return nil
 }
 
-func (lm *lifecycleManager) processEvents(ctx context.Context) {
+func (lm *manager) processEvents(ctx context.Context) {
 	lm.wg.Add(1)
 	defer lm.wg.Done()
 
