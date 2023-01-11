@@ -115,11 +115,11 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		switch el.Type {
 		// Function initialization started.
-		case "platform.initStart":
+		case string(telemetryapi.PlatformInitStart):
 			r.logger.Info(fmt.Sprintf("Init start: %s", r.lastPlatformStartTime), zap.Any("event", el))
 			r.lastPlatformStartTime = el.Time
 		// Function initialization completed.
-		case "platform.initRuntimeDone":
+		case string(telemetryapi.PlatformInitRuntimeDone):
 			r.logger.Info(fmt.Sprintf("Init end: %s", r.lastPlatformEndTime), zap.Any("event", el))
 			r.lastPlatformEndTime = el.Time
 		}
@@ -193,12 +193,18 @@ func newTelemetryAPIReceiver(
 ) (*telemetryAPIReceiver, error) {
 	envResourceMap := map[string]string{
 		"AWS_LAMBDA_FUNCTION_MEMORY_SIZE": semconv.AttributeFaaSMaxMemory,
-		"AWS_LAMBDA_FUNCTION_NAME":        semconv.AttributeFaaSName,
 		"AWS_LAMBDA_FUNCTION_VERSION":     semconv.AttributeFaaSVersion,
 		"AWS_REGION":                      semconv.AttributeFaaSInvokedRegion,
 	}
 	r := pcommon.NewResource()
 	r.Attributes().PutStr(semconv.AttributeFaaSInvokedProvider, semconv.AttributeFaaSInvokedProviderAWS)
+	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
+		r.Attributes().PutStr(semconv.AttributeServiceName, val)
+		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
+	} else {
+		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
+	}
+
 	for env, resourceAttribute := range envResourceMap {
 		if val, ok := os.LookupEnv(env); ok {
 			r.Attributes().PutStr(resourceAttribute, val)
