@@ -41,7 +41,7 @@
     "bestzip": "2.2.0",
     "copyfiles": "2.4.1",
     "rimraf": "3.0.2",
-    "ts-node": "9.0.0",
+    "ts-node": "10.9.1",
     "tslint-consistent-codestyle": "1.16.0",
     "tslint-microsoft-contrib": "6.2.0",
     "typescript": "4.9.4"
