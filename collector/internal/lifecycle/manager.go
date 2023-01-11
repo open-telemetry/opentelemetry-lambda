@@ -27,6 +27,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -34,9 +35,14 @@ var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 )
 
+type collectorWrapper interface {
+	Start(ctx context.Context) error
+	Stop() error
+}
+
 type manager struct {
 	logger          *zap.Logger
-	collector       *collector.Collector
+	collector       collectorWrapper
 	extensionClient *extensionapi.Client
 	listener        *telemetryapi.Listener
 	wg              sync.WaitGroup
@@ -77,7 +83,11 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		listener:        listener,
 	}
 
-	go lm.processEvents(ctx)
+	go func() {
+		if err := lm.processEvents(ctx); err != nil {
+			lm.logger.Warn("Failed to process events", zap.Error(err))
+		}
+	}()
 
 	factories, _ := lambdacomponents.Components()
 	lm.collector = collector.NewCollector(logger, factories, version)
@@ -96,21 +106,23 @@ func (lm *manager) Run(ctx context.Context) error {
 	return nil
 }
 
-func (lm *manager) processEvents(ctx context.Context) {
+func (lm *manager) processEvents(ctx context.Context) error {
 	lm.wg.Add(1)
 	defer lm.wg.Done()
 
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			return nil
 		default:
 			lm.logger.Debug("Waiting for event...")
 			res, err := lm.extensionClient.NextEvent(ctx)
 			if err != nil {
 				lm.logger.Warn("error waiting for extension event", zap.Error(err))
-				lm.extensionClient.ExitError(ctx, fmt.Sprintf("error waiting for extension event: %v", err))
-				return
+				if _, exitErr := lm.extensionClient.ExitError(ctx, fmt.Sprintf("error waiting for extension event: %v", err)); exitErr != nil {
+					err = errors.Wrap(err, exitErr.Error())
+				}
+				return err
 			}
 
 			lm.logger.Debug("Received ", zap.Any("event :", res))
@@ -120,9 +132,11 @@ func (lm *manager) processEvents(ctx context.Context) {
 				lm.listener.Shutdown()
 				err = lm.collector.Stop()
 				if err != nil {
-					lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err))
+					if _, exitErr := lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err)); exitErr != nil {
+						err = errors.Wrap(err, exitErr.Error())
+					}
 				}
-				return
+				return err
 			}
 
 			err = lm.listener.Wait(ctx, res.RequestID)
