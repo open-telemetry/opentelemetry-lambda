@@ -13,4 +13,4 @@ For other instrumentations, such as http, you'll need to include the correspondi
 
 ## Sample application
 
-The [sample application](https://github.com/lupengamzn/opentelemetry-lambda/blob/main/dotnet/sample-apps/aws-sdk/wrapper/SampleApps/AwsSdkSample/Function.cs) shows the manual instrumentations of OpenTelemetry Lambda .NET SDK on a Lambda handler that triggers a downstream request to AWS S3.
+The [sample application](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/dotnet/sample-apps/aws-sdk/wrapper/SampleApps/AwsSdkSample/Function.cs) shows the manual instrumentations of OpenTelemetry Lambda .NET SDK on a Lambda handler that triggers a downstream request to AWS S3.
