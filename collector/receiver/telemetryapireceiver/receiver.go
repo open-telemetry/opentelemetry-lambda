@@ -47,6 +47,7 @@ type telemetryAPIReceiver struct {
 	lastPlatformStartTime string
 	lastPlatformEndTime   string
 	extensionID           string
+	resource              pcommon.Resource
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
@@ -152,6 +153,8 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace.Traces, error) {
 	traceData := ptrace.NewTraces()
 	rs := traceData.ResourceSpans().AppendEmpty()
+	r.resource.CopyTo(rs.Resource())
+
 	ss := rs.ScopeSpans().AppendEmpty()
 	ss.Scope().SetName("github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi")
 	span := ss.Spans().AppendEmpty()
@@ -178,11 +181,25 @@ func newTelemetryAPIReceiver(
 	next consumer.Traces,
 	set component.ReceiverCreateSettings,
 ) (*telemetryAPIReceiver, error) {
+	envResourceMap := map[string]string{
+		"AWS_LAMBDA_FUNCTION_MEMORY_SIZE": semconv.AttributeFaaSMaxMemory,
+		"AWS_LAMBDA_FUNCTION_NAME":        semconv.AttributeFaaSName,
+		"AWS_LAMBDA_FUNCTION_VERSION":     semconv.AttributeFaaSVersion,
+		"AWS_REGION":                      semconv.AttributeFaaSInvokedRegion,
+	}
+	r := pcommon.NewResource()
+	r.Attributes().PutStr(semconv.AttributeFaaSInvokedProvider, semconv.AttributeFaaSInvokedProviderAWS)
+	for env, resourceAttribute := range envResourceMap {
+		if val, ok := os.LookupEnv(env); ok {
+			r.Attributes().PutStr(resourceAttribute, val)
+		}
+	}
 	return &telemetryAPIReceiver{
 		logger:       set.Logger,
 		queue:        queue.New(initialQueueSize),
 		nextConsumer: next,
 		extensionID:  cfg.extensionID,
+		resource:     r,
 	}, nil
 }
 
