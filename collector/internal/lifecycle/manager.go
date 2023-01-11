@@ -35,9 +35,14 @@ var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 )
 
+type collectorWrapper interface {
+	Start(ctx context.Context) error
+	Stop() error
+}
+
 type manager struct {
 	logger          *zap.Logger
-	collector       collector.CollectorWrapper
+	collector       collectorWrapper
 	extensionClient *extensionapi.Client
 	listener        *telemetryapi.Listener
 	wg              sync.WaitGroup

@@ -33,11 +33,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type CollectorWrapper interface {
-	Start(ctx context.Context) error
-	Stop() error
-}
-
 // Collector runs a single otelcol as a go routine within the
 // same process as the executor.
 type Collector struct {
