@@ -20,6 +20,10 @@ type EventType string
 const (
 	// Platform is used to receive log events emitted by the Lambda platform
 	Platform EventType = "platform"
+	// PlatformInitStart is used when function initialization started.
+	PlatformInitStart EventType = Platform + ".initStart"
+	// PlatformInitRuntimeDone is used when function initialization ended.
+	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
 	// Extension is used is to receive log events emitted by the extension

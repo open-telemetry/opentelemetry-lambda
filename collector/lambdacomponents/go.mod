@@ -10,6 +10,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.68.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.68.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.68.0
 	go.opentelemetry.io/collector v0.68.0
 	go.opentelemetry.io/collector/component v0.68.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.68.0
@@ -43,6 +44,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -63,9 +65,10 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.68.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.68.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.68.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector v0.67.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/common v0.39.0 // indirect
-	github.com/prometheus/prometheus v0.40.7 // indirect
+	github.com/prometheus/prometheus v1.8.2-0.20220117154355-4855a0c067e2 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/shirou/gopsutil/v3 v3.22.10 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
@@ -101,3 +104,7 @@ require (
 //        cloud.google.com/go/compute
 // Force cloud.google.com/go to be at least v0.107.0, so that the metadata is not present.
 replace cloud.google.com/go => cloud.google.com/go v0.107.0
+
+replace github.com/open-telemetry/opentelemetry-lambda/collector => ../
+
+replace github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver => ../receiver/telemetryapireceiver
