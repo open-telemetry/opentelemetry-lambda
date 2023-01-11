@@ -83,6 +83,15 @@ func newSpanID() pcommon.SpanID {
 	return sid
 }
 
+func newTraceID() pcommon.TraceID {
+	var rngSeed int64
+	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
+	randSource := rand.New(rand.NewSource(rngSeed))
+	tid := pcommon.TraceID{}
+	_, _ = randSource.Read(tid[:])
+	return tid
+}
+
 // httpHandler handles the requests coming from the Telemetry API.
 // Everytime Telemetry API sends events, this function will read them from the response body
 // and put into a synchronous queue to be dispatched later.
@@ -158,6 +167,7 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	ss := rs.ScopeSpans().AppendEmpty()
 	ss.Scope().SetName("github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi")
 	span := ss.Spans().AppendEmpty()
+	span.SetTraceID(newTraceID())
 	span.SetSpanID(newSpanID())
 	span.SetName("platform.initRuntimeDone")
 	span.SetKind(ptrace.SpanKindInternal)
