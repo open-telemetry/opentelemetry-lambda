@@ -59,6 +59,7 @@ func TestProcessor(t *testing.T) {
 		input         ptrace.Traces
 		expected      ptrace.Traces
 		expectedError error
+		reported      bool
 	}{
 		{
 			desc:          "no traces",
@@ -114,6 +115,7 @@ func TestProcessor(t *testing.T) {
 				span.Attributes().PutBool("faas.initialization", true)
 				return td
 			}(),
+			reported: true,
 		},
 		{
 			desc: "faas.execution and faas.coldstart with execution is first",
@@ -133,6 +135,7 @@ func TestProcessor(t *testing.T) {
 				span.Attributes().PutBool("faas.initialization", true)
 				return td
 			}(),
+			reported: true,
 		},
 	}
 	// test case where no spans containing either attributes is there
@@ -151,6 +154,7 @@ func TestProcessor(t *testing.T) {
 				require.NoError(t, err)
 			}
 			require.Equal(t, tc.expected.SpanCount(), td.SpanCount())
+			require.Equal(t, tc.reported, c.reported)
 		})
 	}
 }

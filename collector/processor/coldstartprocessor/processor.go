@@ -37,10 +37,13 @@ type coldstartProcessor struct {
 	faasExecution *faasExecution
 	logger        *zap.Logger
 	nextConsumer  consumer.Traces
+	reported      bool // whether the cold start has already been reported
 }
 
 func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
-	var errors error
+	if p.reported {
+		return td, nil
+	}
 	td.ResourceSpans().RemoveIf(func(rs ptrace.ResourceSpans) bool {
 		resource := rs.Resource()
 		rs.ScopeSpans().RemoveIf(func(ss ptrace.ScopeSpans) bool {
@@ -58,6 +61,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 							p.faasExecution.resource.CopyTo(resource)
 							span.SetParentSpanID(p.faasExecution.span.ParentSpanID())
 							span.SetTraceID(p.faasExecution.span.TraceID())
+							p.reported = true
 							return false
 						}
 					}
@@ -78,6 +82,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 						p.coldstartSpan.CopyTo(s)
 						s.SetParentSpanID(span.ParentSpanID())
 						s.SetTraceID(span.TraceID())
+						p.reported = true
 						p.coldstartSpan = nil
 					}
 				}
@@ -88,9 +93,6 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 		return rs.ScopeSpans().Len() == 0
 	})
 
-	if errors != nil {
-		return td, errors
-	}
 	if td.ResourceSpans().Len() == 0 {
 		return td, processorhelper.ErrSkipProcessingData
 	}
