@@ -67,7 +67,7 @@ func TestProcessor(t *testing.T) {
 			expectedError: processorhelper.ErrSkipProcessingData,
 		},
 		{
-			desc: "coldstart without executioin",
+			desc: "coldstart without execution",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
