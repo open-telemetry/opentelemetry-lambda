@@ -36,7 +36,7 @@ import (
 // Collector runs a single otelcol as a go routine within the
 // same process as the executor.
 type Collector struct {
-	factories      component.Factories
+	factories      otelcol.Factories
 	configProvider otelcol.ConfigProvider
 	svc            *otelcol.Collector
 	appDone        chan struct{}
@@ -54,7 +54,7 @@ func getConfig(logger *zap.Logger) string {
 	return val
 }
 
-func NewCollector(logger *zap.Logger, factories component.Factories, version string) *Collector {
+func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
 	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New(), httpprovider.New(), s3provider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))

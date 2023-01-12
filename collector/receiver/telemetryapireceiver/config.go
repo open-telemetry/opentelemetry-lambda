@@ -14,14 +14,9 @@
 
 package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 
-import (
-	"go.opentelemetry.io/collector/config"
-)
-
 // Config defines the configuration for the various elements of the receiver agent.
 type Config struct {
-	config.ReceiverSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
-	extensionID             string
+	extensionID string
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
