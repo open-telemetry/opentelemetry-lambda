@@ -14,9 +14,10 @@ BUILD_INFO_IMPORT_PATH=main
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION) \
 -X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter.collectorDistribution=opentelemetry-collector-lambda"
 
-ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
-
-GOMODULES = $(ALL_MODULES) $(PWD)
+TOOLS_MOD_DIR := ./internal/tools
+ALL_GO_MOD_DIRS := $(shell find . -type f -name 'go.mod' -exec dirname {} \; | sort)
+OTEL_GO_MOD_DIRS := $(filter-out $(TOOLS_MOD_DIR), $(ALL_GO_MOD_DIRS))
+GOMODULES = $(OTEL_GO_MOD_DIRS) $(PWD)
 
 # Define a delegation target for each module
 .PHONY: $(GOMODULES)
@@ -59,3 +60,37 @@ gotidy:
 .PHONY: gotest
 gotest:
 	@$(MAKE) for-all-target TARGET="test"
+
+.PHONY: goporto
+goporto: install-tools
+	porto -w --include-internal ./
+
+.PHONY: golint
+golint: install-tools
+	@$(MAKE) for-all-target TARGET="lint"
+
+.PHONY: goimpi
+goimpi: install-tools
+	@$(MAKE) for-all-target TARGET="impi"
+
+.PHONY: gofmt
+gofmt:
+	@$(MAKE) for-all-target TARGET="fmt"
+
+.PHONY: install-tools
+install-tools:
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/client9/misspell/cmd/misspell
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/google/addlicense
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/ory/go-acc
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/pavius/impi/cmd/impi
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/checkdoc
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/chloggen
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/semconvgen
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/exp/cmd/apidiff
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/tools/cmd/goimports
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/crosslink
