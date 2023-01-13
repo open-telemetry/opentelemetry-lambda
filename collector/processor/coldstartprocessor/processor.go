@@ -49,21 +49,22 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 		rs.ScopeSpans().RemoveIf(func(ss ptrace.ScopeSpans) bool {
 			scope := ss.Scope()
 			ss.Spans().RemoveIf(func(span ptrace.Span) bool {
-				if attr, ok := span.Attributes().Get(semconv.AttributeFaaSColdstart); ok {
-					if attr.Bool() && span.TraceID().IsEmpty() {
-						if p.faasExecution == nil {
-							sp := ptrace.NewSpan()
-							p.coldstartSpan = &sp
-							span.CopyTo(*p.coldstartSpan)
-							return true
-						} else {
-							p.faasExecution.scope.CopyTo(scope)
-							p.faasExecution.resource.CopyTo(resource)
-							span.SetParentSpanID(p.faasExecution.span.ParentSpanID())
-							span.SetTraceID(p.faasExecution.span.TraceID())
-							p.reported = true
-							return false
-						}
+				if p.reported {
+					return false
+				}
+				if attr, ok := span.Attributes().Get(semconv.AttributeFaaSColdstart); ok && attr.Bool() {
+					if p.faasExecution == nil {
+						sp := ptrace.NewSpan()
+						p.coldstartSpan = &sp
+						span.CopyTo(*p.coldstartSpan)
+						return true
+					} else {
+						p.faasExecution.scope.CopyTo(scope)
+						p.faasExecution.resource.CopyTo(resource)
+						span.SetParentSpanID(p.faasExecution.span.ParentSpanID())
+						span.SetTraceID(p.faasExecution.span.TraceID())
+						p.reported = true
+						return false
 					}
 				}
 				if _, ok := span.Attributes().Get(semconv.AttributeFaaSExecution); ok {
