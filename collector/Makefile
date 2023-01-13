@@ -14,11 +14,10 @@ BUILD_INFO_IMPORT_PATH=main
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION) \
 -X github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter.collectorDistribution=opentelemetry-collector-lambda"
 
-ALL_MODULES := $(shell find . -type f -name "go.mod" -exec dirname {} \; | sort | egrep  '^./' )
-
-GOMODULES = $(ALL_MODULES) $(PWD)
-
 TOOLS_MOD_DIR := ./internal/tools
+ALL_GO_MOD_DIRS := $(shell find . -type f -name 'go.mod' -exec dirname {} \; | sort)
+OTEL_GO_MOD_DIRS := $(filter-out $(TOOLS_MOD_DIR), $(ALL_GO_MOD_DIRS))
+GOMODULES = $(OTEL_GO_MOD_DIRS) $(PWD)
 
 # Define a delegation target for each module
 .PHONY: $(GOMODULES)
