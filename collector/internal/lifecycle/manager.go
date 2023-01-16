@@ -23,7 +23,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/collector"
@@ -99,7 +99,9 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 func (lm *manager) Run(ctx context.Context) error {
 	if err := lm.collector.Start(ctx); err != nil {
 		lm.logger.Warn("Failed to start the extension", zap.Error(err))
-		lm.extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err))
+		if _, initErr := lm.extensionClient.InitError(ctx, fmt.Sprintf("failed to start the collector: %v", err)); initErr != nil {
+			return multierr.Combine(err, initErr)
+		}
 		return err
 	}
 
@@ -121,7 +123,7 @@ func (lm *manager) processEvents(ctx context.Context) error {
 			if err != nil {
 				lm.logger.Warn("error waiting for extension event", zap.Error(err))
 				if _, exitErr := lm.extensionClient.ExitError(ctx, fmt.Sprintf("error waiting for extension event: %v", err)); exitErr != nil {
-					err = errors.Wrap(err, exitErr.Error())
+					return multierr.Combine(err, exitErr)
 				}
 				return err
 			}
@@ -134,7 +136,7 @@ func (lm *manager) processEvents(ctx context.Context) error {
 				err = lm.collector.Stop()
 				if err != nil {
 					if _, exitErr := lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err)); exitErr != nil {
-						err = errors.Wrap(err, exitErr.Error())
+						return multierr.Combine(err, exitErr)
 					}
 				}
 				return err
