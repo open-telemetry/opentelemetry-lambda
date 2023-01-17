@@ -5,7 +5,7 @@ module "hello-lambda-function" {
   architectures = compact([var.architecture])
   function_name = var.name
   handler       = "AwsSdkSample::AwsSdkSample.Function::TracingFunctionHandler"
-  runtime       = "dotnetcore3.1"
+  runtime       = "dotnet6"
 
   create_package         = false
   local_existing_package = "${path.module}/../../wrapper/SampleApps/build/function.zip"

@@ -18,7 +18,7 @@ mkdir -p build/dotnet
 dotnet publish \
     --output "./build/dotnet" \
     --configuration "Release" \
-    --framework "netcoreapp3.1" /p:GenerateRuntimeConfigurationFiles=true \
+    --framework "net6.0" /p:GenerateRuntimeConfigurationFiles=true \
     --runtime linux-$DOTNET_LINUX_ARCH \
     --self-contained false
 cd build/dotnet
