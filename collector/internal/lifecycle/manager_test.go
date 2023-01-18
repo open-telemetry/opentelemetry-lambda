@@ -202,9 +202,10 @@ func TestHandleEvent(t *testing.T) {
 			responseIndex := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
-				w.Write([]byte(tc.serverResponses[responseIndex]))
+				_, err := w.Write([]byte(tc.serverResponses[responseIndex]))
+				require.NoError(t, err)
 				responseIndex++
-				_, err := io.ReadAll(r.Body)
+				_, err = io.ReadAll(r.Body)
 				require.NoError(t, err, "failed to read request body: %v", err)
 			}))
 			defer server.Close()
@@ -216,9 +217,11 @@ func TestHandleEvent(t *testing.T) {
 				collector:       collector,
 				logger:          logger,
 				listener:        telemetryapi.NewListener(logger),
-				extensionClient: extensionapi.NewClient(logger, fmt.Sprintf("%s", u.Host)),
+				extensionClient: extensionapi.NewClient(logger, u.Host),
 			}
-			go lm.processEvents(context.Background())
+			go func() {
+				require.NoError(t, lm.processEvents(context.Background()))
+			}()
 
 			// loop until processEvents is waiting for HandleEvent
 			waiting := false

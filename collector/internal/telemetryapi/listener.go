@@ -160,7 +160,7 @@ func (s *Listener) DispatchEvents(ctx context.Context) error {
 					continue
 				}
 				if err := s.handleEvent(ctx, i); err != nil {
-					return err
+					s.logger.Warn("error handling event", zap.Error(err))
 				}
 			}
 		}
