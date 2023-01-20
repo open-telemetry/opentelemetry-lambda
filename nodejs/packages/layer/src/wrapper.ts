@@ -5,7 +5,7 @@ import {
   SDKRegistrationConfig,
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { Instrumentation, registerInstrumentations } from '@opentelemetry/instrumentation';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
   detectResources,
@@ -47,6 +47,7 @@ declare global {
     defaultSdkRegistration: SDKRegistrationConfig
   ): SDKRegistrationConfig;
   function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
+  function configureInstrumentations(): Instrumentation[]
 }
 
 console.log('Registering OpenTelemetry');
@@ -69,6 +70,7 @@ const instrumentations = [
   new NetInstrumentation(),
   new PgInstrumentation(),
   new RedisInstrumentation(),
+  ...(typeof configureInstrumentations === 'function' ? configureInstrumentations() : [])
 ];
 
 // configure lambda logging
