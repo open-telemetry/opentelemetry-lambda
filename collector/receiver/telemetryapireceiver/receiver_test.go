@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
@@ -53,11 +54,16 @@ func TestListenOnAddress(t *testing.T) {
 }
 
 type mockConsumer struct {
-	consumed int
+	consumedSpans int
+	consumedLogs  int
 }
 
 func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
-	c.consumed += td.SpanCount()
+	c.consumedSpans += td.SpanCount()
+	return nil
+}
+func (c *mockConsumer) ConsumeLogs(ctx context.Context, td plog.Logs) error {
+	c.consumedLogs += td.LogRecordCount()
 	return nil
 }
 
@@ -70,6 +76,7 @@ func TestHandler(t *testing.T) {
 		desc          string
 		body          string
 		expectedSpans int
+		expectedLogs  int
 	}{
 		{
 			desc: "empty body",
@@ -95,6 +102,21 @@ func TestHandler(t *testing.T) {
 			]`,
 			expectedSpans: 1,
 		},
+		{
+			desc: "valid log",
+			body: `[
+				{"time":"2006-01-02T15:04:04.000Z", "type":"function", "record": "Sample log text"}
+			]`,
+			expectedLogs: 1,
+		},
+		{
+			desc: "valid batched log",
+			body: `[
+				{"time":"2006-01-02T15:04:04.000Z", "type":"function", "record": "Sample log text one"},
+				{"time":"2006-01-02T15:04:05.000Z", "type":"function", "record": "Sample log text two"}
+			]`,
+			expectedLogs: 2,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -105,12 +127,14 @@ func TestHandler(t *testing.T) {
 			)
 
 			r.nextTracesConsumer = &consumer
+			r.nextLogsConsumer = &consumer
 			require.NoError(t, err)
 			req := httptest.NewRequest("POST",
 				"http://localhost:4323/someevent", strings.NewReader(tc.body))
 			rec := httptest.NewRecorder()
 			r.httpHandler(rec, req)
-			require.Equal(t, tc.expectedSpans, consumer.consumed)
+			require.Equal(t, tc.expectedSpans, consumer.consumedSpans)
+			require.Equal(t, tc.expectedLogs, consumer.consumedLogs)
 		})
 	}
 }
