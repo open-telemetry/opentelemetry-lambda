@@ -47,26 +47,26 @@ The context propagation when Active Tracing is enabled uses the `_X_AMZN_TRACE_I
 
 The Lambda language implementation follows the semantic conventions specified in the OpenTelemetry Specification.
 
+### Auto instrumentation
+
+The Lambda layer includes support for automatically instrumentation code via the use of instrumentation libraries.
+
 ### Support matrix
 
 The table below captures the state of various features and their levels of support different runtimes.
 
-| Runtime       | Custom Context Propagation | Disable AWS Propagation | Semantic conventions |
-| ------------- | :------------------------: | :---------------------: | :------------------: |
-| Node.js 16    |                            |                         |                      |
-| Node.js 14    |                            |                         |                      |
-| Python 3.9    |                            |                         |                      |
-| Python 3.8    |                            |                         |                      |
-| Python 3.7    |                            |                         |                      |
-| Java 11       |                            |                         |                      |
-| Java 8        |                            |                         |                      |
-| .NET Core 3.1 |                            |                         |                      |
-| .NET 6        |                            |                         |                      |
-| .NET 5        |                            |                         |                      |
-| Go 1.x        |                            |                         |                      |
-| Ruby 2.7      |                            |                         |                      |
+| Feature                    | Node | Python | Java | .NET | Go   | Ruby |
+| -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
+| Custom Context Propagation |      |        |      |      |      |      |
+| Disable AWS Propagation    |      |        |      |      |      |      |
+| Semantic conventions       |      |        |      |      |      |      |
+| - Trace General            |      |        |      |      |      |      |
+| - Trace Incoming           |      |        |      |      |      |      |
+| - Trace Outgoing           |      |        |      |      |      |      |
+| - Metrics                  |      |        |      |      |      |      |
+| Auto Instrumentation       |      |        |      |      |      |      |
 
-The following are additional runtimes which are no longer or not yet supported by this repository:
+The following are runtimes which are no longer or not yet supported by this repository:
 
 * Node.js 18 - not currently supported (see [#322](https://github.com/open-telemetry/opentelemetry-lambda/issues/322))
-* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS.
+* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
