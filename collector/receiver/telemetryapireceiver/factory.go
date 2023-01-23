@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
@@ -28,6 +29,7 @@ const (
 	stability = component.StabilityLevelDevelopment
 )
 
+var receivers = sharedcomponent.NewSharedComponents()
 var errConfigNotTelemetryAPI = errors.New("config was not a Telemetry API receiver config")
 
 // NewFactory creates a new receiver factory
@@ -39,7 +41,33 @@ func NewFactory(extensionID string) receiver.Factory {
 				extensionID: extensionID,
 			}
 		},
-		receiver.WithTraces(createTracesReceiver, stability))
+		receiver.WithTraces(createTracesReceiver, stability),
+		receiver.WithLogs(createLog, stability),
+	)
+}
+
+func createLog(
+	_ context.Context,
+	params receiver.CreateSettings,
+	rConf component.Config,
+	next consumer.Logs,
+) (receiver.Logs, error) {
+	cfg, ok := rConf.(*Config)
+	if !ok {
+		return nil, errConfigNotTelemetryAPI
+	}
+
+	r, err := receivers.GetOrAdd(rConf, func() (component.Component, error) {
+		return newTelemetryAPIReceiver(cfg, params)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err = r.Unwrap().(*telemetryAPIReceiver).registerLogsConsumer(next); err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
 func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
@@ -48,5 +76,15 @@ func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, r
 		return nil, errConfigNotTelemetryAPI
 	}
 
-	return newTelemetryAPIReceiver(cfg, next, params)
+	r, err := receivers.GetOrAdd(rConf, func() (component.Component, error) {
+		return newTelemetryAPIReceiver(cfg, params)
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err = r.Unwrap().(*telemetryAPIReceiver).registerTracesConsumer(next); err != nil {
+		return nil, err
+	}
+	return r, nil
+
 }

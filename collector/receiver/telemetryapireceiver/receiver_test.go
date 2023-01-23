@@ -101,9 +101,10 @@ func TestHandler(t *testing.T) {
 			consumer := mockConsumer{}
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				&consumer,
 				receivertest.NewNopCreateSettings(),
 			)
+
+			r.nextTracesConsumer = &consumer
 			require.NoError(t, err)
 			req := httptest.NewRequest("POST",
 				"http://localhost:4323/someevent", strings.NewReader(tc.body))
@@ -148,9 +149,9 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				nil,
 				receivertest.NewNopCreateSettings(),
 			)
+
 			require.NoError(t, err)
 			td, err := r.createPlatformInitSpan(tc.start, tc.end)
 			if tc.expectError {

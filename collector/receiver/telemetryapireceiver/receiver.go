@@ -31,6 +31,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
@@ -44,11 +45,29 @@ type telemetryAPIReceiver struct {
 	httpServer            *http.Server
 	logger                *zap.Logger
 	queue                 *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
-	nextConsumer          consumer.Traces
+	nextTracesConsumer    consumer.Traces
+	nextLogsConsumer      consumer.Logs
 	lastPlatformStartTime string
 	lastPlatformEndTime   string
 	extensionID           string
 	resource              pcommon.Resource
+}
+
+func (r *telemetryAPIReceiver) registerLogsConsumer(lc consumer.Logs) error {
+	if lc == nil {
+		return component.ErrNilNextConsumer
+	}
+	r.nextLogsConsumer = lc
+	return nil
+}
+
+func (r *telemetryAPIReceiver) registerTracesConsumer(tc consumer.Traces) error {
+	if tc == nil {
+		return component.ErrNilNextConsumer
+	}
+	r.nextTracesConsumer = tc
+
+	return nil
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
@@ -112,6 +131,13 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	logData := plog.NewLogs()
+	rs := logData.ResourceLogs().AppendEmpty()
+	r.resource.CopyTo(rs.Resource())
+
+	ss := rs.ScopeLogs().AppendEmpty()
+	ss.Scope().SetName("github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi")
+
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		switch el.Type {
@@ -123,6 +149,21 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		case string(telemetryapi.PlatformInitRuntimeDone):
 			r.logger.Info(fmt.Sprintf("Init end: %s", r.lastPlatformEndTime), zap.Any("event", el))
 			r.lastPlatformEndTime = el.Time
+		case string(telemetryapi.Function):
+			logStr, ok := el.Record.(string)
+			if !ok {
+				continue
+			}
+
+			logRecord := ss.LogRecords().AppendEmpty()
+			logRecord.Body().SetStr(logStr)
+			layout := "2006-01-02T15:04:05.000Z"
+			startTime, err := time.Parse(layout, el.Time)
+			if err != nil {
+				r.logger.Error("error creating log", zap.Error(err))
+				continue
+			}
+			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(startTime))
 		}
 		// TODO: add support for additional events, see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api.html
 		// A report of function initialization.
@@ -146,13 +187,21 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	}
 	if len(r.lastPlatformStartTime) > 0 && len(r.lastPlatformEndTime) > 0 {
 		if td, err := r.createPlatformInitSpan(r.lastPlatformStartTime, r.lastPlatformEndTime); err == nil {
-			err := r.nextConsumer.ConsumeTraces(context.Background(), td)
-			if err == nil {
-				r.lastPlatformEndTime = ""
-				r.lastPlatformStartTime = ""
-			} else {
-				r.logger.Error("error receiving traces", zap.Error(err))
+			if r.nextTracesConsumer != nil {
+				err := r.nextTracesConsumer.ConsumeTraces(context.Background(), td)
+				if err == nil {
+					r.lastPlatformEndTime = ""
+					r.lastPlatformStartTime = ""
+				} else {
+					r.logger.Error("error receiving traces", zap.Error(err))
+				}
 			}
+		}
+	}
+	if r.nextLogsConsumer != nil && logData.LogRecordCount() != 0 {
+		err = r.nextLogsConsumer.ConsumeLogs(context.Background(), logData)
+		if err != nil {
+			r.logger.Error("error receiving log", zap.Error(err))
 		}
 	}
 
@@ -189,7 +238,6 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 
 func newTelemetryAPIReceiver(
 	cfg *Config,
-	next consumer.Traces,
 	set receiver.CreateSettings,
 ) (*telemetryAPIReceiver, error) {
 	envResourceMap := map[string]string{
@@ -212,11 +260,10 @@ func newTelemetryAPIReceiver(
 		}
 	}
 	return &telemetryAPIReceiver{
-		logger:       set.Logger,
-		queue:        queue.New(initialQueueSize),
-		nextConsumer: next,
-		extensionID:  cfg.extensionID,
-		resource:     r,
+		logger:      set.Logger,
+		queue:       queue.New(initialQueueSize),
+		extensionID: cfg.extensionID,
+		resource:    r,
 	}, nil
 }
 
