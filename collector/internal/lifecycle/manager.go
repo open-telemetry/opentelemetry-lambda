@@ -23,12 +23,13 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/collector"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 var (

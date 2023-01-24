@@ -17,8 +17,9 @@ package disablequeuedretryconverter // import "github.com/open-telemetry/opentel
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/collector/confmap"
 	"strings"
+
+	"go.opentelemetry.io/collector/confmap"
 )
 
 const (

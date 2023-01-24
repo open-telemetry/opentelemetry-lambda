@@ -18,9 +18,10 @@ import (
 	"context"
 	"os"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/lifecycle"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/lifecycle"
 )
 
 var (

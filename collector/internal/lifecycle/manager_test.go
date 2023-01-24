@@ -23,10 +23,11 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
 
 type MockCollector struct {
