@@ -35,7 +35,7 @@ To get a better understanding of the proposed design for the OpenTelemetry Lamda
 
 The following is a list of features provided by the OpenTelemetry layers.
 
-### Custom Context Propagation
+### Custom Context Propagation Carrier Extraction
 
 Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in lambda through configuration, this feature allows this through Lambda instrumentation configuration.
 
