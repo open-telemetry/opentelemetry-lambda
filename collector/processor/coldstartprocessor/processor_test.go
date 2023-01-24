@@ -29,7 +29,6 @@ import (
 
 	"github.com/cespare/xxhash"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor/processorhelper"
@@ -208,19 +207,6 @@ func TestMultipleProcessTraces(t *testing.T) {
 	require.Equal(t, "faas-execution", attr.AsString())
 	require.Equal(t, "app/execution", output.ResourceSpans().At(0).ScopeSpans().At(0).Scope().Name())
 	require.True(t, c.reported)
-}
-
-type mockConsumer struct {
-	consumed int
-}
-
-func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
-	c.consumed += td.SpanCount()
-	return nil
-}
-
-func (c *mockConsumer) Capabilities() consumer.Capabilities {
-	return consumer.Capabilities{MutatesData: true}
 }
 
 func getTraceID() pcommon.TraceID {

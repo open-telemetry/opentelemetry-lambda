@@ -94,7 +94,9 @@ func (s *Listener) httpHandler(w http.ResponseWriter, r *http.Request) {
 	_ = json.Unmarshal(body, &slice)
 
 	for _, el := range slice {
-		s.queue.Put(el)
+		if err := s.queue.Put(el); err != nil {
+			s.logger.Error("Failed to put event in queue", zap.Error(err))
+		}
 	}
 
 	s.logger.Debug("logEvents received", zap.Int("count", len(slice)), zap.Int64("queue_length", s.queue.Len()))
@@ -104,7 +106,8 @@ func (s *Listener) httpHandler(w http.ResponseWriter, r *http.Request) {
 // Shutdown the HTTP server listening for logs
 func (s *Listener) Shutdown() {
 	if s.httpServer != nil {
-		ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
 		err := s.httpServer.Shutdown(ctx)
 		if err != nil {
 			s.logger.Error("Failed to shutdown HTTP server gracefully", zap.Error(err))

@@ -115,8 +115,9 @@ func TestProcessEvents(t *testing.T) {
 
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
-				w.Write([]byte(tc.serverResponse))
-				_, err := io.ReadAll(r.Body)
+				_, err := w.Write([]byte(tc.serverResponse))
+				require.NoError(t, err)
+				_, err = io.ReadAll(r.Body)
 				require.NoError(t, err, "failed to read request body: %v", err)
 			}))
 			defer server.Close()
@@ -127,7 +128,7 @@ func TestProcessEvents(t *testing.T) {
 				collector:       &MockCollector{err: tc.collectorError},
 				logger:          logger,
 				listener:        telemetryapi.NewListener(logger),
-				extensionClient: extensionapi.NewClient(logger, fmt.Sprintf("%s", u.Host)),
+				extensionClient: extensionapi.NewClient(logger, u.Host),
 			}
 			if tc.err != nil {
 				err = lm.processEvents(ctx)

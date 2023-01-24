@@ -115,10 +115,8 @@ func httpPutWithHeaders(ctx context.Context, client *http.Client, url string, da
 
 	contentType := "application/json"
 	req.Header.Set("Content-Type", contentType)
-	if headers != nil {
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	return client.Do(req)
