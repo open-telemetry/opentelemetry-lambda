@@ -16,9 +16,10 @@ package disablequeuedretryconverter
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/confmap"
-	"testing"
 )
 
 func TestConvert(t *testing.T) {
