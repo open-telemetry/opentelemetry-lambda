@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultListenerPort = "4323"
+const defaultListenerPort = "53612"
 const initialQueueSize = 5
 
 // Listener is used to listen to the Telemetry API

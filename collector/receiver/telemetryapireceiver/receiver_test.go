@@ -106,7 +106,7 @@ func TestHandler(t *testing.T) {
 			)
 			require.NoError(t, err)
 			req := httptest.NewRequest("POST",
-				"http://localhost:4323/someevent", strings.NewReader(tc.body))
+				"http://localhost:53612/someevent", strings.NewReader(tc.body))
 			rec := httptest.NewRecorder()
 			r.httpHandler(rec, req)
 			require.Equal(t, tc.expectedSpans, consumer.consumed)
