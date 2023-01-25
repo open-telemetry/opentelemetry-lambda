@@ -43,13 +43,9 @@ The layer includes the OpenTelemetry Collector as a Lambda extension.
 
 Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in lambda through configuration, this feature allows this through Lambda instrumentation configuration.
 
-### Disable AWS context propagation via environment variable
-
-The context propagation when Active Tracing is enabled uses the `_X_AMZN_TRACE_ID` environment variable present in the Lambda runtime. To disable this behaviour, implementations have added the `OTEL_LAMBDA_DISABLE_AWS_CONTEXT_PROPAGATION` environment variable which can be set to `true`.
-
 ### Span link context propagation
 
- This links a context extracted from the Lambda runtime environment to the instrumentation-generated span rather than disabling that context extraction entirely.
+This links a context extracted from the Lambda runtime environment to the instrumentation-generated span rather than disabling that context extraction entirely.
 
 ### Semantic conventions
 
@@ -67,7 +63,6 @@ The table below captures the state of various features and their levels of suppo
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
 | OpenTelemetry collector    |  +   |  +     |  +   |  +   |      |      |
 | Custom context propagation |      |        |      | N/A  | N/A  |      |
-| Disable AWS propagation    |      |        |      | N/A  | N/A  |      |
 | Span link propagation      |      |        |      | N/A  | N/A  |      |
 | Semantic conventions       |      |        |      | N/A  | N/A  |      |
 | - Trace General            |      |        |      | N/A  | N/A  |      |
