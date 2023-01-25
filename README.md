@@ -62,14 +62,14 @@ The table below captures the state of various features and their levels of suppo
 | Feature                    | Node | Python | Java | .NET | Go   | Ruby |
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
 | OpenTelemetry collector    |  +   |  +     |  +   |  +   |      |      |
-| Custom context propagation |      |        |      | N/A  | N/A  |      |
-| Span link propagation      |      |        |      | N/A  | N/A  |      |
-| Semantic conventions       |      |        |      | N/A  | N/A  |      |
-| - Trace General            |      |        |      | N/A  | N/A  |      |
-| - Trace Incoming           |      |        |      | N/A  | N/A  |      |
-| - Trace Outgoing           |      |        |      | N/A  | N/A  |      |
-| - Metrics                  |      |        |      | N/A  | N/A  |      |
-| Auto instrumentation       |      |        |      | N/A  | N/A  |      |
+| Custom context propagation |      |        |  -   | N/A  | N/A  |      |
+| X-Ray Env Var Span Link    |      |        |  -   | N/A  | N/A  |      |
+| Semantic conventions       |      |        |  +   | N/A  | N/A  |      |
+| - Trace General            |      |        |  +   | N/A  | N/A  |      |
+| - Trace Incoming           |      |        |  +   | N/A  | N/A  |      |
+| - Trace Outgoing           |      |        |  +   | N/A  | N/A  |      |
+| - Metrics                  |      |        |  -   | N/A  | N/A  |      |
+| Auto instrumentation       |      |        |  +   | N/A  | N/A  |      |
 
 #### Legend
 
