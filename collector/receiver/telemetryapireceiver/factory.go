@@ -42,11 +42,11 @@ func NewFactory(extensionID string) receiver.Factory {
 			}
 		},
 		receiver.WithTraces(createTracesReceiver, stability),
-		receiver.WithLogs(createLog, stability),
+		receiver.WithLogs(createLogsReceiver, stability),
 	)
 }
 
-func createLog(
+func createLogsReceiver(
 	_ context.Context,
 	params receiver.CreateSettings,
 	rConf component.Config,
