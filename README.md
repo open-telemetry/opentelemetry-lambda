@@ -43,7 +43,7 @@ The layer includes the OpenTelemetry Collector as a Lambda extension.
 
 Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in lambda through configuration, this feature allows this through Lambda instrumentation configuration.
 
-### Span link context propagation
+### X-Ray Env Var Span Link
 
 This links a context extracted from the Lambda runtime environment to the instrumentation-generated span rather than disabling that context extraction entirely.
 
@@ -64,17 +64,18 @@ The table below captures the state of various features and their levels of suppo
 | OpenTelemetry collector    |  +   |  +     |  +   |  +   |      |      |
 | Custom context propagation |      |        |  -   | N/A  | N/A  |      |
 | X-Ray Env Var Span Link    |      |        |  -   | N/A  | N/A  |      |
-| Semantic conventions       |      |        |  +   | N/A  | N/A  |      |
-| - Trace General            |      |        |  +   | N/A  | N/A  |      |
-| - Trace Incoming           |      |        |  +   | N/A  | N/A  |      |
-| - Trace Outgoing           |      |        |  +   | N/A  | N/A  |      |
-| - Metrics                  |      |        |  -   | N/A  | N/A  |      |
+| Semantic Conventions^      |      |        |  +   | N/A  | N/A  |      |
+| - Trace General^           |      |        |  +   | N/A  | N/A  |      |
+| - Trace Incoming^          |      |        |  +   | N/A  | N/A  |      |
+| - Trace Outgoing^          |      |        |  +   | N/A  | N/A  |      |
+| - Metrics^                 |      |        |  -   | N/A  | N/A  |      |
 | Auto instrumentation       |      |        |  +   | N/A  | N/A  |      |
 
 #### Legend
 
 * `+` is supported
 * `-` not supported
+* `^` subject to change depending on spec updates
 * `N/A` not applicable to the particular language
 * blank cell means the status of the feature is not known.
 
