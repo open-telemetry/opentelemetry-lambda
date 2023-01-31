@@ -55,13 +55,21 @@ The Lambda language implementation follows the semantic conventions specified in
 
 The Lambda layer includes support for automatically instrumentation code via the use of instrumentation libraries.
 
+### Flush TracerProvider
+
+The Lambda instrumentation will flush the `TracerProvider` at the end of an invocation.
+
+### Flush MeterProvider
+
+The Lambda instrumentation will flush the `MeterProvider` at the end of an invocation.
+
 ### Support matrix
 
 The table below captures the state of various features and their levels of support different runtimes.
 
 | Feature                    | Node | Python | Java | .NET | Go   | Ruby |
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
-| OpenTelemetry collector    |  +   |  +     |  +   |  +   |      |      |
+| OpenTelemetry collector    |  +   |  +     |  +   |  +   |  +   |      |
 | Custom context propagation |      |        |  -   | N/A  | N/A  |      |
 | X-Ray Env Var Span Link    |      |        |  -   | N/A  | N/A  |      |
 | Semantic Conventions^      |      |        |  +   | N/A  | N/A  |      |
@@ -70,6 +78,8 @@ The table below captures the state of various features and their levels of suppo
 | - Trace Outgoing^          |      |        |  +   | N/A  | N/A  |      |
 | - Metrics^                 |      |        |  -   | N/A  | N/A  |      |
 | Auto instrumentation       |      |        |  +   | N/A  | N/A  |      |
+| Flush TracerProvider       |  +   |   +    |      |      |  +   |      |
+| Flush MeterProvider        |      |        |      |      |      |      |
 
 #### Legend
 
