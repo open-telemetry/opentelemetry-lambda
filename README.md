@@ -73,10 +73,10 @@ The table below captures the state of various features and their levels of suppo
 | Custom context propagation |      |        |  -   | N/A  | N/A  |      |
 | X-Ray Env Var Span Link    |      |        |  -   | N/A  | N/A  |      |
 | Semantic Conventions^      |      |        |  +   | N/A  | N/A  |      |
-| - Trace General^           |      |        |  +   | N/A  | N/A  |      |
-| - Trace Incoming^          |      |        |  +   | N/A  | N/A  |      |
-| - Trace Outgoing^          |      |        |  +   | N/A  | N/A  |      |
-| - Metrics^                 |      |        |  -   | N/A  | N/A  |      |
+| - Trace General^<sup>[1]</sup>           |      |        |  +   | N/A  | N/A  |      |
+| - Trace Incoming^<sup>[2]</sup>          |      |        |  +   | N/A  | N/A  |      |
+| - Trace Outgoing^<sup>[3]</sup>          |      |        |  +   | N/A  | N/A  |      |
+| - Metrics^<sup>[4]</sup>                 |      |        |  -   | N/A  | N/A  |      |
 | Auto instrumentation       |      |        |  +   | N/A  | N/A  |      |
 | Flush TracerProvider       |  +   |   +    |      |      |  +   |      |
 | Flush MeterProvider        |      |        |      |      |      |      |
@@ -93,3 +93,8 @@ The following are runtimes which are no longer or not yet supported by this repo
 
 * Node.js 18 - not currently supported (see [#322](https://github.com/open-telemetry/opentelemetry-lambda/issues/322))
 * Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
+
+[1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md#general-attributes
+[2]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md#incoming-invocations
+[3]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md#outgoing-invocations
+[4]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/faas-metrics.md#faas-invocations
