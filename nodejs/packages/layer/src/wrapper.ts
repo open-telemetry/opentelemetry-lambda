@@ -13,6 +13,7 @@ import {
   processDetector,
 } from '@opentelemetry/resources';
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk';
+import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
 import {
   diag,
   DiagConsoleLogger,
@@ -20,24 +21,39 @@ import {
 } from "@opentelemetry/api";
 import { getEnv } from '@opentelemetry/core';
 import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
-
-// Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
-// definitions.
-const { AwsLambdaInstrumentation } = require('@opentelemetry/instrumentation-aws-lambda');
-const { DnsInstrumentation } = require('@opentelemetry/instrumentation-dns');
-const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
-const { GraphQLInstrumentation } = require('@opentelemetry/instrumentation-graphql');
-const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
-const { HapiInstrumentation } = require('@opentelemetry/instrumentation-hapi');
-const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
-const { IORedisInstrumentation } = require('@opentelemetry/instrumentation-ioredis');
-const { KoaInstrumentation } = require('@opentelemetry/instrumentation-koa');
-const { MongoDBInstrumentation } = require('@opentelemetry/instrumentation-mongodb');
-const { MySQLInstrumentation } = require('@opentelemetry/instrumentation-mysql');
-const { NetInstrumentation } = require('@opentelemetry/instrumentation-net');
-const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
-const { RedisInstrumentation } = require('@opentelemetry/instrumentation-redis');
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+
+function defaultConfigureInstrumentations() {
+  // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
+  // definitions.
+  const { DnsInstrumentation } = require('@opentelemetry/instrumentation-dns');
+  const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
+  const { GraphQLInstrumentation } = require('@opentelemetry/instrumentation-graphql');
+  const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
+  const { HapiInstrumentation } = require('@opentelemetry/instrumentation-hapi');
+  const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
+  const { IORedisInstrumentation } = require('@opentelemetry/instrumentation-ioredis');
+  const { KoaInstrumentation } = require('@opentelemetry/instrumentation-koa');
+  const { MongoDBInstrumentation } = require('@opentelemetry/instrumentation-mongodb');
+  const { MySQLInstrumentation } = require('@opentelemetry/instrumentation-mysql');
+  const { NetInstrumentation } = require('@opentelemetry/instrumentation-net');
+  const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
+  const { RedisInstrumentation } = require('@opentelemetry/instrumentation-redis');
+  return [  new DnsInstrumentation(),
+    new ExpressInstrumentation(),
+    new GraphQLInstrumentation(),
+    new GrpcInstrumentation(),
+    new HapiInstrumentation(),
+    new HttpInstrumentation(),
+    new IORedisInstrumentation(),
+    new KoaInstrumentation(),
+    new MongoDBInstrumentation(),
+    new MySQLInstrumentation(),
+    new NetInstrumentation(),
+    new PgInstrumentation(),
+    new RedisInstrumentation(),
+  ]
+}
 
 declare global {
   // in case of downstream configuring span processors etc
@@ -57,20 +73,7 @@ const instrumentations = [
     suppressInternalInstrumentation: true,
   }),
   new AwsLambdaInstrumentation(typeof configureLambdaInstrumentation === 'function' ? configureLambdaInstrumentation({}) : {}),
-  new DnsInstrumentation(),
-  new ExpressInstrumentation(),
-  new GraphQLInstrumentation(),
-  new GrpcInstrumentation(),
-  new HapiInstrumentation(),
-  new HttpInstrumentation(),
-  new IORedisInstrumentation(),
-  new KoaInstrumentation(),
-  new MongoDBInstrumentation(),
-  new MySQLInstrumentation(),
-  new NetInstrumentation(),
-  new PgInstrumentation(),
-  new RedisInstrumentation(),
-  ...(typeof configureInstrumentations === 'function' ? configureInstrumentations() : [])
+  ...(configureInstrumentations ?? defaultConfigureInstrumentations)()
 ];
 
 // configure lambda logging
