@@ -70,15 +70,15 @@ The table below captures the state of various features and their levels of suppo
 | Feature                    | Node | Python | Java | .NET | Go   | Ruby |
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
 | OpenTelemetry collector    |  +   |  +     |  +   |  +   |  +   |      |
-| Custom context propagation |      |        |  -   | N/A  | N/A  |      |
-| X-Ray Env Var Span Link    |      |        |  -   | N/A  | N/A  |      |
-| Semantic Conventions^      |      |        |  +   | N/A  | N/A  |      |
-| - Trace General^<sup>[1]</sup>           |      |        |  +   | N/A  | N/A  |      |
-| - Trace Incoming^<sup>[2]</sup>          |      |        |  +   | N/A  | N/A  |      |
-| - Trace Outgoing^<sup>[3]</sup>          |      |        |  +   | N/A  | N/A  |      |
-| - Metrics^<sup>[4]</sup>                 |      |        |  -   | N/A  | N/A  |      |
-| Auto instrumentation       |      |        |  +   | N/A  | N/A  |      |
-| Flush TracerProvider       |  +   |   +    |      |      |  +   |      |
+| Custom context propagation |      |        |  -   |  -   | N/A  |      |
+| X-Ray Env Var Span Link    |      |        |  -   |  -   | N/A  |      |
+| Semantic Conventions^      |      |        |  +   |  +   | N/A  |      |
+| - Trace General^<sup>[1]</sup>           |      |        |  +   |  +   | N/A  |      |
+| - Trace Incoming^<sup>[2]</sup>          |      |        |  +   |  +   | N/A  |      |
+| - Trace Outgoing^<sup>[3]</sup>          |      |        |  +   |  +   | N/A  |      |
+| - Metrics^<sup>[4]</sup>                 |      |        |  -   |  -   | N/A  |      |
+| Auto instrumentation       |      |        |  +   |  -   | N/A  |      |
+| Flush TracerProvider       |  +   |   +    |      |  +   |  +   |      |
 | Flush MeterProvider        |      |        |      |      |      |      |
 
 #### Legend
