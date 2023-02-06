@@ -21,7 +21,7 @@ jobs:
         with:
           distribution: corretto
           java-version: '11'
-      - uses: burrunan/gradle-cache-action@v1.16
+      - uses: burrunan/gradle-cache-action@v1.19
         with:
           remote-build-cache-proxy-enabled: false
           arguments: build --stacktrace
