@@ -2,6 +2,7 @@
 
 set -e
 set -u
+set -o pipefail
 
 echo_usage() {
 	echo "usage: Deploy Lambda layer/application by SAM"
@@ -33,7 +34,6 @@ main() {
 	region=${AWS_REGION-$(aws configure get region)}
 	stack=${OTEL_LAMBDA_STACK-"otel-stack"}
 	layerName=${OTEL_LAMBDA_LAYER-"otel-layer"}
-
 
 	collectorPath=${COLLECTOR_PATH-"../../collector"}
 
