@@ -89,9 +89,9 @@ export PYTHONPATH="$LAMBDA_RUNTIME_DIR:$PYTHONPATH";
 
 # - Set the trace exporter
 
-# - If OTEL_EXPORTER_OTLP_TRACES_PROTOCOL is not set by user, the default exporting protocol for traces is http/protobuf.
-if [ -z "${OTEL_EXPORTER_OTLP_TRACES_PROTOCOL}" ]; then
-    export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+# - If OTEL_EXPORTER_OTLP_PROTOCOL is not set by user, the default exporting protocol is http/protobuf.
+if [ -z "${OTEL_EXPORTER_OTLP_PROTOCOL}" ]; then
+    export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 fi
 
 # - Set the service name
