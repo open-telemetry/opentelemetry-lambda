@@ -79,7 +79,7 @@ The table below captures the state of various features and their levels of suppo
 | - Metrics^<sup>[4]</sup>                 |  -   |        |  -   |  -   | N/A  |      |
 | Auto instrumentation       |      |        |  +   |  -   | N/A  |      |
 | Flush TracerProvider       |  +   |   +    |      |  +   |  +   |      |
-| Flush MeterProvider        |  -   |        |      |      |      |      |
+| Flush MeterProvider        |  +   |    +   |      |      |      |      |
 
 #### Legend
 
