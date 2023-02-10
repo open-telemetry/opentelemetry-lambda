@@ -87,16 +87,9 @@ export PYTHONPATH="$LAMBDA_RUNTIME_DIR:$PYTHONPATH";
 # - We leave `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` to its default. This is
 #   `http://localhost:4318/v1/traces` because we are using the HTTP exporter
 
-# - Set the trace exporter
-
-if [ -z "${OTEL_TRACES_EXPORTER}" ]; then
-    export OTEL_TRACES_EXPORTER=otlp_proto_http;
-fi
-
-# - Set the metrics exporter
-
-if [ -z "${OTEL_METRICS_EXPORTER}" ]; then
-    export OTEL_METRICS_EXPORTER=none;
+# - If OTEL_EXPORTER_OTLP_PROTOCOL is not set by user, the default exporting protocol is http/protobuf.
+if [ -z "${OTEL_EXPORTER_OTLP_PROTOCOL}" ]; then
+    export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 fi
 
 # - Set the service name
