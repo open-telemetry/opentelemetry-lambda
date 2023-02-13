@@ -21,7 +21,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.70.0
 	go.opentelemetry.io/collector/component v0.70.0
-	go.opentelemetry.io/collector/confmap v0.70.0
+	go.opentelemetry.io/collector/confmap v0.71.0
 	go.uber.org/multierr v1.9.0
 	go.uber.org/zap v1.24.0
 )
@@ -118,7 +118,7 @@ require (
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.70.0 // indirect
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.70.0 // indirect
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.70.0 // indirect
-	go.opentelemetry.io/collector/featuregate v0.70.0 // indirect
+	go.opentelemetry.io/collector/featuregate v0.71.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.0.0-rc4 // indirect
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.70.0 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.70.0 // indirect
