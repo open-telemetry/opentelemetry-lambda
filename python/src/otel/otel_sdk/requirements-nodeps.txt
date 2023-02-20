@@ -8,7 +8,7 @@ opentelemetry-instrumentation-botocore==0.36b0
 opentelemetry-instrumentation-celery==0.36b0
 opentelemetry-instrumentation-dbapi==0.36b0
 opentelemetry-instrumentation-django==0.36b0
-opentelemetry-instrumentation-elasticsearch==0.36b0
+opentelemetry-instrumentation-elasticsearch==0.37b0
 opentelemetry-instrumentation-fastapi==0.36b0
 opentelemetry-instrumentation-falcon==0.36b0
 opentelemetry-instrumentation-flask==0.36b0
