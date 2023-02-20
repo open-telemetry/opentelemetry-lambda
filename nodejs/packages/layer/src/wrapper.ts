@@ -73,7 +73,7 @@ const instrumentations = [
     suppressInternalInstrumentation: true,
   }),
   new AwsLambdaInstrumentation(typeof configureLambdaInstrumentation === 'function' ? configureLambdaInstrumentation({}) : {}),
-  ...(configureInstrumentations ?? defaultConfigureInstrumentations)()
+  ...(typeof configureInstrumentations === 'function' ? configureInstrumentations: defaultConfigureInstrumentations)()
 ];
 
 // configure lambda logging
