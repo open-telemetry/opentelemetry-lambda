@@ -13,7 +13,7 @@ opentelemetry-instrumentation-fastapi==0.36b0
 opentelemetry-instrumentation-falcon==0.36b0
 opentelemetry-instrumentation-flask==0.36b0
 opentelemetry-instrumentation-grpc==0.36b0
-opentelemetry-instrumentation-jinja2==0.36b0
+opentelemetry-instrumentation-jinja2==0.37b0
 opentelemetry-instrumentation-mysql==0.36b0
 opentelemetry-instrumentation-psycopg2==0.36b0
 opentelemetry-instrumentation-pymemcache==0.36b0
