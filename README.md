@@ -71,7 +71,7 @@ The table below captures the state of various features and their levels of suppo
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
 | OpenTelemetry collector    |  +   |  +     |  +   |  +   |  +   |      |
 | Custom context propagation |      |  -     |  -   |  -   | N/A  |      |
-| X-Ray Env Var Span Link    |      |  +     |  -   |  -   | N/A  |      |
+| X-Ray Env Var Span Link    |      |  -     |  -   |  -   | N/A  |      |
 | Semantic Conventions^      |      |  +     |  +   |  +   | N/A  |      |
 | - Trace General^<sup>[1]</sup>           |      |   +    |  +   |  +   | N/A  |      |
 | - Trace Incoming^<sup>[2]</sup>          |      |   +    |  +   |  +   | N/A  |      |
