@@ -1,3 +1,3 @@
-opentelemetry-exporter-otlp-proto-http==1.15.0
-opentelemetry-distro==0.36b0
-opentelemetry-instrumentation-aws-lambda==0.36b0
+opentelemetry-exporter-otlp-proto-http==1.16.0
+opentelemetry-distro==0.37b0
+opentelemetry-instrumentation-aws-lambda==0.37b0

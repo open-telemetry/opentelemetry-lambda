@@ -11,3 +11,8 @@ terraform.*
 .vscode/
 
 .DS_Store
+
+.tox
+__pycache__/*
+.pyc
+

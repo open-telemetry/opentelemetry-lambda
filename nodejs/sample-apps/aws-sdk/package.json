@@ -26,7 +26,7 @@
   "author": "OpenTelemetry Authors",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=14.0.0"
   },
   "files": [
     "build/src/**/*.js",
@@ -37,7 +37,7 @@
   ],
   "devDependencies": {
     "@types/aws-lambda": "8.10.110",
-    "@types/node": "18.11.19",
+    "@types/node": "18.13.0",
     "bestzip": "2.2.0",
     "copyfiles": "2.4.1",
     "rimraf": "4.1.2",
