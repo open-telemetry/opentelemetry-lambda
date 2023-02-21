@@ -1,0 +1,6 @@
+{
+  "ToxEnv": {
+    "name": "py39-test-instrumentation-aws-lambda",
+    "type": "VirtualEnvRunner"
+  }
+}
