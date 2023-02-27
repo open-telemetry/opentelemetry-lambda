@@ -1,0 +1,27 @@
+name: "Continuous Build (Java)"
+
+on:
+  push:
+    paths:
+      - 'dotnet/**'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'dotnet/**'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        if: ${{ matrix.language == 'dotnet' }}
+        with:
+          dotnet-version: '6.0.x'
+      - name: Build .NET layer for arm64
+        run: GOARCH="arm64" ./build.sh
+      - name: Build .NET layer for amd64
+        run: GOARCH="amd64" ./build.sh
