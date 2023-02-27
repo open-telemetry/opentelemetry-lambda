@@ -694,8 +694,8 @@ go.opentelemetry.io/collector v0.71.0 h1:aJmh/6PfiZYb12Dp9nGRNpSMMVbQ21Oe5hr/Zlp
 go.opentelemetry.io/collector v0.71.0/go.mod h1:xYtI9ydMaZWHtQXDPQKS7AxKEncjPSC3Wy0q+X7ys0w=
 go.opentelemetry.io/collector/component v0.71.0 h1:pWOOCV7HezwwNBkS9K48eDAXGcYBVse6saZqQShqfEA=
 go.opentelemetry.io/collector/component v0.71.0/go.mod h1:baAbLKe4nBF8cUp2fNBWA/IdNfQafZ6SBAK+Ko8o7aI=
-go.opentelemetry.io/collector/confmap v0.71.0 h1:SCVgn67jH0bNAiScx4CFx7tKpH0UfP8XQAOuH7EMPZQ=
-go.opentelemetry.io/collector/confmap v0.71.0/go.mod h1:cVHgj/wFAMq9qktwQb6iJbGkb2jdaDhZryRxdWIA9L8=
+go.opentelemetry.io/collector/confmap v0.72.0 h1:sKPy47HHQQVxo4Lz7Tm1EXfq7AZpXZ67PNR0kI/N8VE=
+go.opentelemetry.io/collector/confmap v0.72.0/go.mod h1:ypdzD5rWFYPuaZXWNR0Y3pGKppYMiqQUh6Y2wypvQUU=
 go.opentelemetry.io/collector/consumer v0.71.0 h1:qcLp1LmBZGdTYLmSpDzXCf3iZRTMiDv7cTVwTGjUdG8=
 go.opentelemetry.io/collector/consumer v0.71.0/go.mod h1:AsO0Win5oStnsesReBDrZsOug0166QFTq/m5UYi0jTk=
 go.opentelemetry.io/collector/exporter/loggingexporter v0.71.0 h1:kcLXJNYLi5ij2aeyV6dpuxLZ6KFwk7E1CxVFwEn2v7M=
@@ -705,8 +705,8 @@ go.opentelemetry.io/collector/exporter/otlpexporter v0.71.0/go.mod h1:R3EdZolJst
 go.opentelemetry.io/collector/exporter/otlphttpexporter v0.71.0 h1:fld/HG2PnFx5bVM1ZBgo8fJ3fEmOa0grIIy6KxvqNes=
 go.opentelemetry.io/collector/exporter/otlphttpexporter v0.71.0/go.mod h1:h+nz8AL6f7qkaxB30n6+j0a+5p0cFOhPPc4y0SjW/U8=
 go.opentelemetry.io/collector/extension/zpagesextension v0.71.0 h1:bX3k5iepbEivDWmb3XpXdEHy60fOq3n7Cv0cOZxTU38=
-go.opentelemetry.io/collector/featuregate v0.71.0 h1:X/OOapj8La0q/D4bBWIYYNBbkXOD71+RrdrYv+ipNuE=
-go.opentelemetry.io/collector/featuregate v0.71.0/go.mod h1:ih+oCwrHW3bLac/qnPUzes28yDCDmh8WzsAKKauwCYI=
+go.opentelemetry.io/collector/featuregate v0.72.0 h1:ohUu+sefEWa1VGgzTu40xJhfHp+FJOUiQVPRv6IWco0=
+go.opentelemetry.io/collector/featuregate v0.72.0/go.mod h1:6mZdaoUukhcreY8fZKwnTm7RVsyp4iFFNf5UXMnzIxc=
 go.opentelemetry.io/collector/pdata v1.0.0-rc5 h1:1tKD0TTY9WKRmSAwuUPuDKftCp878HdRVvpeIvRs4Os=
 go.opentelemetry.io/collector/pdata v1.0.0-rc5/go.mod h1:tdtk7rlxCzv1uph4CNonu31jW7mqWF9llUzCYqRaWD8=
 go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.71.0 h1:017w/M+e3IctDfGt62h80xLBDlU0rMR1HkGFcMJxx9A=
