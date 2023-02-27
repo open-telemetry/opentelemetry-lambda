@@ -1,4 +1,4 @@
-name: "Continuous Build (Java)"
+name: "Continuous Build (.NET)"
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - 'dotnet/**'
     branches:
       - main
+      - 
   pull_request:
     paths:
       - 'dotnet/**'
