@@ -1,11 +1,10 @@
 ARG runtime=python3.9
-
 FROM public.ecr.aws/sam/build-${runtime}
+ARG PLATFORM
 
 ADD . /workspace
 
 WORKDIR /workspace
-
 RUN mkdir -p /build && \
   python3 -m pip install -r otel_sdk/requirements.txt -t /build/python && \
   python3 -m pip install -r otel_sdk/requirements-nodeps.txt -t /build/tmp --no-deps && \
@@ -17,8 +16,12 @@ RUN mkdir -p /build && \
   mv otel_sdk/otel-instrument /build && \
   chmod 755 /build/otel-instrument && \
   rm -rf /build/python/boto* && \
-  rm -rf /build/python/urllib3* && \
-  cd /build && \
-  zip -r layer.zip otel-instrument python
+  rm -rf /build/python/urllib3*
 
-CMD cp /build/layer.zip /out/layer.zip
+WORKDIR /build
+# The pre built grpcio contains a non stripped lib https://github.com/grpc/grpc/issues/29935
+#RUN strip ./python/grpc/_cython/cygrpc.cpython-39-aarch64-linux-gnu.so
+RUN if [ ${PLATFORM} = "arm64" ] ; then \
+     strip ./python/grpc/_cython/cygrpc.cpython-39-aarch64-linux-gnu.so ; \
+  fi
+RUN zip -r layer.zip otel-instrument python
