@@ -36,7 +36,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/aws-lambda": "8.10.110",
+    "@types/aws-lambda": "8.10.111",
     "@types/node": "18.14.6",
     "bestzip": "2.2.0",
     "copyfiles": "2.4.1",
