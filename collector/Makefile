@@ -2,8 +2,9 @@ include ./Makefile.Common
 
 BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
-BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
-LAYER_NAME:=otel-collector
+BUCKET_NAME ?= lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
+LAYER_NAME ?= otel-collector
+TEMP_PACKAGE_NAME = $(LAYER_NAME)-extension.zip
 
 VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
@@ -41,16 +42,14 @@ package: build
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
-	cd $(BUILD_SPACE) && zip -r collector-extension.zip collector-config extensions
+	cd $(BUILD_SPACE) && zip -r $(TEMP_PACKAGE_NAME) collector-config extensions
 
 publish-layer: package
 	@echo Publishing collector extension layer...
-	aws s3 mb s3://$(BUCKET_NAME)
-	aws s3 cp $(BUILD_SPACE)/collector-extension.zip s3://$(BUCKET_NAME)
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --content S3Bucket=$(BUCKET_NAME),S3Key=collector-extension.zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
+	aws s3 cp $(BUILD_SPACE)/$(TEMP_PACKAGE_NAME) s3://$(BUCKET_NAME)
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --content S3Bucket=$(BUCKET_NAME),S3Key=$(TEMP_PACKAGE_NAME) --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
 	@echo Clearing cached files...
-	aws s3 rm s3://$(BUCKET_NAME)/collector-extension.zip
-	aws s3 rb s3://$(BUCKET_NAME)
+	aws s3 rm s3://$(BUCKET_NAME)/$(TEMP_PACKAGE_NAME)
 	@echo OpenTelemetry Collector layer published.
 
 .PHONY: gotidy

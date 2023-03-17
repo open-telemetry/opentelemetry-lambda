@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      golang: 1.18
+
+  build:
+    commands:
+      - echo Build started
+      - cd collector
+      - make publish-layer
+
+  post_build:
+    commands:
+      - echo Build completed for $(aws lambda list-layer-versions --layer-name $LAYER_NAME --query 'LayerVersions[0]')
+      - if [[ -v SHARE_WITH_PRINCIPALS ]]; then IFS=',' read -ra items <<< "$SHARE_WITH_PRINCIPALS"; for item in "${items[@]}"; do aws lambda add-layer-version-permission --layer-name $LAYER_NAME --version-number $(aws lambda list-layer-versions --layer-name $LAYER_NAME --query 'LayerVersions[0].Version') --statement-id sharingWith$item --principal $item --action lambda:GetLayerVersion; done; fi
