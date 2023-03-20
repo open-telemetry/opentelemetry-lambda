@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.73.0
 	go.opentelemetry.io/collector/receiver v0.73.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.73.0
-	go.uber.org/multierr v1.9.0
+	go.uber.org/multierr v1.10.0
 )
 
 require (
