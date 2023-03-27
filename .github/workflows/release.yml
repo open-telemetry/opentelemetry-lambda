@@ -1,0 +1,103 @@
+name: "Release: Collector Lambda layer"
+
+on:
+  workflow_dispatch:
+    inputs:
+      layer_name_keyword:
+        description: 'Publish layer to keyword name by substituting architecture parameter (ie: opentelemetry-python-<ARCHITECTURE>)'
+        required: true
+      aws_region:
+        description: 'Deploy to aws region'
+        required: true
+        default: "[ \"us-east-1\", \"us-east-2\", \"us-west-1\", \"us-west-2\", \"ap-south-1\", \"ap-northeast-2\", \"ap-southeast-1\", \"ap-southeast-2\", \"ap-northeast-1\", \"ca-central-1\", \"eu-central-1\", \"eu-west-1\", \"eu-west-2\", \"eu-west-3\", \"eu-north-1\", \"sa-east-1\" ]"
+      architecture:
+        description: 'Architecture-compatible distributions of the layer to release in each region'
+        required: true
+        default: "[ \"amd64\", \"arm64\" ]"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate `layer_name_keyword` (${{ github.event.inputs.layer_name_keyword }})
+        run: |
+          grep -Eq "opentelemetry-(collector|java-agent|java-wrapper|nodejs|python)(-dev)*-<ARCHITECTURE>" <<< "${{ github.event.inputs.layer_name_keyword }}"
+  build-archive:
+    runs-on: ubuntu-latest
+    needs: validate-inputs
+    strategy:
+      matrix:
+        architecture: ${{ fromJson(github.event.inputs.architecture) }}
+    steps:
+      - name: Get layer kind by parsing `${{ github.event.inputs.layer_name_keyword }}`
+        run: |
+          echo LAYER_KIND=$(echo "${{ github.event.inputs.layer_name_keyword }}" | cut -d - -f 2) | tee --append $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '^1.19.4'
+      - name: build
+        run: |
+          make -C ${{ env.LAYER_KIND }} package GOARCH=${{ matrix.architecture }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: |
+            ${{ github.workspace }}/${{ env.LAYER_KIND }}/build/*.zip
+  publish-prod:
+    runs-on: ubuntu-latest
+    needs: build-archive
+    strategy:
+      matrix:
+        architecture: ${{ fromJson(github.event.inputs.architecture) }}
+        aws_region: ${{ fromJson(github.event.inputs.aws_region) }}
+    steps:
+      - name: Get layer name by substituting `${{ matrix.architecture }}` into Workflow Input name keyword
+        run: |
+          echo LAYER_NAME=$(echo "${{ github.event.inputs.layer_name_keyword }}" | sed 's/<ARCHITECTURE>/${{ matrix.architecture }}/') | tee --append $GITHUB_ENV
+      - name: Get layer kind by parsing `${{ github.event.inputs.layer_name_keyword }}`
+        run: |
+          echo LAYER_KIND=$(echo "${{ github.event.inputs.layer_name_keyword }}" | cut -d - -f 2) | tee --append $GITHUB_ENV
+      - name: Get bucket name for release run
+        run: |
+          echo BUCKET_NAME=lambda-artifacts-${{ env.LAYER_KIND }}-${{ matrix.architecture }}-${{ github.run_id }} | tee --append $GITHUB_ENV
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
+          role-duration-seconds: 1200
+          aws-region: ${{ matrix.aws_region }}
+          mask-aws-account-id: false
+      - uses: actions/checkout@v3
+      - name: add build directory
+        run: |
+          mkdir -p ${{ github.workspace }}/${{ env.LAYER_KIND }}/build
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: ${{ github.workspace }}/${{ env.LAYER_KIND }}/build/
+      - name: publish
+        run: |
+          make -C ${{ env.LAYER_KIND }} publish LAYER_NAME=${{ env.LAYER_NAME }} GOARCH=${{ matrix.architecture }} >> ${{ env.LAYER_NAME }}/${{ matrix.aws_region }}
+      - name: public layer
+        run: |
+          layerVersion=$(
+            aws lambda list-layer-versions \
+              --layer-name ${{ env.LAYER_NAME }} \
+              --query 'max_by(LayerVersions, &Version).Version'
+          )
+          aws lambda add-layer-version-permission \
+            --layer-name ${{ env.LAYER_NAME }} \
+            --version-number $layerVersion \
+            --principal "*" \
+            --statement-id publish \
+            --action lambda:GetLayerVersion
+      - name: upload layer arn artifact
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.LAYER_NAME }}
+          path: ${{ env.LAYER_NAME }}/${{ matrix.aws_region }}
