@@ -29,20 +29,24 @@ $(GOMODULES):
 .PHONY: for-all-target
 for-all-target: $(GOMODULES)
 
+.PHONY: clean
 clean:
 	rm -rf build/
 
+.PHONY: build
 build: clean
 	@echo Building otel collector extension
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
+.PHONY: package
 package: build
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
 	cd $(BUILD_SPACE) && zip -r collector-extension.zip collector-config extensions
 
+.PHONY: publish-layer
 publish-layer: package
 	@echo Publishing collector extension layer...
 	aws s3 mb s3://$(BUCKET_NAME)
