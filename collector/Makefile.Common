@@ -1,6 +1,3 @@
-# ALL_PKGS is the list of all packages where ALL_SRC files reside.
-ALL_PKGS := $(sort $(shell go list ./...))
-
 GOTEST_OPT?= -race -timeout 120s
 GOCMD?= go
 GOTEST=$(GOCMD) test
