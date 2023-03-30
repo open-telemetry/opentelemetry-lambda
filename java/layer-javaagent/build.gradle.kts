@@ -2,8 +2,6 @@ plugins {
     `java-library`
 }
 
-val agentDependency: String? = rootProject.findProperty("otel.lambda.javaagent.dependency") as String?
-
 val agentClasspath by configurations.creating {
     extendsFrom(configurations["implementation"])
     isCanBeConsumed = false
@@ -14,11 +12,8 @@ val agentClasspath by configurations.creating {
 }
 
 dependencies {
-    if (agentDependency != null) {
-        implementation(agentDependency)
-    } else {
-        implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent")
-    }
+    // version set in dependencyManagement/build.gradle.kts
+    implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent")
 }
 
 tasks {
