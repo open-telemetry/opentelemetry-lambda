@@ -81,6 +81,7 @@ jobs:
           path: ${{ github.workspace }}/${{ env.LAYER_KIND }}/build/
       - name: publish
         run: |
+          mkdir -p ${{ env.LAYER_NAME }}
           make -C ${{ env.LAYER_KIND }} publish LAYER_NAME=${{ env.LAYER_NAME }} GOARCH=${{ matrix.architecture }} >> ${{ env.LAYER_NAME }}/${{ matrix.aws_region }}
       - name: public layer
         run: |
