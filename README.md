@@ -91,7 +91,6 @@ The table below captures the state of various features and their levels of suppo
 
 The following are runtimes which are no longer or not yet supported by this repository:
 
-* Node.js 18 - not currently supported (see [#322](https://github.com/open-telemetry/opentelemetry-lambda/issues/322))
 * Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
 
 [1]: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/faas.md#general-attributes
