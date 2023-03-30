@@ -92,7 +92,8 @@ jobs:
       - name: Publish Javaagent Lambda Layer
         env:
           LAYER_VERSION: ${{needs.build.outputs.LAYER_VERSION}}
-        run: aws lambda publish-layer-version \
+        run: |
+          aws lambda publish-layer-version \
           --layer-name opentelemetry-javaagent-$LAYER_VERSION \
           --description "OpenTelemetry Javaagent Layer" \
           --license-info "Apache 2.0" \
