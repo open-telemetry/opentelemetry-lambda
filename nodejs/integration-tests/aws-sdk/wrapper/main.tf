@@ -9,10 +9,10 @@ resource "aws_lambda_layer_version" "sdk_layer" {
 resource "aws_lambda_layer_version" "collector_layer" {
   count               = var.enable_collector_layer ? 1 : 0
   layer_name          = var.collector_layer_name
-  filename            = "${path.module}/../../../../collector/build/collector-extension.zip"
+  filename            = "${path.module}/../../../../collector/build/collector-extension-amd64.zip"
   compatible_runtimes = ["nodejs14.x", "nodejs16.x", "nodejs18.x"]
   license_info        = "Apache-2.0"
-  source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension.zip")
+  source_code_hash    = filebase64sha256("${path.module}/../../../../collector/build/collector-extension-amd64.zip")
 }
 
 module "hello-lambda-function" {
