@@ -1,20 +1,10 @@
 name: "Release Javaagent Lambda Layer"
 
 on:
-  workflow_dispatch:
-    inputs:
-      releaseType:
-        description: 'Release Type'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - prod
-      aws_region:
-        description: 'Deploy to AWS Region'
-        required: true
-        default: "[ \"us-east-1\", \"us-east-2\", \"us-west-1\", \"us-west-2\", \"ap-south-1\", \"ap-northeast-2\", \"ap-southeast-1\", \"ap-southeast-2\", \"ap-northeast-1\", \"ca-central-1\", \"eu-central-1\", \"eu-west-1\", \"eu-west-2\", \"eu-west-3\", \"eu-north-1\", \"sa-east-1\" ]"
+  # (Using tag push instead of release to allow filtering by tag prefix.)
+  push:
+    tags:
+      - release/layer-javaagent/**
 
 permissions:
   id-token: write
@@ -24,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      LAYER_VERSION: ${{ steps.save-javaagent-version.outputs.LAYER_VERSION }}
+      JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
     steps:
       - uses: actions/checkout@v3
 
@@ -52,49 +42,21 @@ jobs:
         run: |
           unzip java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
           JAVAAGENT_VERSION=$(java -jar ./opentelemetry-javaagent.jar)
-          JAVAAGENT_VERSION_CLEANED=$(echo "$JAVAAGENT_VERSION" | sed -r 's/\./_/g')
-          if [[ ${{ inputs.releaseType }} == "prod" ]]; then
-            echo "LAYER_VERSION=$JAVAAGENT_VERSION_CLEANED" >> $GITHUB_OUTPUT
-          else
-            echo "LAYER_VERSION=${{ inputs.releaseType }}-$JAVAAGENT_VERSION_CLEANED" >> $GITHUB_OUTPUT
-          fi
-          echo GITHUB_OUTPUT:
-          cat $GITHUB_OUTPUT
-
-# TODO: add git tag
+          echo "JAVAAGENT_VERSION=$JAVAAGENT_VERSION" >> $GITHUB_OUTPUT
 
   publish:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/layer-publish.yml
     needs: build
     strategy:
       matrix:
-        aws_region: ${{ fromJson(github.event.inputs.aws_region) }}
+        aws_region: [ us-east-1, us-east-2 ]
+        # aws_region: "[ \"us-east-1\", \"us-east-2\", \"us-west-1\", \"us-west-2\", \"ap-south-1\", \"ap-northeast-2\", \"ap-southeast-1\", \"ap-southeast-2\", \"ap-northeast-1\", \"ca-central-1\", \"eu-central-1\", \"eu-west-1\", \"eu-west-2\", \"eu-west-3\", \"eu-north-1\", \"sa-east-1\" ]"
+    with:
+      artifact-name: opentelemetry-javaagent-layer.zip
+      layer-name: opentelemetry-javaagent
+      layer-version: ${{needs.build.outputs.JAVAAGENT_VERSION}}
+      # architecture:
+      release-group: dev
+      aws_region: ${{ matrix.aws_region }}
+    secrets: inherit
 
-    steps:
-
-      - name: Echo Layer Name
-        env:
-          LAYER_VERSION: ${{needs.build.outputs.LAYER_VERSION}}
-        run: echo "opentelemetry-javaagent-$LAYER_VERSION"
-
-      - name: Download built opentelemetry-javaagent-layer.zip
-        uses: actions/download-artifact@v3
-        with:
-          name: opentelemetry-javaagent-layer.zip
-
-      - uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
-          role-duration-seconds: 1200
-          aws-region: ${{ matrix.aws_region }}
-          mask-aws-account-id: false
-
-      - name: Publish Javaagent Lambda Layer
-        env:
-          LAYER_VERSION: ${{needs.build.outputs.LAYER_VERSION}}
-        run: |
-          aws lambda publish-layer-version \
-          --layer-name opentelemetry-javaagent-$LAYER_VERSION \
-          --description "OpenTelemetry Javaagent Layer" \
-          --license-info "Apache 2.0" \
-          --zip-file fileb://opentelemetry-javaagent-layer.zip
