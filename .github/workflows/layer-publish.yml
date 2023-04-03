@@ -1,0 +1,89 @@
+name: Publish Lambda Layer
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'This should correspond to a actions/upload-artifact name earlier in the build.'
+        required: true
+        type: string
+      layer-name:
+        description: 'Layer name not including other parts like arch or version.'
+        required: true
+        type: string
+      layer-version:
+        description: 'In the form x.x.x -- will be changed to x_x_x in layer name.'
+        required: true
+        type: string
+      architecture:
+        description: '(optional) amd64 or arm64'
+        required: false
+        type: string
+      release-group:
+        description: 'Release to dev or prod? "prod" yields empty value. (Default: dev)'
+        required: true
+        default: dev
+        type: string
+      aws_region:
+        description: 'Publish to which AWS region?'
+        required: true
+        type: string
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish_layer:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Construct Layer Name
+        shell: bash
+        run: |
+          LAYER_NAME=${{ inputs.layer-name }}
+          
+          if [[ -n "${{ inputs.architecture }}" ]]; then
+            LAYER_NAME=$LAYER_NAME-${{ inputs.architecture }}
+          fi
+          
+          if [[ "${{ inputs.release-group }}" != "prod" ]]; then
+            LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
+          fi
+          
+          LAYER_VERSION=${{ inputs.layer-version }}
+          LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
+          
+          LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
+          echo "LAYER_NAME=$LAYER_NAME" >> $GITHUB_ENV
+          
+          echo GITHUB_ENV:
+          cat $GITHUB_ENV
+    
+          if [[ $GITHUB_REF_NAME != *$LAYER_VERSION ]]; then
+            echo "Tag $GITHUB_REF_NAME doesn't end with $LAYER_VERSION"
+            exit 1
+          fi
+
+      - name: Download built layer
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
+          role-duration-seconds: 1200
+          aws-region: ${{ inputs.aws_region }}
+          mask-aws-account-id: false
+
+      - name: Publish Lambda Layer
+        env:
+          LAYER_VERSION: ${{needs.build.outputs.LAYER_VERSION}}
+        run: |
+          aws lambda publish-layer-version \
+          --layer-name $LAYER_NAME \
+          --license-info "Apache 2.0" \
+          --zip-file fileb://${{ inputs.artifact-name }}
