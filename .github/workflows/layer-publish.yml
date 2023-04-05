@@ -62,7 +62,7 @@ jobs:
           echo GITHUB_ENV:
           cat $GITHUB_ENV
     
-          if [[ $GITHUB_REF_NAME != *$LAYER_VERSION ]]; then
+          if [[ $GITHUB_REF_NAME != */$LAYER_VERSION ]]; then
             echo "Tag $GITHUB_REF_NAME doesn't end with $LAYER_VERSION"
             exit 1
           fi

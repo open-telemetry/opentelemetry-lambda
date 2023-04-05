@@ -4,14 +4,14 @@ on:
   # (Using tag push instead of release to allow filtering by tag prefix.)
   push:
     tags:
-      - release/layer-javaagent/**
+      - layer-javaagent/**
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  build:
+  build-layer:
     runs-on: ubuntu-latest
     outputs:
       JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
@@ -44,17 +44,32 @@ jobs:
           JAVAAGENT_VERSION=$(java -jar ./opentelemetry-javaagent.jar)
           echo "JAVAAGENT_VERSION=$JAVAAGENT_VERSION" >> $GITHUB_OUTPUT
 
-  publish:
+  publish-layer:
     uses: ./.github/workflows/layer-publish.yml
-    needs: build
+    needs: build-layer
     strategy:
       matrix:
-        aws_region: [ us-east-1, us-east-2 ]
-        # aws_region: "[ \"us-east-1\", \"us-east-2\", \"us-west-1\", \"us-west-2\", \"ap-south-1\", \"ap-northeast-2\", \"ap-southeast-1\", \"ap-southeast-2\", \"ap-northeast-1\", \"ca-central-1\", \"eu-central-1\", \"eu-west-1\", \"eu-west-2\", \"eu-west-3\", \"eu-north-1\", \"sa-east-1\" ]"
+        aws_region: 
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
     with:
       artifact-name: opentelemetry-javaagent-layer.zip
       layer-name: opentelemetry-javaagent
-      layer-version: ${{needs.build.outputs.JAVAAGENT_VERSION}}
+      layer-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
       release-group: dev
       aws_region: ${{ matrix.aws_region }}
