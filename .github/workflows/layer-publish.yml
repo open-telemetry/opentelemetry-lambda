@@ -80,10 +80,28 @@ jobs:
           mask-aws-account-id: false
 
       - name: Publish Lambda Layer
-        env:
-          LAYER_VERSION: ${{needs.build.outputs.LAYER_VERSION}}
         run: |
-          aws lambda publish-layer-version \
-          --layer-name $LAYER_NAME \
-          --license-info "Apache 2.0" \
-          --zip-file fileb://${{ inputs.artifact-name }}
+          LAYER_ARN=$(
+            aws lambda publish-layer-version \
+              --layer-name $LAYER_NAME \
+              --license-info "Apache 2.0" \
+              --zip-file fileb://${{ inputs.artifact-name }} \
+              --query 'LayerVersionArn' \
+              --output text
+          )
+          echo "::notice title=LayerARN::$LAYER_ARN"
+          echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make Layer Public
+        run: |
+          LAYER_VERSION=$(
+            aws lambda list-layer-versions \
+              --layer-name $LAYER_NAME \
+              --query 'max_by(LayerVersions, &Version).Version'
+          )
+          aws lambda add-layer-version-permission \
+            --layer-name $LAYER_NAME \
+            --version-number $LAYER_VERSION \
+            --principal "*" \
+            --statement-id publish \
+            --action lambda:GetLayerVersion
