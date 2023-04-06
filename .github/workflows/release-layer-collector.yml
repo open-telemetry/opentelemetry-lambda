@@ -37,8 +37,7 @@ jobs:
         shell: bash
         # `./collector -v` output is in the form `otelcol-contrib version 0.75.0`
         run: |
-          unzip ${{ github.workspace }}/collector/build/*.zip
-          COLLECTOR_VERSION=$(./extensions/otelcol-contrib -v | sed 's/^.* version //')
+          COLLECTOR_VERSION=$( ${{ github.workspace }}/collector/build/extensions/collector -v | sed 's/^.* version //')
           echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> $GITHUB_OUTPUT
 
   publish-layer:

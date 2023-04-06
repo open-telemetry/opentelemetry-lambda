@@ -89,8 +89,8 @@ jobs:
               --query 'LayerVersionArn' \
               --output text
           )
-          echo "::notice title=LayerARN::$LAYER_ARN"
-          echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
+          echo "::notice ::$LAYER_ARN"
+        # echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
 
       - name: Make Layer Public
         run: |
