@@ -69,7 +69,7 @@ jobs:
     with:
       artifact-name: opentelemetry-javaagent-layer.zip
       layer-name: opentelemetry-javaagent
-      layer-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
+      component-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
       release-group: dev
       aws_region: ${{ matrix.aws_region }}

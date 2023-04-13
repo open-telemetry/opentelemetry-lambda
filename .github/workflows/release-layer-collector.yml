@@ -68,7 +68,7 @@ jobs:
     with:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
-      layer-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
+      component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
       release-group: dev
       aws_region: ${{ matrix.aws_region }}

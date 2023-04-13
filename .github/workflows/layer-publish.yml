@@ -11,8 +11,8 @@ on:
         description: 'Layer name not including other parts like arch or version.'
         required: true
         type: string
-      layer-version:
-        description: 'In the form x.x.x -- will be changed to x_x_x in layer name.'
+      component-version:
+        description: 'Version of the component included in this release. Not the same as the layer/tagged version.'
         required: true
         type: string
       architecture:
@@ -53,7 +53,7 @@ jobs:
             LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
           fi
           
-          LAYER_VERSION=${{ inputs.layer-version }}
+          LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^\d\.]*//g')
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
           
           LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
@@ -61,11 +61,6 @@ jobs:
           
           echo GITHUB_ENV:
           cat $GITHUB_ENV
-    
-          if [[ $GITHUB_REF_NAME != */$LAYER_VERSION ]]; then
-            echo "Tag $GITHUB_REF_NAME doesn't end with $LAYER_VERSION"
-            exit 1
-          fi
 
       - name: Download built layer
         uses: actions/download-artifact@v3
@@ -89,7 +84,7 @@ jobs:
               --query 'LayerVersionArn' \
               --output text
           )
-          echo "::notice ::$LAYER_ARN"
+          echo "::notice ::$LAYER_ARN component-version=${{ inputs.component-version }}"
         # echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
 
       - name: Make Layer Public
