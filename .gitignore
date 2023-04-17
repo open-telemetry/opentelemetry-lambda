@@ -16,3 +16,6 @@ terraform.*
 __pycache__/*
 .pyc
 
+.json
+.dll
+.cache
