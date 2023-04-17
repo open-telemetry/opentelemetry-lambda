@@ -1,5 +1,5 @@
 locals {
-  architecture        = var.architecture == "x86_64" ? "amd64" : "arm64"
+  architecture = var.architecture == "x86_64" ? "amd64" : "arm64"
 }
 
 resource "aws_lambda_layer_version" "sdk_layer" {
