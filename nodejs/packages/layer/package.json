@@ -37,7 +37,7 @@
     "@opentelemetry/instrumentation-graphql": "^0.34.0",
     "@opentelemetry/instrumentation-grpc": "^0.37.0",
     "@opentelemetry/instrumentation-hapi": "^0.31.1",
-    "@opentelemetry/instrumentation-http": "^0.37.0",
+    "@opentelemetry/instrumentation-http": "^0.38.0",
     "@opentelemetry/instrumentation-ioredis": "^0.34.0",
     "@opentelemetry/instrumentation-koa": "^0.34.3",
     "@opentelemetry/instrumentation-mongodb": "^0.34.1",
