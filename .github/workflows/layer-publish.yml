@@ -53,7 +53,7 @@ jobs:
             LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
           fi
           
-          LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^\d\.]*//g')
+          LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
           
           LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
