@@ -28,7 +28,7 @@ tasks {
         from("scripts")
     }
 
-    val assemble by existing {
+    named("assemble") {
         dependsOn(createLayer)
     }
 }
