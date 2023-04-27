@@ -8,7 +8,7 @@ import {
 import { Instrumentation, registerInstrumentations } from '@opentelemetry/instrumentation';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
-  detectResources,
+  detectResourcesSync,
   envDetector,
   processDetector,
 } from '@opentelemetry/resources';
@@ -89,7 +89,7 @@ registerInstrumentations({
 });
 
 async function initializeProvider() {
-  const resource = await detectResources({
+  const resource = detectResourcesSync({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
