@@ -33,6 +33,7 @@ jobs:
           path: ${{ github.workspace }}/collector/build/*.zip
 
       - name: Save Collector Version
+        if: ${{ matrix.architecture == 'amd64' }}
         id: save-collector-version
         shell: bash
         # `./collector -v` output is in the form `otelcol-contrib version 0.75.0`
