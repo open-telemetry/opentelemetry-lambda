@@ -19,6 +19,10 @@ on:
         description: '(optional) amd64 or arm64'
         required: false
         type: string
+      runtimes:
+        description: '(optional) a space delimited list of compatible runtimes (from https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html)'
+        required: false
+        type: string
       release-group:
         description: 'Release to dev or prod? "prod" yields empty value. (Default: dev)'
         required: true
@@ -47,6 +51,9 @@ jobs:
           
           if [[ -n "${{ inputs.architecture }}" ]]; then
             LAYER_NAME=$LAYER_NAME-${{ inputs.architecture }}
+            ARCH="${{ inputs.architecture }}"
+          else
+            ARCH="x86_64 arm64"
           fi
           
           if [[ "${{ inputs.release-group }}" != "prod" ]]; then
@@ -80,6 +87,8 @@ jobs:
             aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
               --license-info "Apache 2.0" \
+              --compatible-architectures $ARCH
+              --compatible-runtimes ${{ inputs.runtimes }}
               --zip-file fileb://${{ inputs.artifact-name }} \
               --query 'LayerVersionArn' \
               --output text
