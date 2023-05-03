@@ -57,7 +57,7 @@ jobs:
           - us-east-2
           - ap-southeast-1
     with:
-      artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+      artifact-name: collector-extension-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
       component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
