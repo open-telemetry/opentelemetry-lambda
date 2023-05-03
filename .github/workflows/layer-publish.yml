@@ -77,6 +77,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
+      - name: list files
+        run: ls -l /home/runner/work/opentelemetry-lambda/opentelemetry-lambda
+      - name: list files2
+        run: ls -l /home/runner/work/opentelemetry-lambda
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
