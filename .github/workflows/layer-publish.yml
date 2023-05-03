@@ -97,7 +97,7 @@ jobs:
               --layer-name $LAYER_NAME \
               --license-info "Apache 2.0" \
               --compatible-architectures $ARCH $RUNTIMES \
-              --zip-file fileb://opentelemetry-lambda/${{ inputs.artifact-name }} \
+              --zip-file fileb://${{ inputs.artifact-name }} \
               --query 'LayerVersionArn' \
               --output text
           )
