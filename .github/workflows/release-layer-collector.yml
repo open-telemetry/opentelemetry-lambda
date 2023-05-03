@@ -36,9 +36,9 @@ jobs:
         if: ${{ matrix.architecture == 'amd64' }}
         id: save-collector-version
         shell: bash
-        # `./collector -v` output is in the form `otelcol-contrib version 0.75.0`
+        # `./collector -v` output is in the form `v0.75.0`
         run: |
-          COLLECTOR_VERSION=$( ${{ github.workspace }}/collector/build/extensions/collector -v | head -n 1 | jq -r .version)
+          COLLECTOR_VERSION=$( ${{ github.workspace }}/collector/build/extensions/collector -v)
           echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> $GITHUB_OUTPUT
 
   publish-layer:

@@ -16,6 +16,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -33,6 +35,13 @@ var (
 )
 
 func main() {
+	versionFlag := flag.Bool("v", false, "prints version information")
+	flag.Parse()
+	if *versionFlag {
+		fmt.Println(Version)
+		return
+	}
+
 	logger := initLogger()
 	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
