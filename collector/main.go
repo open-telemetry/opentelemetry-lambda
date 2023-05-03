@@ -18,8 +18,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"os"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
