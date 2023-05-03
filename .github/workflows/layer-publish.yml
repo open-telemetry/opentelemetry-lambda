@@ -23,11 +23,6 @@ on:
         description: "(optional) a space delimited list of compatible runtimes (from https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html)"
         required: false
         type: string
-      release-group:
-        description: 'Release to dev or prod? "prod" yields empty value. (Default: dev)'
-        required: true
-        default: dev
-        type: string
       aws_region:
         description: "Publish to which AWS region?"
         required: true
@@ -53,6 +48,7 @@ jobs:
           else
             ARCH="x86_64 arm64"
           fi
+<<<<<<< HEAD
           echo "ARCH=$ARCH" >> $GITHUB_ENV
 
           if [[ -n "${{ inputs.runtimes }}" ]]; then
@@ -64,6 +60,9 @@ jobs:
             LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
           fi
 
+=======
+          
+>>>>>>> 7da689e (remove-group)
           LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
 
