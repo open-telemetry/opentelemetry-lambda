@@ -84,8 +84,9 @@ jobs:
         with:
           role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
           role-duration-seconds: 1200
+          role-session-name: GithubActionsSession
           aws-region: ${{ inputs.aws_region }}
-          mask-aws-account-id: false
+          mask-aws-account-id: true
 
       - name: Publish Lambda Layer
         run: |
