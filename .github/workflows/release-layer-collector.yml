@@ -61,5 +61,6 @@ jobs:
       layer-name: opentelemetry-collector
       component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
+      release-group: ""
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
