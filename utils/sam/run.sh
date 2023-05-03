@@ -89,19 +89,20 @@ main() {
 		echo "run.sh: building the collector..."
 		pushd "$collectorPath"
 		make package
-		rm build/collector-extension-amd64.zip
+		rm -f build/collector-extension-amd64.zip
 		popd
 		rm -rf otel/collector_build/
 		cp -r "$collectorPath"/build/ otel/collector_build/
 
 		echo "run.sh: Starting sam build."
 		sam build -u -t "$template"
+		zip -qr "$layerName".zip .aws-sam/build
 	fi
 
 	if [[ $deploy == true ]]; then
 		sam deploy --stack-name "$stack" --region "$region" --capabilities CAPABILITY_NAMED_IAM --resolve-s3 --parameter-overrides LayerName="$layerName"
 		rm -rf otel/otel_collector
-		rm -rf .aws-sam
+		rm -f "$layerName".zip
 	fi
 
 	if [[ $layer == true ]]; then
