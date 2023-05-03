@@ -90,6 +90,7 @@ jobs:
 
       - name: Publish Lambda Layer
         run: |
+          ls -l
           LAYER_ARN=$(
             aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
