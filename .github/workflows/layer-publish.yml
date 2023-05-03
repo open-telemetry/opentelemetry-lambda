@@ -92,8 +92,6 @@ jobs:
 
       - name: Publish Lambda Layer
         run: |
-          ls -la
-          ls -la /home/runner/work/opentelemetry-lambda/opentelemetry-lambda
           LAYER_ARN=$(
             aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
