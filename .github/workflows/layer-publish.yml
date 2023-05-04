@@ -66,7 +66,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
-          path: ${{ inputs.artifact-name }}
 
       - uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -77,7 +76,7 @@ jobs:
 
       - name: Publish Lambda Layer
         run: |
-          ls -al
+          find .
           LAYER_ARN=$(
             aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
