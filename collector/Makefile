@@ -44,7 +44,7 @@ package: build
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
-	cd $(BUILD_SPACE) && zip -r collector-extension-$(GOARCH).zip collector-config extensions
+	cd $(BUILD_SPACE) && zip -r opentelemetry-collector-layer-$(GOARCH).zip collector-config extensions
 
 .PHONY: publish
 publish:

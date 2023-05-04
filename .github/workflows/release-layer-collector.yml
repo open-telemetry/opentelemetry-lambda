@@ -30,7 +30,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
-          path: ${{ github.workspace }}/collector/build/collector-extension-${{ matrix.architecture }}.zip
+          path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       - name: Save Collector Version
         if: ${{ matrix.architecture == 'amd64' }}
         id: save-collector-version
