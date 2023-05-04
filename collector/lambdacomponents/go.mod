@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.92.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.95.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.92.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.92.0
@@ -29,6 +30,7 @@ require (
 )
 
 require (
+	github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 // indirect
 	github.com/alecthomas/participle/v2 v2.1.1 // indirect
 	github.com/apache/thrift v0.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.25.0 // indirect
@@ -105,6 +107,7 @@ require (
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/tg123/go-htpasswd v1.2.2 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
@@ -121,7 +124,7 @@ require (
 	go.opentelemetry.io/collector/config/configgrpc v0.93.0 // indirect
 	go.opentelemetry.io/collector/config/confighttp v0.93.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v0.93.0 // indirect
-	go.opentelemetry.io/collector/config/configopaque v0.93.0 // indirect
+	go.opentelemetry.io/collector/config/configopaque v1.2.0 // indirect
 	go.opentelemetry.io/collector/config/configretry v0.95.0 // indirect
 	go.opentelemetry.io/collector/config/configtelemetry v0.95.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v0.93.0 // indirect
@@ -135,7 +138,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.95.0 // indirect
 	go.opentelemetry.io/collector/connector v0.93.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.95.0 // indirect
-	go.opentelemetry.io/collector/extension/auth v0.93.0 // indirect
+	go.opentelemetry.io/collector/extension/auth v0.95.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.2.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.2.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.95.0 // indirect
@@ -160,6 +163,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.23.1 // indirect
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

@@ -223,6 +223,8 @@ cloud.google.com/go/workflows v1.7.0/go.mod h1:JhSrZuVZWuiDfKEFxU0/F1PQjmpnpcoIS
 cloud.google.com/go/workflows v1.8.0/go.mod h1:ysGhmEajwZxGn1OhGOGKsTXc5PyxOc0vfKf5Af+to4M=
 contrib.go.opencensus.io/exporter/prometheus v0.4.2 h1:sqfsYl5GIY/L570iT+l93ehxaWJs2/OwXtiWwew3oAg=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962 h1:KeNholpO2xKjgaaSyd+DyQRrsQjhbSeS7qe4nEw8aQw=
+github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962/go.mod h1:kC29dT1vFpj7py2OvG1khBdQpo3kInWP+6QipLbdngo=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/assert/v2 v2.3.0 h1:mAsH2wmvjsuvyBvAmCtm7zFsBlb8mIHx5ySLVdDZXL0=
 github.com/alecthomas/participle/v2 v2.1.1 h1:hrjKESvSqGHzRb4yW1ciisFJ4p3MGYih6icjJvbsmV8=
@@ -438,6 +440,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexp
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awskinesisexporter v0.95.0/go.mod h1:2i48xizxGy6Iu/mCiFOYpnuN4xoIeCC4ROb+tv6EWUs=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.92.0 h1:KiE3uEbr7OHsg0rPKJVLm/cyZuyTk1952JfEQcqZJ9Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.92.0/go.mod h1:QnVSM55jxNQUmsT5xKQFodafVUFmvc1fIqV57sMcrAI=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.95.0 h1:Exa5PlhmuJkTPOBIWehD/QiKX7ouf4JWcuQ5Cg00L8o=
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.95.0/go.mod h1:5JBOh2NGK7yEaURDDIxIVdHnuzDNMs9HBS11qB+M/aI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.92.0 h1:bxyNu6cZkv5GTWFmcWGPFIThwFvmjVe6h/X+Gt07udI=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.92.0/go.mod h1:jvGTAwfXP5F5NPZRHi1ZMufUs2266V1Tpsmg6rbn/B8=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.92.0 h1:x36ZvOy+ad363p3viPF2FZnaxcM2yoUPQpg9VX89unw=
@@ -517,6 +521,8 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
+github.com/tg123/go-htpasswd v1.2.2 h1:tmNccDsQ+wYsoRfiONzIhDm5OkVHQzN3w4FOBAlN6BY=
+github.com/tg123/go-htpasswd v1.2.2/go.mod h1:FcIrK0J+6zptgVwK1JDlqyajW/1B4PtuJ/FLWl7nx8A=
 github.com/tidwall/gjson v1.10.2 h1:APbLGOM0rrEkd8WBw9C24nllro4ajFuJu0Sc9hRz8Bo=
 github.com/tidwall/gjson v1.10.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
@@ -554,8 +560,8 @@ go.opentelemetry.io/collector/config/confighttp v0.93.0 h1:H8tiKryH5koh5aHfIdM2k
 go.opentelemetry.io/collector/config/confighttp v0.93.0/go.mod h1:5doQNLIZoUhJJJzpAaMSzGgztAPcvdzTYnynIfJvtkY=
 go.opentelemetry.io/collector/config/confignet v0.93.0 h1:UZ3ZGxbf0HBCNAIfxhfmVRal5gjDjocVed4NOs89hNo=
 go.opentelemetry.io/collector/config/confignet v0.93.0/go.mod h1:rraribsOoZsYZm51+3TXHavmXKJOC5a5/X20vfmNbdw=
-go.opentelemetry.io/collector/config/configopaque v0.93.0 h1:mvJFVhToyL6k0BZMhZTbSAxwYXGHoqibp6JVYY5SZu8=
-go.opentelemetry.io/collector/config/configopaque v0.93.0/go.mod h1:dQK8eUXjIGKaw1RB7UIg2nqx56AueNxeKFCdB0P1ypg=
+go.opentelemetry.io/collector/config/configopaque v1.2.0 h1:ncnAuq4px3yREsirivGUbwr36xXEKa3K6JTOBNGlbtc=
+go.opentelemetry.io/collector/config/configopaque v1.2.0/go.mod h1:6BAnSe6wok2Sg3tiNuapBbLnrduyMwzsBzbfgUSbDnI=
 go.opentelemetry.io/collector/config/configretry v0.95.0 h1:YBLly9WRjLCnB91feTshPNCj3z91Yf+akLWRNiUNxps=
 go.opentelemetry.io/collector/config/configretry v0.95.0/go.mod h1:Nq7hp4nk+zeH0LYYsx348NHl02O89FnV45hcCCmqdtg=
 go.opentelemetry.io/collector/config/configtelemetry v0.95.0 h1:HabJZqbOAbNQ52L3v6usXoGXg1UKA1Ofs4Ytp5sGXEo=
@@ -592,8 +598,8 @@ go.opentelemetry.io/collector/exporter/otlphttpexporter v0.93.0 h1:2SJHGQuN+6wc5
 go.opentelemetry.io/collector/exporter/otlphttpexporter v0.93.0/go.mod h1:+WoH+HVYyLaKqovHBVNRLLBojjvxhQ1eC/2cHQ8UZjY=
 go.opentelemetry.io/collector/extension v0.95.0 h1:amE7zV/lfJRdCmZ4cqWmvBzZB5aQmIFIQqIuXmhaCjI=
 go.opentelemetry.io/collector/extension v0.95.0/go.mod h1:IDt4B5GJxh/uJ/mUWxYZ+eHrJ49k4B8s8gJhuI0TRVI=
-go.opentelemetry.io/collector/extension/auth v0.93.0 h1:NgBT/P3kPJtnrdufIGGX7wbv8WcW3suYC6CcnCbw/Rk=
-go.opentelemetry.io/collector/extension/auth v0.93.0/go.mod h1:cc15RY21t3D+cJMubhs2dMIedHS782L/7wfhCdL+pgk=
+go.opentelemetry.io/collector/extension/auth v0.95.0 h1:Qu2/I6YXW1yhh+M5PZ6b5izPdzrh+bl8X7ewEeJQWGU=
+go.opentelemetry.io/collector/extension/auth v0.95.0/go.mod h1:FSODnSbmqfRT9dQdJgogby7j4bcV8TmrhddTvcAjcjU=
 go.opentelemetry.io/collector/extension/zpagesextension v0.93.0 h1:cOTVR+8HlV5P8/ZNHxNtxcAUqw88InNjGuM8YL4KmnI=
 go.opentelemetry.io/collector/featuregate v1.2.0 h1:nF8OGq5PsSNSLeuNwTWlOqThxbLW6v6DOCvSqQMc108=
 go.opentelemetry.io/collector/featuregate v1.2.0/go.mod h1:mm8+xyQfgDmqhyegZRNIQmoKsNnDTwWKFLsdMoXAb7A=
@@ -664,6 +670,8 @@ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACk
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+golang.org/x/crypto v0.18.0 h1:PGVlW0xEltQnzFZ55hkuX5+KLyrMYhHld1YHO4AKcdc=
+golang.org/x/crypto v0.18.0/go.mod h1:R0j02AL6hcrfOiy9T4ZYp/rcWeMxM3L6QYxlOuEG1mg=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc h1:ao2WRsKSzW6KuUY9IWPwWahcHCgR0s52IfwutMfEbdM=
 golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc/go.mod h1:iRJReGqOEeBhDZGkGbynYwcHlctCvnjTYIamk7uXpHI=
