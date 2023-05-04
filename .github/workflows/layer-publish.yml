@@ -48,21 +48,7 @@ jobs:
           else
             ARCH="x86_64 arm64"
           fi
-<<<<<<< HEAD
-          echo "ARCH=$ARCH" >> $GITHUB_ENV
 
-          if [[ -n "${{ inputs.runtimes }}" ]]; then
-            RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
-          fi
-          echo "RUNTIMES=$RUNTIMES" >> $GITHUB_ENV
-
-          if [[ "${{ inputs.release-group }}" != "prod" ]]; then
-            LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
-          fi
-
-=======
-          
->>>>>>> 7da689e (remove-group)
           LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
 
@@ -76,10 +62,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
-      - name: list files
-        run: ls -l /home/runner/work/opentelemetry-lambda/opentelemetry-lambda
-      - name: list files2
-        run: ls -l /home/runner/work/opentelemetry-lambda
+          path: ${{ inputs.artifact-name }}
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
