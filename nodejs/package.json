@@ -35,7 +35,7 @@
     "aws-sdk": "2.1357.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
-    "eslint": "8.34.0",
+    "eslint": "8.40.0",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.27.5",
     "gts": "3.1.1",
