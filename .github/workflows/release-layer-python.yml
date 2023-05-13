@@ -21,9 +21,6 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Configure aws
-        run: aws configure set region us-west-1
-
       - name: Build
         run: |
           cd python/sample-apps
