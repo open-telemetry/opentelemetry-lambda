@@ -71,6 +71,7 @@ jobs:
       layer-name: opentelemetry-javaagent
       component-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
+      runtimes: java8 java8.al2 java11 java17
       release-group: dev
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit

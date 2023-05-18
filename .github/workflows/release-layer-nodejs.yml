@@ -71,6 +71,7 @@ jobs:
       layer-name: opentelemetry-nodejs
       component-version: ${{needs.build-layer.outputs.NODEJS_VERSION}}
       # architecture:
+      runtimes: nodejs14.x nodejs16.x nodejs18.x
       release-group: dev
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
