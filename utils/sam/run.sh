@@ -89,7 +89,7 @@ main() {
 		echo "run.sh: building the collector..."
 		pushd "$collectorPath"
 		make package
-		rm build/collector-extension-amd64.zip
+		rm build/opentelemetry-collector-layer-amd64.zip
 		popd
 		rm -rf otel/collector_build/
 		cp -r "$collectorPath"/build/ otel/collector_build/
