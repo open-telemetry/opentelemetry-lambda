@@ -1,0 +1,76 @@
+name: "Release Python Lambda Layer"
+
+on:
+  # (Using tag push instead of release to allow filtering by tag prefix.)
+  push:
+    tags:
+      - layer-python/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-layer:
+    runs-on: ubuntu-latest
+    outputs:
+      PYTHON_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_SDK_VERSION}}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Build
+        run: |
+          cd python/sample-apps
+          PYTHON_SDK_VERSION=$(./run.sh -n opentelemetry-python-layer -b true 2>&1 > /dev/null | sed -n "s/opentelemetry-sdk==\(.*\)/\1/p")
+        shell: bash
+
+      - name: Show directory contents
+        run: |
+          ls -al
+        working-directory: python/sample-apps
+
+      - name: Save Python SDK Version
+        id: save-python-sdk-version
+        run: |
+          echo "PYTHON_SDK_VERSION=$PYTHON_SDK_VERSION" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v3
+        name: Save assembled layer to build
+        with:
+          name: opentelemetry-python-layer.zip
+          path: python/sample-apps/opentelemetry-python-layer.zip
+
+  publish-layer:
+    uses: ./.github/workflows/layer-publish.yml
+    needs: build-layer
+    strategy:
+      matrix:
+        aws_region: 
+#          - ap-northeast-1
+#          - ap-northeast-2
+#          - ap-south-1
+#          - ap-southeast-1
+#          - ap-southeast-2
+#          - ca-central-1
+#          - eu-central-1
+#          - eu-north-1
+#          - eu-west-1
+#          - eu-west-2
+#          - eu-west-3
+#          - sa-east-1
+#          - us-east-1
+#          - us-east-2
+          - us-west-1
+          - us-west-2
+    with:
+      artifact-name: opentelemetry-python-layer.zip
+      layer-name: opentelemetry-python
+      component-version: ${{needs.build-layer.outputs.PYTHON_SDK_VERSION}}
+      # architecture:
+      release-group: dev
+      aws_region: ${{ matrix.aws_region }}
+    secrets: inherit
