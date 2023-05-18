@@ -48,7 +48,6 @@ jobs:
           else
             ARCH="x86_64 arm64"
           fi
-
           LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
 
