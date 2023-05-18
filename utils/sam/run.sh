@@ -30,7 +30,6 @@ main() {
 	deploy=false
 	layer=false
 
-	region=${AWS_REGION-$(aws configure get region)}
 	stack=${OTEL_LAMBDA_STACK-"otel-stack"}
 	layerName=${OTEL_LAMBDA_LAYER-"otel-layer"}
 
@@ -74,6 +73,10 @@ main() {
 			;;
 		esac
 	done
+
+	if [[ $deploy == true && $region == "" ]]; then
+		region=${AWS_REGION-$(aws configure get region)}
+	fi
 
 	echo "Invoked with: ${saved_args}"
 
