@@ -1,10 +1,10 @@
-name: "Release NodeJS Lambda Layer"
+name: "Release Python Lambda Layer"
 
 on:
   # (Using tag push instead of release to allow filtering by tag prefix.)
   push:
     tags:
-      - layer-nodejs/**
+      - layer-python/**
 
 permissions:
   id-token: write
@@ -14,35 +14,35 @@ jobs:
   build-layer:
     runs-on: ubuntu-latest
     outputs:
-      NODEJS_VERSION: ${{ steps.save-node-sdk-version.outputs.SDK_VERSION}}
+      PYTHON_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_SDK_VERSION}}
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-python@v3
         with:
-          node-version: 14
+          python-version: '3.9'
 
       - name: Build
         run: |
-          npm install
-        working-directory: nodejs
+          cd python/sample-apps
+          PYTHON_SDK_VERSION=$(./run.sh -n opentelemetry-python-layer -b true 2>&1 > /dev/null | sed -n "s/opentelemetry-sdk==\(.*\)/\1/p")
+        shell: bash
 
-      - name: Save Node SDK Version
-        id: save-node-sdk-version
+      - name: Show directory contents
         run: |
-          SDK_VERSION=$(node version.js)
-          echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_OUTPUT
-        working-directory: nodejs/packages/layer/scripts
+          ls -al
+        working-directory: python/sample-apps
 
-      - name: Rename zip file
-        run: mv layer.zip opentelemetry-nodejs-layer.zip
-        working-directory: nodejs/packages/layer/build
+      - name: Save Python SDK Version
+        id: save-python-sdk-version
+        run: |
+          echo "PYTHON_SDK_VERSION=$PYTHON_SDK_VERSION" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v3
         name: Save assembled layer to build
         with:
-          name: opentelemetry-nodejs-layer.zip
-          path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+          name: opentelemetry-python-layer.zip
+          path: python/sample-apps/opentelemetry-python-layer.zip
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
@@ -67,11 +67,10 @@ jobs:
           - us-west-1
           - us-west-2
     with:
-      artifact-name: opentelemetry-nodejs-layer.zip
-      layer-name: opentelemetry-nodejs
-      component-version: ${{needs.build-layer.outputs.NODEJS_VERSION}}
+      artifact-name: opentelemetry-python-layer.zip
+      layer-name: opentelemetry-python
+      component-version: ${{needs.build-layer.outputs.PYTHON_SDK_VERSION}}
       # architecture:
-      runtimes: nodejs14.x nodejs16.x nodejs18.x
       release-group: dev
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
