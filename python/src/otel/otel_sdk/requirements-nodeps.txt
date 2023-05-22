@@ -4,7 +4,7 @@ asgiref~=3.6
 opentelemetry-instrumentation-asgi==0.38b0
 opentelemetry-instrumentation-asyncpg==0.38b0
 opentelemetry-instrumentation-boto==0.38b0
-opentelemetry-instrumentation-botocore==0.38b0
+opentelemetry-instrumentation-botocore==0.39b0
 opentelemetry-instrumentation-celery==0.38b0
 opentelemetry-instrumentation-dbapi==0.38b0
 opentelemetry-instrumentation-django==0.38b0
