@@ -22,7 +22,7 @@ opentelemetry-instrumentation-pymysql==0.38b0
 opentelemetry-instrumentation-pyramid==0.38b0
 opentelemetry-instrumentation-redis==0.38b0
 opentelemetry-instrumentation-requests==0.38b0
-opentelemetry-instrumentation-sqlalchemy==0.38b0
+opentelemetry-instrumentation-sqlalchemy==0.39b0
 opentelemetry-instrumentation-sqlite3==0.38b0
 opentelemetry-instrumentation-starlette==0.38b0
 opentelemetry-instrumentation-tornado==0.38b0
