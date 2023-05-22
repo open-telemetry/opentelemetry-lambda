@@ -30,7 +30,7 @@
   "author": "OpenTelemetry Authors",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.50.0",
+    "@typescript-eslint/eslint-plugin": "5.59.6",
     "@typescript-eslint/parser": "5.51.0",
     "aws-sdk": "2.1357.0",
     "bestzip": "2.2.1",
