@@ -18,7 +18,7 @@ require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.77.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.77.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	go.opentelemetry.io/collector v0.77.0
 	go.opentelemetry.io/collector/component v0.77.0
 	go.opentelemetry.io/collector/confmap v0.77.0
