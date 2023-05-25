@@ -48,12 +48,12 @@ package: build
 
 .PHONY: publish
 publish:
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/collector-extension-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
 
 .PHONY: publish-layer
 publish-layer: package
 	@echo Publishing collector extension layer...
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/collector-extension-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 --query 'LayerVersionArn' --output text
 	@echo OpenTelemetry Collector layer published.
 
 .PHONY: gotidy
