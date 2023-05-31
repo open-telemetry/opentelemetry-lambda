@@ -33,9 +33,6 @@ main() {
 	stack=${OTEL_LAMBDA_STACK-"otel-stack"}
 	layerName=${OTEL_LAMBDA_LAYER-"otel-layer"}
 
-
-	collectorPath=${COLLECTOR_PATH-"../../collector"}
-
 	while getopts "hbdlr:t:s:n:" opt; do
 		case "${opt}" in
 		h)
