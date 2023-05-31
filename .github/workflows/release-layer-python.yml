@@ -31,7 +31,7 @@ jobs:
       - name: Show directory contents
         run: |
           ls -al
-        working-directory: python/sample-apps
+        working-directory: python/src
 
       - name: Save Python SDK Version
         id: save-python-sdk-version
@@ -42,7 +42,7 @@ jobs:
         name: Save assembled layer to build
         with:
           name: opentelemetry-python-layer.zip
-          path: python/sample-apps/opentelemetry-python-layer.zip
+          path: python/src/opentelemetry-python-layer.zip
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
