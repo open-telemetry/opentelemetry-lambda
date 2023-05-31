@@ -89,14 +89,6 @@ main() {
 	if [[ $build == true ]]; then
 		echo "sam building..."
 
-		echo "run.sh: building the collector..."
-		pushd "$collectorPath"
-		make package
-		rm -f build/collector-extension-amd64.zip
-		popd
-		rm -rf otel/collector_build/
-		cp -r "$collectorPath"/build/ otel/collector_build/
-
 		echo "run.sh: Starting sam build."
 		sam build -u -t "$template"
 		zip -qr "$layerName".zip .aws-sam/build

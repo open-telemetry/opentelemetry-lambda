@@ -24,7 +24,7 @@ jobs:
 
       - name: Build
         run: |
-          cd python/sample-apps
+          cd python/src
           PYTHON_SDK_VERSION=$(./run.sh -n opentelemetry-python-layer -b true 2>&1 > /dev/null | sed -n "s/opentelemetry-sdk==\(.*\)/\1/p")
         shell: bash
 
