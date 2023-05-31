@@ -104,4 +104,6 @@ main() {
 	fi
 }
 
+rm -rf .aws-sam
+
 main "$@"
