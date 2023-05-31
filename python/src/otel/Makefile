@@ -1,4 +1,3 @@
-export AOC_BUILD_DIR=$(shell pwd)/collector_build
 export SDK=$(shell pwd)/otel_sdk
 
 build-OTelLayer:
@@ -12,5 +11,3 @@ build-OTelLayer:
 	chmod 755 $(ARTIFACTS_DIR)/python/otel-instrument
 	rm -rf $(ARTIFACTS_DIR)/python/boto*
 	rm -rf $(ARTIFACTS_DIR)/python/urllib3*
-
-	cp -r $(AOC_BUILD_DIR)/* $(ARTIFACTS_DIR)/
