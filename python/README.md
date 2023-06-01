@@ -11,4 +11,6 @@ Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on A
 * [Docker](https://docs.docker.com/get-docker)
 3. Run aws configure to [set aws credential(with administrator permissions)](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install-mac.html#serverless-sam-cli-install-mac-iam-permissions) and default region.
 4. Download a local copy of this repository from Github.
-5. cd python/sample-apps && ./run.sh
+5. `cd python/src`
+6. If you just want to create a zip file with the OpenTelemetry Python AWS Lambda layer, then use the `-b true` option: `bash run.sh -n <LAYER_NAME_HERE> -b true`
+7. If you want to create the layer and automatically publish it, use no options: `bash run.sh`
