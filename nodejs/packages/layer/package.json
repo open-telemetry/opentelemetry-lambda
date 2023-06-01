@@ -48,6 +48,7 @@
     "@opentelemetry/propagator-aws-xray": "^1.2.1",
     "@opentelemetry/resource-detector-aws": "^1.2.4",
     "@opentelemetry/resources": "^1.13.0",
+    "@opentelemetry/sdk-metrics": "^1.13.0",
     "@opentelemetry/sdk-trace-base": "^1.13.0",
     "@opentelemetry/sdk-trace-node": "^1.13.0"
   }
