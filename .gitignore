@@ -16,3 +16,4 @@ terraform.*
 __pycache__/*
 .pyc
 
+*.zip

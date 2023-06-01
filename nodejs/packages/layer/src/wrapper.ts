@@ -8,7 +8,7 @@ import {
 import { Instrumentation, registerInstrumentations } from '@opentelemetry/instrumentation';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
-  detectResources,
+  detectResourcesSync,
   envDetector,
   processDetector,
 } from '@opentelemetry/resources';
@@ -22,6 +22,7 @@ import {
 import { getEnv } from '@opentelemetry/core';
 import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { MeterProvider, MeterProviderOptions } from '@opentelemetry/sdk-metrics';
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
@@ -62,6 +63,8 @@ declare global {
   function configureSdkRegistration(
     defaultSdkRegistration: SDKRegistrationConfig
   ): SDKRegistrationConfig;
+  function configureMeter(defaultConfig: MeterProviderOptions): MeterProviderOptions;
+  function configureMeterProvider(meterProvider: MeterProvider): void
   function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
   function configureInstrumentations(): Instrumentation[]
 }
@@ -86,7 +89,7 @@ registerInstrumentations({
 });
 
 async function initializeProvider() {
-  const resource = await detectResources({
+  const resource = detectResourcesSync({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
@@ -117,10 +120,24 @@ async function initializeProvider() {
   }
   tracerProvider.register(sdkRegistrationConfig);
 
+  // Configure default meter provider (doesn't export metrics)
+  let meterConfig: MeterProviderOptions = {
+    resource,
+  }
+  if (typeof configureMeter === 'function') {
+    meterConfig = configureMeter(meterConfig);
+  }
+
+  const meterProvider = new MeterProvider(meterConfig);
+  if (typeof configureMeterProvider === 'function') {
+    configureMeterProvider(meterProvider)
+  }
+
   // Re-register instrumentation with initialized provider. Patched code will see the update.
   registerInstrumentations({
     instrumentations,
     tracerProvider,
+    meterProvider
   });
 }
 initializeProvider();
