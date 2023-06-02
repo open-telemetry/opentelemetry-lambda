@@ -55,7 +55,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
 		prometheusremotewriteexporter.NewFactory(),
-		signalfxexporter.NewFactory()
+		signalfxexporter.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)
