@@ -57,9 +57,10 @@ jobs:
           - us-east-2
           - ap-southeast-1
     with:
-      artifact-name: collector-extension-${{ matrix.architecture }}.zip
+      artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
       component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
+      release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
