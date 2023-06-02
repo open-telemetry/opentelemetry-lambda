@@ -19,6 +19,6 @@ RUN mkdir -p /build && \
   rm -rf /build/python/boto* && \
   rm -rf /build/python/urllib3* && \
   cd /build && \
-  zip -r layer.zip otel-instrument python
+  zip -r opentelemetry-python-layer.zip otel-instrument python
 
-CMD cp /build/layer.zip /out/layer.zip
+CMD cp /build/opentelemetry-python-layer.zip /out/opentelemetry-python-layer.zip
