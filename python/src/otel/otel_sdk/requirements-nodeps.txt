@@ -3,7 +3,7 @@ opentelemetry-util-http==0.39b0
 asgiref~=3.6
 opentelemetry-instrumentation-asgi==0.39b0
 opentelemetry-instrumentation-asyncpg==0.39b0
-opentelemetry-instrumentation-boto==0.39b0
+opentelemetry-instrumentation-boto==0.40b0
 opentelemetry-instrumentation-botocore==0.39b0
 opentelemetry-instrumentation-celery==0.39b0
 opentelemetry-instrumentation-dbapi==0.39b0
