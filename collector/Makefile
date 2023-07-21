@@ -37,7 +37,7 @@ clean:
 build: clean
 	@echo Building otel collector extension
 	mkdir -p $(BUILD_SPACE)/extensions
-	GOOS=linux $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
+	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
 .PHONY: package
 package: build
