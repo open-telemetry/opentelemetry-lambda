@@ -8,16 +8,37 @@ updates:
     directory: "/collector"
     schedule:
       interval: "weekly"
+    groups:
+      opentelemetry-deps-collector:
+        patterns:
+          - "*opentelemetry*"
   - package-ecosystem: "gradle"
     directory: "/java"
     schedule:
       interval: "weekly"
+    groups:
+      opentelemetry-deps-java:
+        patterns:
+          - "io.opentelemetry.*"
   - package-ecosystem: "npm"
     directory: "/nodejs"
     schedule:
       interval: "weekly"
     rebase-strategy: "auto"
+  - package-ecosystem: "npm"
+    directory: "/nodejs/packages/layer"
+    schedule:
+      interval: "weekly"
+    groups:
+      opentelemetry-deps-nodejs:
+        patterns:
+          - "@opentelemetry/*"
+    rebase-strategy: "auto"
   - package-ecosystem: "pip"
     directory: "/python/src/otel/otel_sdk"
     schedule:
       interval: "weekly"
+    groups:
+      opentelemetry-deps-python:
+        patterns:
+          - "opentelemetry-*"
