@@ -151,4 +151,4 @@ export _HANDLER="otel_wrapper.lambda_handler";
 
 # - Call the upstream auto instrumentation script
 
-python3 $LAMBDA_LAYER_PKGS_DIR/bin/opentelemetry-instrument "$@"
+exec python3 $LAMBDA_LAYER_PKGS_DIR/bin/opentelemetry-instrument "$@"
