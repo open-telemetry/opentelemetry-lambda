@@ -89,7 +89,6 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/pavius/impi/cmd/impi
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/checkdoc
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/chloggen
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/semconvgen
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/exp/cmd/apidiff
