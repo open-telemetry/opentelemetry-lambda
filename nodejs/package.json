@@ -41,7 +41,7 @@
     "gts": "3.1.1",
     "lerna": "6.5.1",
     "lerna-changelog": "2.2.0",
-    "rimraf": "4.1.2",
+    "rimraf": "5.0.1",
     "typescript": "5.1.6"
   },
   "changelog": {
