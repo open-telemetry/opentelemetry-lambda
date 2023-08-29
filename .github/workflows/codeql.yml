@@ -80,11 +80,11 @@ jobs:
     - name: Set up Java
       uses: actions/setup-java@v3
       with:
-        distribution: correcto
+        distribution: corretto
         java-version: '11'
       if: ${{ matrix.language == 'java' }}
 
-    - name: build java
+    - name: build Java
       uses: gradle/gradle-build-action@v2
       with:
         arguments: build --no-build-cache
