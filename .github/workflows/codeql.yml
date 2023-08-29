@@ -114,7 +114,8 @@ jobs:
       if: ${{ matrix.target.language == 'csharp' }}
 
     - name: build dotnet
-      run: dotnet build
+      # Build all dotnet applications from this directory
+      run: find . -name '*.sln' -exec dotnet build '{}' \;
       working-directory: ${{ matrix.target.directory }}
       if: ${{ matrix.target.language == 'csharp' }}
 
