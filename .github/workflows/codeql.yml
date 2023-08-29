@@ -80,7 +80,8 @@ jobs:
       uses: github/codeql-action/autobuild@v2
       with:
         working-directory: ${{ matrix.target.directory }}
-      if: ${{ matrix.target.language != 'java' }}
+      # There are no array literals in GHA that is why we need to use fromJson.
+      if: ${{ contains(fromJson('["java", "csharp"]'), matrix.target.language) }}
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
@@ -105,6 +106,17 @@ jobs:
         arguments: build --no-build-cache
         build-root-directory: ${{ matrix.target.directory }}
       if: ${{ matrix.target.language == 'java' }}
+
+    - name: setup dotnet
+      uses: actions/setup-dotnet@3
+      with:
+        dotnet-version: 6.x
+      if: ${{ matrix.target.language == 'csharp' }}
+
+    - name: build dotnet
+      run: dotnet build
+      working-directory: ${{ matrix.target.directory }}
+      if: ${{ matrix.target.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
