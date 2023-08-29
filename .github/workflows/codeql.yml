@@ -81,7 +81,7 @@ jobs:
       with:
         working-directory: ${{ matrix.target.directory }}
       # There are no array literals in GHA that is why we need to use fromJson.
-      if: ${{ contains(fromJson('["java", "csharp"]'), matrix.target.language) }}
+      if: ${{ !contains(fromJson('["java", "csharp"]'), matrix.target.language) }}
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
