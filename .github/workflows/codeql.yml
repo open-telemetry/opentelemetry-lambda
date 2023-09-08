@@ -38,7 +38,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go', 'javascript', 'python', 'java' ]
+        # Targets of the codeql analysis
+        # Each entry is composed by two elements: the language and the directory
+        # containing source code for that language.
+        target:
+          - language: 'go'
+            directory: 'go'
+          - language: 'javascript'
+            directory: 'nodejs'
+          - language: 'python'
+            directory: 'python'
+          - language: 'java'
+            directory: 'java'
+          - language: 'csharp'
+            directory: 'dotnet'
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift' ]
         # Use only 'java' to analyze code written in Java, Kotlin or both
         # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
@@ -52,7 +65,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: ${{ matrix.target.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
@@ -65,7 +78,10 @@ jobs:
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
-      if: ${{ matrix.language != 'java' }}
+      with:
+        working-directory: ${{ matrix.target.directory }}
+      # There are no array literals in GHA that is why we need to use fromJson.
+      if: ${{ !contains(fromJson('["java", "csharp"]'), matrix.target.language) }}
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
@@ -82,16 +98,28 @@ jobs:
       with:
         distribution: corretto
         java-version: '11'
-      if: ${{ matrix.language == 'java' }}
+      if: ${{ matrix.target.language == 'java' }}
 
     - name: build Java
       uses: gradle/gradle-build-action@v2
       with:
         arguments: build --no-build-cache
-        build-root-directory: java
-      if: ${{ matrix.language == 'java' }}
+        build-root-directory: ${{ matrix.target.directory }}
+      if: ${{ matrix.target.language == 'java' }}
+
+    - name: setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.x
+      if: ${{ matrix.target.language == 'csharp' }}
+
+    - name: build dotnet
+      # Build all dotnet applications from this directory
+      run: find . -name '*.sln' -exec dotnet build '{}' \;
+      working-directory: ${{ matrix.target.directory }}
+      if: ${{ matrix.target.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:${{matrix.target.language}}"
