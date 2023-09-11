@@ -16,7 +16,7 @@ jobs:
     outputs:
       JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up JDK for running Gradle
         uses: actions/setup-java@v3

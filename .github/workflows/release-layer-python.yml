@@ -16,7 +16,7 @@ jobs:
     outputs:
       PYTHON_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_SDK_VERSION}}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
         with:
