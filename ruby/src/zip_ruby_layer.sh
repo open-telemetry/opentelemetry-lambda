@@ -8,13 +8,6 @@ echo_usage() {
 	echo " -n <specify layer name>"
 }
 
-is_sample() {
-	if [[ $(pwd) == *"sample"* ]]; then
-		echo 1
-	else
-		echo 0
-	fi
-}
 
 main() {
 	echo "running..."
