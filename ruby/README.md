@@ -48,6 +48,59 @@ Reference for build ruby lambda layer
 https://docs.aws.amazon.com/lambda/latest/dg/ruby-package.html
 
 
+### Define the AWS_LAMBDA_EXEC_WRAPPER
+
+There are two ways to define the AWS_LAMBDA_EXEC_WRAPPER that point to either binary executable or script (normally bash).
+
+Method 1: define the AWS_LAMBDA_EXEC_WRAPPER in function from template.yml
+
+example:
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: OpenTelemetry Ruby Lambda layer for Ruby
+Parameters:
+  LayerName:
+    ...
+Resources:
+  OTelLayer:
+    ...
+  api:
+    ...
+  function:
+    Type: AWS::Serverless::Function
+    Properties:
+      ...
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument # this is an example of the path
+
+```
+
+Method 2: directly update the environmental variable in lambda console: Configuration -> Environemntal variables 
+
+For more information about aws lambda wrapper and wrapper layer: https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper
+
+
+### Tracing and export trace to collector
+
+To enable the default opentelemetry tracing, you can either initialize the opentelemetry ruby sdk in function code. To recive the trace, you can define the OTEL-related (e.g. OTEL_EXPORTER_OTLP_ENDPOINT) environmental variable and setup the opentelemetry collector accordingly.
+
+For example:
+```ruby
+require 'opentelemetry/sdk'
+require 'opentelemetry/exporter/otlp'
+require 'opentelemetry/instrumentation/all'
+OpenTelemetry::SDK.configure do |c|
+  c.service_name = '<YOUR_SERVICE_NAME>'
+  c.use_all() # enables all instrumentation!
+end
+
+def lambda_handler(event:, context:)
+  # ... your code
+end
+```
+
 ## Sample App 
 
 1. Make sure the requirements are met (e.g. sam, aws, docker.)
