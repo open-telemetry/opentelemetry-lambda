@@ -29,7 +29,7 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 
 ## Design Proposal
 
-To get a better understanding of the proposed design for the OpenTelemetry Lamda extension, you can see the [Design Proposal here.](docs/design_proposal.md)
+To get a better understanding of the proposed design for the OpenTelemetry Lambda extension, you can see the [Design Proposal here.](docs/design_proposal.md)
 
 ## Features
 
