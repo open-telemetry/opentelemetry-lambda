@@ -48,6 +48,8 @@ jobs:
             directory: 'nodejs'
           - language: 'python'
             directory: 'python'
+          - language: 'ruby'
+            directory: 'ruby'
           - language: 'java'
             directory: 'java'
           - language: 'csharp'

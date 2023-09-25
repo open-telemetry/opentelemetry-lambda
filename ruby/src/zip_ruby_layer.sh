@@ -11,7 +11,7 @@ echo_usage() {
 
 main() {
 	echo "running..."
-	layerName="otel-ruby-layer"
+	layerName="opentelemetry-ruby-layer"
 
 	while getopts "n:h" opt; do
 		case "${opt}" in

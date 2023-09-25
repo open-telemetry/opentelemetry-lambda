@@ -3,6 +3,7 @@
 Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Ruby.
 
 Requirement:
+* [Ruby 3.2.0](https://www.ruby-lang.org/en/news/2022/12/25/ruby-3-2-0-released/)
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Go](https://go.dev/doc/install)
@@ -103,7 +104,7 @@ end
 
 ## Sample App 
 
-1. Make sure the requirements are met (e.g. sam, aws, docker.)
+1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.)
 2. Navigate to the path `cd ruby/sample-apps`
 3. Build the layer and function based on template.yml. You will see .aws-sam folder after executed the command
 ```bash
