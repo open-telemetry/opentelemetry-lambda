@@ -42,3 +42,11 @@ updates:
       opentelemetry-deps-python:
         patterns:
           - "opentelemetry-*"
+  - package-ecosystem: "bundler"
+    directory: "/ruby/src/layer"
+    schedule:
+      interval: "weekly"
+    groups:
+      opentelemetry-deps-python:
+        patterns:
+          - "opentelemetry-*"
