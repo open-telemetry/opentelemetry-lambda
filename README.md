@@ -104,19 +104,19 @@ See the [Contributing Guide](CONTRIBUTING.md) for details.
 
 Here is a list of community roles with current and previous members:
 
-- Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
+* Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
-   - [Tristan Sloughter](https://github.com/tsloughter), Splunk
-   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
+  * [Tristan Sloughter](https://github.com/tsloughter), Splunk
 
-- Emeritus Approvers:
+* Emeritus Approvers:
 
-   - [Lei Wang](https://github.com/wangzlei), AWS
-   - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), AWS
+  * [Lei Wang](https://github.com/wangzlei), AWS
+  * [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), AWS
 
-- Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
+* Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
-   - [Alex Boten](https://github.com/codeboten), Lightstep
-   - [Anthony Mirabella](https://github.com/Aneurysm9), AWS
+  * [Alex Boten](https://github.com/codeboten), Lightstep
+  * [Anthony Mirabella](https://github.com/Aneurysm9), AWS
+  * [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
