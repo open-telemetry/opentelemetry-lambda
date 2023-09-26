@@ -43,7 +43,7 @@ updates:
           - "@opentelemetry/*"
     rebase-strategy: "auto"
   - package-ecosystem: "pip"
-    directory: "/python/src/otel/otel_sdk"
+    directory: "/python/src/otel"
     schedule:
       interval: "weekly"
     groups:
