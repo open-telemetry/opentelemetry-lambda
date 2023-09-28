@@ -47,6 +47,6 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      opentelemetry-deps-python:
+      opentelemetry-deps-ruby:
         patterns:
           - "opentelemetry-*"
