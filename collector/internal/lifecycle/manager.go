@@ -17,6 +17,7 @@ package lifecycle
 import (
 	"context"
 	"fmt"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -42,11 +43,12 @@ type collectorWrapper interface {
 }
 
 type manager struct {
-	logger          *zap.Logger
-	collector       collectorWrapper
-	extensionClient *extensionapi.Client
-	listener        *telemetryapi.Listener
-	wg              sync.WaitGroup
+	logger             *zap.Logger
+	collector          collectorWrapper
+	extensionClient    *extensionapi.Client
+	listener           *telemetryapi.Listener
+	wg                 sync.WaitGroup
+	lifecycleListeners []lambdalifecycle.Listener
 }
 
 func NewManager(ctx context.Context, logger *zap.Logger, version string) (context.Context, *manager) {
@@ -132,6 +134,7 @@ func (lm *manager) processEvents(ctx context.Context) error {
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extensionapi.Shutdown {
 				lm.logger.Info("Received SHUTDOWN event")
+				lm.notifyEnvironmentShutdown()
 				lm.listener.Shutdown()
 				err = lm.collector.Stop()
 				if err != nil {
@@ -142,10 +145,37 @@ func (lm *manager) processEvents(ctx context.Context) error {
 				return err
 			}
 
+			lm.notifyFunctionInvoked()
+
 			err = lm.listener.Wait(ctx, res.RequestID)
 			if err != nil {
 				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
 			}
+
+			// Check other components are ready before allowing the freezing of the environment.
+			lm.notifyFunctionFinished()
 		}
 	}
+}
+
+func (lm *manager) notifyFunctionInvoked() {
+	for _, listener := range lm.lifecycleListeners {
+		listener.FunctionInvoked()
+	}
+}
+
+func (lm *manager) notifyFunctionFinished() {
+	for _, listener := range lm.lifecycleListeners {
+		listener.FunctionFinished()
+	}
+}
+
+func (lm *manager) notifyEnvironmentShutdown() {
+	for _, listener := range lm.lifecycleListeners {
+		listener.EnvironmentShutdown()
+	}
+}
+
+func (lm *manager) AddListener(listener lambdalifecycle.Listener) {
+	lm.lifecycleListeners = append(lm.lifecycleListeners, listener)
 }
