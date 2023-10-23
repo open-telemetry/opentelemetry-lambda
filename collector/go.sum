@@ -643,6 +643,8 @@ go.opentelemetry.io/collector/pdata v1.0.0-rcv0016 h1:qCPXSQCoD3qeWFb1RuIks8fw9A
 go.opentelemetry.io/collector/pdata v1.0.0-rcv0016/go.mod h1:OdN0alYOlYhHXu6BDlGehrZWgtBuiDsz/rlNeJeXiNg=
 go.opentelemetry.io/collector/processor v0.87.0 h1:aUGtRyeQk0WgQwp2rZBvJ1j+6+WJO8XMb1kjtanIWo8=
 go.opentelemetry.io/collector/processor v0.87.0/go.mod h1:FHqpqdm/uyjjhNQxXJBhvQDIwjnP01EW9M6t0xVaRR4=
+go.opentelemetry.io/collector/processor/batchprocessor v0.87.0 h1:/a2yjC8XMg1j/9hnpDbxTKbG/AyWac2xsQSx0PmFz1M=
+go.opentelemetry.io/collector/processor/batchprocessor v0.87.0/go.mod h1:uY8Lu7zFtNZC39ylu8bphgqO0c3VIqVdegKxXlHo9Po=
 go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.87.0 h1:pWR4fPyKOBo0YWi745pai6ae7jFdlRvRiEg7VmtpGNw=
 go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.87.0/go.mod h1:Id8f4KVl5p5Uzn7RlfFwufdaiINQTKILcTCLQFsSH6c=
 go.opentelemetry.io/collector/receiver v0.87.0 h1:4HpA5Rxb1jcMywCB8y5aNTXiqSt3n7oaFLfQbAkSaWM=
