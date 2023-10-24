@@ -6,8 +6,10 @@
 | Supported pipeline types | traces, metrics, logs |
 | Distributions            | [extension]           |
 
-This processor decouples the receiver and exporter ends of the pipeline allowing the lambda function to finish before traces/metrics/logs are exported by the collector. The processor is aware of the Lambda [lifecycle] and will prevent the environment from being frozen or shutdown until any pending traces/metrics/logs have been exported.
+This processor decouples the receiver and exporter ends of the pipeline. This allows the lambda function to finish before traces/metrics/logs have been exported by the collector. The processor is aware of the Lambda [lifecycle] and will prevent the environment from being frozen or shutdown until any pending traces/metrics/logs have been exported.
 In this way the response times of the Lambda function is not impacted by the need to export data, however the billed duration will include the time taken to export data as well as runtime of the lambda function. 
+
+The decouple processor should always be the last processor in the list to ensure that there are no issues with data being sent while the environment is about to be frozen, which could result in lost data.
 
 When combined with the batch processor, the number of exports required can be significantly reduced and therefore the cost of running the lambda. This is with the trade-off that the data will not be available at your chosen endpoint until some time after the invocation, up to a maximum of 5 minutes (the timeout that the environment is shutdown when no further invocations are received). 
 
