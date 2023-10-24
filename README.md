@@ -117,6 +117,8 @@ Here is a list of community roles with current and previous members:
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
+- Emeritus Maintainers:
+
    - [Alex Boten](https://github.com/codeboten), Lightstep
    - [Anthony Mirabella](https://github.com/Aneurysm9), AWS
 
