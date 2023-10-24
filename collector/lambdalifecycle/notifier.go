@@ -14,9 +14,15 @@
 
 package lambdalifecycle
 
+// Listener interface used to notify objects of Lambda lifecycle events.
 type Listener interface {
+	// FunctionInvoked is called after the extension receives a "Next" notification.
 	FunctionInvoked()
+	// FunctionFinished is called after the extension is notified that the function has completed, but before the environment is frozen.
+	// The environment is only frozen once all listeners have returned.
 	FunctionFinished()
+	// EnvironmentShutdown is called when the extension is notified that the environment is about to shut down.
+	// Shutting down of the collector components only happens after all listeners have returned.
 	EnvironmentShutdown()
 }
 

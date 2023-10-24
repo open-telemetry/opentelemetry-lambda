@@ -48,6 +48,7 @@ func main() {
 
 	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version)
 
+	// Set the new lifecycle manager as the lifecycle notifier for all other components.
 	lambdalifecycle.SetNotifier(lm)
 
 	// Will block until shutdown event is received or cancelled via the context.

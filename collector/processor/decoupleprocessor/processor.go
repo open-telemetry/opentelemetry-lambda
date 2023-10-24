@@ -79,7 +79,7 @@ func (p *decoupleProcessor) startForwardingData() {
 	p.wg.Add(1)
 	go func() {
 		defer p.wg.Done()
-		p.logger.Info("started forwarding traces")
+		p.logger.Info("started forwarding data")
 		for {
 			d := <-p.data
 			if d.data == nil {
@@ -89,7 +89,7 @@ func (p *decoupleProcessor) startForwardingData() {
 				p.logger.Error("next consumer failed", zap.Error(err))
 			}
 		}
-		p.logger.Info("stopped forwarding traces")
+		p.logger.Info("stopped forwarding data")
 	}()
 }
 
@@ -108,6 +108,7 @@ func (p *decoupleProcessor) FunctionInvoked() {
 }
 
 func (p *decoupleProcessor) FunctionFinished() {
+	// Stop forwarding data to ensure that we don't have issues with network interruptions if the environment is frozen.
 	p.stopForwardingData()
 }
 
