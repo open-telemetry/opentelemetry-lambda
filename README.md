@@ -106,9 +106,7 @@ Here is a list of community roles with current and previous members:
 
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
-   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
    - [Tristan Sloughter](https://github.com/tsloughter), Splunk
-   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 - Emeritus Approvers:
 
@@ -116,6 +114,9 @@ Here is a list of community roles with current and previous members:
    - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), AWS
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
+
+   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
+   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
 
 - Emeritus Maintainers:
 
