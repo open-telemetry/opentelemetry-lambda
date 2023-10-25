@@ -115,8 +115,8 @@ Here is a list of community roles with current and previous members:
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
-   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
    - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
+   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 - Emeritus Maintainers:
 
