@@ -53,9 +53,7 @@ https://docs.aws.amazon.com/lambda/latest/dg/ruby-package.html
 
 There are two ways to define the AWS_LAMBDA_EXEC_WRAPPER that point to either binary executable or script (normally bash).
 
-Method 1: define the AWS_LAMBDA_EXEC_WRAPPER in function from template.yml
-
-example:
+#### Method 1: define the AWS_LAMBDA_EXEC_WRAPPER in function from template.yml
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
@@ -78,10 +76,9 @@ Resources:
 
 ```
 
-Method 2: directly update the environmental variable in lambda console: Configuration -> Environemntal variables 
+#### Method 2: directly update the environmental variable in lambda console: Configuration -> Environemntal variables 
 
-For more information about aws lambda wrapper and wrapper layer: https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper
-
+For more information about aws lambda wrapper and wrapper layer, check [aws lambda runtime-wrapper](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper). We provide a sample wrapper file in `src/layer/otel-handler` as reference.
 
 ### Tracing and export trace to collector
 
@@ -101,6 +98,9 @@ def lambda_handler(event:, context:)
   # ... your code
 end
 ```
+
+Sample handler can be found here:
+1. [splunk-otel-lambda](https://github.com/signalfx/splunk-otel-lambda/tree/main/ruby)
 
 ## Sample App 
 
@@ -123,8 +123,8 @@ curl http://127.0.0.1:3000
 ```
 
 NOTE:
-In ruby/sample-apps/template.yml, the OTelLayer -> Properties -> ContentUri is pointing to `ruby/src/layer/`. This is for local testing purpose. If you wish to deploy (e.g. `sam deploy`), please point it to correct location or zip file.
+In `ruby/sample-apps/template.yml`, the OTelLayer -> Properties -> ContentUri is pointing to `ruby/src/layer/`. This is for local testing purpose. If you wish to deploy (e.g. `sam deploy`), please point it to correct location or zip file.
 
-
+In this sample-apps, we use `src/layer/otel-handler` as default `AWS_LAMBDA_EXEC_WRAPPER`; to change it, please edit in `sample-apps/template.yml`
 
 
