@@ -72,7 +72,7 @@ Resources:
       ...
       Environment:
         Variables:
-          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument # this is an example of the path
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler # this is an example of the path
 
 ```
 
