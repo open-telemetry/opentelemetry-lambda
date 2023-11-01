@@ -9,4 +9,6 @@ fi
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
 
-exec "$@"
+# java17 runtime puts the handler to run as a command line argument and seems to prefer
+# this over _HANDLER, so apply a regex to replace the original handler name with our wrapper
+exec "${@//$OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER/$_HANDLER}"
