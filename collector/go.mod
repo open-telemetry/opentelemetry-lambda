@@ -4,7 +4,11 @@ go 1.20
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents => ./lambdacomponents
 
+replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle => ./lambdalifecycle
+
 replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor => ./processor/coldstartprocessor
+
+replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor => ./processor/decoupleprocessor
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver => ./receiver/telemetryapireceiver
 
@@ -18,6 +22,7 @@ require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.88.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.88.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/component v0.88.0
 	go.opentelemetry.io/collector/confmap v0.88.0
@@ -94,6 +99,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.88.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.88.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.88.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.88.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
@@ -138,6 +144,7 @@ require (
 	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0017 // indirect
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0017 // indirect
 	go.opentelemetry.io/collector/processor v0.88.0 // indirect
+	go.opentelemetry.io/collector/processor/batchprocessor v0.88.0 // indirect
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.88.0 // indirect
 	go.opentelemetry.io/collector/receiver v0.88.0 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.88.0 // indirect

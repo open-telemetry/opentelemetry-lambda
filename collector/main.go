@@ -18,6 +18,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"os"
 
 	"go.uber.org/zap"
@@ -46,6 +47,9 @@ func main() {
 	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
 	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version)
+
+	// Set the new lifecycle manager as the lifecycle notifier for all other components.
+	lambdalifecycle.SetNotifier(lm)
 
 	// Will block until shutdown event is received or cancelled via the context.
 	logger.Info("done", zap.Error(lm.Run(ctx)))
