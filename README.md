@@ -22,7 +22,7 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 
 ## FAQ
 
-* **What exporters/recievers/processors are included from the OpenTelemetry Collector?**
+* **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
     > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository does not provide pre-build Lambda layers. They must be built manually and saved in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
@@ -106,9 +106,7 @@ Here is a list of community roles with current and previous members:
 
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
-   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
    - [Tristan Sloughter](https://github.com/tsloughter), Splunk
-   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 - Emeritus Approvers:
 
@@ -116,6 +114,11 @@ Here is a list of community roles with current and previous members:
    - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), AWS
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
+
+   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
+   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
+
+- Emeritus Maintainers:
 
    - [Alex Boten](https://github.com/codeboten), Lightstep
    - [Anthony Mirabella](https://github.com/Aneurysm9), AWS
