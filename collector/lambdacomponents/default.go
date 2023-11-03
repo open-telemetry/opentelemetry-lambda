@@ -23,6 +23,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
+	"github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
@@ -78,6 +79,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 
 	extensions, err := extension.MakeFactoryMap(
 		sigv4authextension.NewFactory(),
+		solarwindsapmsettingsextension.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)

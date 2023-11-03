@@ -23,6 +23,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.91.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.91.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
+	github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20231103200316-8f39128f4706
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/component v0.91.0
 	go.opentelemetry.io/collector/confmap v0.91.0

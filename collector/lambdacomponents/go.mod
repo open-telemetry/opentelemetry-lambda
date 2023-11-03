@@ -13,6 +13,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.91.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.91.0
+	github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20231103200316-8f39128f4706
 	go.opentelemetry.io/collector/exporter v0.91.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.91.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.91.0
@@ -98,6 +99,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.11 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
+	github.com/solarwindscloud/apm-proto v0.0.0-20230912021952-7c5e94624446 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
