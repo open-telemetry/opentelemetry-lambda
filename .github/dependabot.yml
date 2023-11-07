@@ -12,6 +12,14 @@ updates:
       opentelemetry-deps-collector:
         patterns:
           - "*opentelemetry*"
+  - package-ecosystem: "gomod"
+    directory: "/collector/lambdacomponents"
+    schedule:
+      interval: "weekly"
+    groups:
+      opentelemetry-deps-lambdacomponents:
+        patterns:
+          - "*opentelemetry*"
   - package-ecosystem: "gradle"
     directory: "/java"
     schedule:
