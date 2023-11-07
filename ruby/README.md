@@ -72,7 +72,7 @@ Resources:
       ...
       Environment:
         Variables:
-          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument # this is an example of the path
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler # this is an example of the path
 
 ```
 
@@ -82,7 +82,7 @@ For more information about aws lambda wrapper and wrapper layer, check [aws lamb
 
 ### Tracing and export trace to collector
 
-To enable the default opentelemetry tracing, you can either initialize the opentelemetry ruby sdk in function code. To recive the trace, you can define the OTEL-related (e.g. OTEL_EXPORTER_OTLP_ENDPOINT) environmental variable and setup the opentelemetry collector accordingly.
+To enable the default opentelemetry tracing, you can either initialize the opentelemetry ruby sdk in function code. To receive the trace, you can define the OTEL-related (e.g. OTEL_EXPORTER_OTLP_ENDPOINT) environmental variable and setup the opentelemetry collector accordingly.
 
 For example:
 ```ruby
