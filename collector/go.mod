@@ -25,7 +25,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/component v0.88.0
-	go.opentelemetry.io/collector/confmap v0.88.0
+	go.opentelemetry.io/collector/confmap v0.89.0
 	go.opentelemetry.io/collector/otelcol v0.88.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
@@ -69,6 +69,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -141,7 +142,7 @@ require (
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.88.0 // indirect
 	go.opentelemetry.io/collector/extension v0.88.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.88.0 // indirect
-	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0017 // indirect
+	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0018 // indirect
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0017 // indirect
 	go.opentelemetry.io/collector/processor v0.88.0 // indirect
 	go.opentelemetry.io/collector/processor/batchprocessor v0.88.0 // indirect
