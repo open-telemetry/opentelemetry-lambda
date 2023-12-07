@@ -14,7 +14,7 @@ jobs:
   build-layer:
     runs-on: ubuntu-latest
     outputs:
-      PYTHON_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_SDK_VERSION}}
+      PYTHON_OPENTELEMETRY_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,21 +22,31 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Get PYTHON_OPENTELEMETRY_SDK_VERSION
+        run: |
+          cd python/src
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$(head -n1 otel/otel_sdk/requirements.txt)" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Display PYTHON_OPENTELEMETRY_SDK_VERSION
+        run: echo "PYTHON_OPENTELEMETRY_SDK_VERSION=${{ env.PYTHON_OPENTELEMETRY_SDK_VERSION }}"
+        shell: bash
+
+      - name: Save Python SDK Version
+        id: save-python-sdk-version
+        run: |
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$PYTHON_OPENTELEMETRY_SDK_VERSION" >> $GITHUB_OUTPUT
+
       - name: Build
         run: |
           cd python/src
-          PYTHON_SDK_VERSION=$(./build.sh 2>&1 > /dev/null | sed -n "s/opentelemetry-sdk==\(.*\)/\1/p")
+          ./build.sh
         shell: bash
 
       - name: Show directory contents
         run: |
           ls -al
         working-directory: python/src/build
-
-      - name: Save Python SDK Version
-        id: save-python-sdk-version
-        run: |
-          echo "PYTHON_SDK_VERSION=$PYTHON_SDK_VERSION" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v3
         name: Save assembled layer to build
@@ -69,7 +79,7 @@ jobs:
     with:
       artifact-name: opentelemetry-python-layer.zip
       layer-name: opentelemetry-python
-      component-version: ${{needs.build-layer.outputs.PYTHON_SDK_VERSION}}
+      component-version: ${{needs.build-layer.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
       # architecture:
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
