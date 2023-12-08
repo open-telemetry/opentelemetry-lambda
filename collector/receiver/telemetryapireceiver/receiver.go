@@ -227,7 +227,7 @@ func listenOnAddress() string {
 	if ok && envAwsLocal == "true" {
 		addr = ":" + defaultListenerPort
 	} else {
-		addr = "sandbox:" + defaultListenerPort
+		addr = "sandbox.localdomain:" + defaultListenerPort
 	}
 
 	return addr
