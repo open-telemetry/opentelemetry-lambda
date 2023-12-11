@@ -97,7 +97,7 @@ means that the response of the lambda function is delayed until the data has bee
 This delay can potentially be for hundreds of milliseconds.
 
 To overcome this problem the [decouple](./processor/decoupleprocessor/README.md) processor can be used to separate the 
-2 ends of the collectors pipeline, allow the lambda function to complete and still ensuring that any data is exported 
+two ends of the collectors pipeline and allow the lambda function to complete while ensuring that any data is exported 
 before the Lambda environment is frozen.
 
 Below is a sample configuration that uses the decouple processor:
@@ -126,7 +126,7 @@ service:
 
 ## Reducing Lambda runtime
 If your lambda function is invoked frequently it is also possible to pair the decouple processor with the batch 
-processor to reduce total lambda execution time at the expense of the delaying the export of OpenTelemetry data. 
+processor to reduce total lambda execution time at the expense of delaying the export of OpenTelemetry data. 
 When used with the batch processor the decouple processor must be the last processor in the pipeline to ensure that data
 is successfully exported before the lambda environment is frozen.
 
