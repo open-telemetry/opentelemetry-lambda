@@ -27,4 +27,3 @@ opentelemetry-instrumentation-sqlite3==0.42b0
 opentelemetry-instrumentation-starlette==0.42b0
 opentelemetry-instrumentation-tornado==0.42b0
 opentelemetry-instrumentation-wsgi==0.42b0
-
