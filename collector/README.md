@@ -89,3 +89,69 @@ from an S3 object using a CloudFormation template:
 ```
 
 Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.
+
+# Improving Lambda responses times
+At the end of a lambda function's execution, the OpenTelemetry client libraries will flush any pending spans/metrics/logs
+to the collector before returning control to the Lambda environment. The collector's pipelines are synchronous and this 
+means that the response of the lambda function is delayed until the data has been exported. 
+This delay can potentially be for hundreds of milliseconds.
+
+To overcome this problem the [decouple](./processor/decoupleprocessor/README.md) processor can be used to separate the 
+two ends of the collectors pipeline and allow the lambda function to complete while ensuring that any data is exported 
+before the Lambda environment is frozen.
+
+Below is a sample configuration that uses the decouple processor:
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  logging:
+    loglevel: debug
+  otlp:
+    endpoint: { backend endpoint }
+
+processors:
+  decouple:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [decouple]
+      exporters: [logging, otlp]
+```
+
+## Reducing Lambda runtime
+If your lambda function is invoked frequently it is also possible to pair the decouple processor with the batch 
+processor to reduce total lambda execution time at the expense of delaying the export of OpenTelemetry data. 
+When used with the batch processor the decouple processor must be the last processor in the pipeline to ensure that data
+is successfully exported before the lambda environment is frozen.
+
+An example use of the batch and decouple processors:
+```yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  logging:
+    loglevel: debug
+  otlp:
+    endpoint: { backend endpoint }
+
+processors:
+  decouple:
+  batch:
+    timeout: 5m
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, decouple]
+      exporters: [logging, otlp]
+```
