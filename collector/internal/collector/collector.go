@@ -94,7 +94,9 @@ func (c *Collector) Start(ctx context.Context) error {
 			Version:     c.version,
 		},
 		ConfigProvider: c.configProvider,
-		Factories:      c.factories,
+		Factories: func() (otelcol.Factories, error) {
+			return c.factories, nil
+		},
 		LoggingOptions: []zap.Option{zap.WrapCore(func(_ zapcore.Core) zapcore.Core {
 			return c.logger.Core()
 		})},
