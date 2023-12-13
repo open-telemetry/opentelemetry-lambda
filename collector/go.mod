@@ -21,7 +21,7 @@ replace cloud.google.com/go => cloud.google.com/go v0.107.0
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.91.0
-	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.90.1
+	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.91.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/component v0.91.0
@@ -101,9 +101,9 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.91.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.90.1 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.91.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.90.1 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.91.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
