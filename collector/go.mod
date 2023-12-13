@@ -25,7 +25,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/component v0.90.1
-	go.opentelemetry.io/collector/confmap v0.90.1
+	go.opentelemetry.io/collector/confmap v0.91.0
 	go.opentelemetry.io/collector/otelcol v0.90.1
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
