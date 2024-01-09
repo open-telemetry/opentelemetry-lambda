@@ -1,23 +1,47 @@
+extensions:
+  solarwindsapmsettings:
+    endpoint: "apm.collector.${SW_APM_DATACENTRE}.cloud.solarwinds.com:443"
+    key: "${SW_APM_API_TOKEN}:${OTEL_SERVICE_NAME}"
+    interval: "1m"
+
 receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: "localhost:4317"
       http:
-        endpoint: "localhost:4318"
+  telemetryapi:
+
+processors:
+  batch:
+  decouple:
+  resourcedetection:
+    detectors: [env, system, lambda]
+    timeout: 1s
+    override: false
 
 exporters:
   logging:
-    loglevel: debug
+    verbosity: detailed
+  otlp:
+    endpoint: "https://otel.collector.${SW_APM_DATACENTRE}.cloud.solarwinds.com:443"
+    headers:
+      Authorization: "Bearer ${SW_APM_API_TOKEN}"
 
 service:
+  extensions: [solarwindsapmsettings]
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [logging]
+      processors: [resourcedetection,batch,decouple]
+      exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      processors: [resourcedetection,batch,decouple]
+      exporters: [otlp,logging]
+    traces/telemetry:
+      receivers: [telemetryapi]
+      processors: [resourcedetection,batch,decouple]
+      exporters: [otlp,logging]
   telemetry:
     metrics:
-      address: localhost:8888
+
