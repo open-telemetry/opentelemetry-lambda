@@ -34,11 +34,16 @@ https://docs.python.org/3/library/imp.html#imp.load_module
 
 """
 
+import logging
 import os
+from typing import Any
 from importlib import import_module
 
+from opentelemetry.context.context import Context
 from opentelemetry.instrumentation.aws_lambda import AwsLambdaInstrumentor
+from opentelemetry.propagate import get_global_textmap
 
+logger = logging.getLogger(__name__)
 
 def modify_module_name(module_name):
     """Returns a valid modified module to get imported"""
@@ -48,8 +53,35 @@ def modify_module_name(module_name):
 class HandlerError(Exception):
     pass
 
+def _headers_and_sqs_context_extractor(lambda_event: Any) -> Context:
+    headers = None
+    try:
+        headers = lambda_event["headers"]
+    except (TypeError, KeyError):
+        logger.debug(
+            "Extracting context from Lambda Event for headers failed."
+        )
 
-AwsLambdaInstrumentor().instrument()
+    sqs_ctx = {}
+    try:
+        records = lambda_event["Records"][0]['messageAttributes']
+        if 'traceparent' in records:
+            sqs_ctx['traceparent'] = records['traceparent']['stringValue']
+        if 'tracestate' in records:
+            sqs_ctx['tracestate'] = records['tracestate']['stringValue']
+        if 'baggage' in records:
+            sqs_ctx['baggage'] = records['baggage']['stringValue']
+    except (TypeError, KeyError):
+        logger.debug("Extracting context from Lambda Event records failed.")
+
+    if sqs_ctx is not None and 'traceparent' in sqs_ctx:
+        return get_global_textmap().extract(sqs_ctx)
+           
+    if not isinstance(headers, dict):
+        headers = {}
+    return get_global_textmap().extract(headers)
+
+AwsLambdaInstrumentor().instrument(event_context_extractor=_headers_and_sqs_context_extractor)
 
 path = os.environ.get("ORIG_HANDLER")
 
