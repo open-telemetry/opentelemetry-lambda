@@ -46,7 +46,7 @@ jobs:
           ls -al
         working-directory: python/src/build
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-python-layer.zip
