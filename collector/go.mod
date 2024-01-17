@@ -102,9 +102,9 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.92.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.91.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.91.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.92.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
