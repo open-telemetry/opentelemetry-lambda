@@ -1,8 +1,7 @@
 extensions:
   solarwindsapmsettings:
-    endpoint: "apm.collector.${SW_APM_DATACENTRE}.cloud.solarwinds.com:443"
+    endpoint: "apm.collector.${SW_APM_DATA_CENTER}.cloud.solarwinds.com:443"
     key: "${SW_APM_API_TOKEN}:${OTEL_SERVICE_NAME}"
-    interval: "1m"
 
 receivers:
   otlp:
@@ -23,7 +22,7 @@ exporters:
   logging:
     verbosity: detailed
   otlp:
-    endpoint: "https://otel.collector.${SW_APM_DATACENTRE}.cloud.solarwinds.com:443"
+    endpoint: "https://otel.collector.${SW_APM_DATA_CENTER}.cloud.solarwinds.com:443"
     headers:
       Authorization: "Bearer ${SW_APM_API_TOKEN}"
 
@@ -36,10 +35,6 @@ service:
       exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
-      processors: [resourcedetection,batch,decouple]
-      exporters: [otlp,logging]
-    traces/telemetry:
-      receivers: [telemetryapi]
       processors: [resourcedetection,batch,decouple]
       exporters: [otlp,logging]
   telemetry:
