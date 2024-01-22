@@ -16,7 +16,7 @@ processors:
   decouple:
   resourcedetection:
     detectors: [env, system, lambda]
-    timeout: 1s
+    timeout: 0.2s
     override: false
   resource:
     attributes:
