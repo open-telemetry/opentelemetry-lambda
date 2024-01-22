@@ -16,6 +16,11 @@ processors:
     detectors: [env, system, lambda]
     timeout: 1s
     override: false
+  resource:
+    attributes:
+      - key: sw.cloud.aws.resource.type
+        value: "Lambda"
+        action: upsert
 
 exporters:
   logging:
@@ -30,10 +35,10 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resourcedetection,batch,decouple]
+      processors: [resource,resourcedetection,batch,decouple]
       exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
-      processors: [resourcedetection,batch,decouple]
+      processors: [resource,resourcedetection,batch,decouple]
       exporters: [otlp,logging]
 
