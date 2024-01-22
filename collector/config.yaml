@@ -35,10 +35,10 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resource,resourcedetection,batch,decouple]
+      processors: [resource,resourcedetection]
       exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
-      processors: [resource,resourcedetection,batch,decouple]
+      processors: [resource,resourcedetection]
       exporters: [otlp,logging]
 
