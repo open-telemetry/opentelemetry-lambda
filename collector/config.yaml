@@ -7,7 +7,9 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: "localhost:4317"
       http:
+        endpoint: "localhost:4318"
 
 processors:
   batch:
@@ -41,4 +43,6 @@ service:
       receivers: [otlp]
       processors: [resource,resourcedetection]
       exporters: [otlp,logging]
-
+  telemetry:
+    metrics:
+      address: localhost:8888
