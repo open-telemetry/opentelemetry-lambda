@@ -8,7 +8,6 @@ receivers:
     protocols:
       grpc:
       http:
-  telemetryapi:
 
 processors:
   batch:
@@ -37,6 +36,4 @@ service:
       receivers: [otlp]
       processors: [resourcedetection,batch,decouple]
       exporters: [otlp,logging]
-  telemetry:
-    metrics:
 
