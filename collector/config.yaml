@@ -12,8 +12,9 @@ receivers:
         endpoint: "localhost:4318"
 
 processors:
-  batch:
   decouple:
+  batch:
+    timeout: 5m
   resourcedetection:
     detectors: [env, system, lambda]
     timeout: 0.2s
@@ -37,11 +38,11 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resource,resourcedetection]
+      processors: [resource,resourcedetection,batch,decouple]
       exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
-      processors: [resource,resourcedetection]
+      processors: [resource,resourcedetection,batch,decouple]
       exporters: [otlp,logging]
   telemetry:
     metrics:

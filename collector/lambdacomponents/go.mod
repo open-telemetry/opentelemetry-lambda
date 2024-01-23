@@ -14,7 +14,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.91.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.91.0
-	github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240122171432-f91142cef4e5
+	github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240123053807-6890d5ec98df
 	go.opentelemetry.io/collector/exporter v0.91.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.91.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.91.0
