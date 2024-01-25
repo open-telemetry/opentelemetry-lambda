@@ -30,7 +30,7 @@ jobs:
           arguments: :layer-javaagent:assemble
           build-root-directory: java
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-javaagent-layer.zip
