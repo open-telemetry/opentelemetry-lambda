@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 14
 
@@ -38,7 +38,7 @@ jobs:
         run: mv layer.zip opentelemetry-nodejs-layer.zip
         working-directory: nodejs/packages/layer/build
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-nodejs-layer.zip

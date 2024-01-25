@@ -14,18 +14,31 @@ jobs:
   build-layer:
     runs-on: ubuntu-latest
     outputs:
-      PYTHON_SDK_VERSION: ${{ steps.save-python-sdk-version.outputs.PYTHON_SDK_VERSION}}
+      PYTHON_OPENTELEMETRY_SDK_VERSION: ${{ steps.save-python-opentelemetry-sdk-version.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
+
+      - name: Save PYTHON_OPENTELEMETRY_SDK_VERSION
+        id: save-python-opentelemetry-sdk-version
+        run: |
+          cd python/src
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$(cat otel/otel_sdk/requirements.txt | grep opentelemetry-sdk | sed 's/.*==\([^ ]*\).*/\1/')" >> $GITHUB_ENV
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$PYTHON_OPENTELEMETRY_SDK_VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Display PYTHON_OPENTELEMETRY_SDK_VERSION
+        run: |
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=${{ env.PYTHON_OPENTELEMETRY_SDK_VERSION }}"
+        shell: bash
 
       - name: Build
         run: |
           cd python/src
-          PYTHON_SDK_VERSION=$(./build.sh 2>&1 > /dev/null | sed -n "s/opentelemetry-sdk==\(.*\)/\1/p")
+          ./build.sh
         shell: bash
 
       - name: Show directory contents
@@ -33,12 +46,7 @@ jobs:
           ls -al
         working-directory: python/src/build
 
-      - name: Save Python SDK Version
-        id: save-python-sdk-version
-        run: |
-          echo "PYTHON_SDK_VERSION=$PYTHON_SDK_VERSION" >> $GITHUB_OUTPUT
-
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-python-layer.zip
@@ -69,8 +77,7 @@ jobs:
     with:
       artifact-name: opentelemetry-python-layer.zip
       layer-name: opentelemetry-python
-      component-version: ${{needs.build-layer.outputs.PYTHON_SDK_VERSION}}
-      # architecture:
+      component-version: ${{needs.build-layer.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
