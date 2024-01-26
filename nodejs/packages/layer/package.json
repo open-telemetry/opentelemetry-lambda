@@ -28,7 +28,7 @@
   "dependencies": {
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.47.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.47.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.48.0",
     "@opentelemetry/instrumentation": "^0.47.0",
     "@opentelemetry/instrumentation-aws-lambda": "^0.37.3",
     "@opentelemetry/instrumentation-aws-sdk": "^0.37.1",
