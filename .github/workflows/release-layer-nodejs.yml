@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 16
 
       - name: Build
         run: |
@@ -71,7 +71,7 @@ jobs:
       layer-name: opentelemetry-nodejs
       component-version: ${{needs.build-layer.outputs.NODEJS_VERSION}}
       # architecture:
-      runtimes: nodejs14.x nodejs16.x nodejs18.x
+      runtimes: nodejs16.x nodejs18.x nodejs20.x
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
