@@ -54,7 +54,7 @@ class HandlerError(Exception):
     pass
 
 def _headers_and_sqs_context_extractor(lambda_event: Any) -> Context:
-    headers = None
+    headers = {}
     try:
         headers = lambda_event["headers"]
     except (TypeError, KeyError):
