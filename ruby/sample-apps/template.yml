@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: OpenTelemetry Ruby Lambda layer for Ruby
+Parameters:
+  LayerName:
+    Type: String
+    Description: Lambda layer name to be published
+    Default: opentelemetry-ruby
+Resources:
+  OTelLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Ref LayerName
+      Description: Opentelemetry Ruby layer
+      ContentUri: ./../src/layer
+      CompatibleRuntimes:
+        - ruby3.2
+    Metadata:
+      BuildMethod: makefile
+  api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: api
+      OpenApiVersion: 3.0.2
+  function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./function
+      Handler: lambda_function.lambda_handler
+      Runtime: ruby3.2
+      Description: Build OTel Ruby Lambda layer and sample app from scratch
+      Policies:
+        - AmazonS3ReadOnlyAccess
+      Layers:
+        - !Ref OTelLayer
+      Events:
+        getEndpoint:
+          Type: Api
+          Properties:
+            RestApiId: !Ref api
+            Path: /
+            Method: GET
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
