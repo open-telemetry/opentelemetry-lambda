@@ -77,7 +77,6 @@ def _headers_and_sqs_context_extractor(lambda_event: Any) -> Context:
     if 'traceparent' in sqs_ctx:
         return get_global_textmap().extract(sqs_ctx)
            
-    if not isinstance(headers, dict):
         headers = {}
     return get_global_textmap().extract(headers)
 
