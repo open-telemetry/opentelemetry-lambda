@@ -1,6 +1,11 @@
-name: "Pull Request (Python)"
+name: "Continuous Build (Python)"
 
 on:
+  push:
+    paths:
+      - 'python/**'
+    branches:
+      - main
   pull_request:
     paths:
       - 'python/**'
@@ -14,7 +19,7 @@ env:
   CORE_REPO_SHA: v1.19.0
 
 jobs:
-  PR-Python:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
