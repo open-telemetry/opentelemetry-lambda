@@ -768,8 +768,8 @@ github.com/shoenig/test v0.6.4/go.mod h1:byHiCGXqrVaflBLAMq/srcZIHynQPQgeyvkvXnj
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
-github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240123053807-6890d5ec98df h1:+O+zQb9Jgdq1sv7WyNW9NkB41NwYBtDm+alw0ChzNu0=
-github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240123053807-6890d5ec98df/go.mod h1:P/whXlVmDSpboXaZ/KCOFV31HgeCWusJZrWX6IbzE2M=
+github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240126182729-d41b6bb20863 h1:kU32v+ebt4xw4gbVGL4+Miyh1ragIKP6zNBM4SyNsyQ=
+github.com/solarwinds/opentelemetry-collector-contrib/extension/solarwindsapmsettingsextension v0.0.0-20240126182729-d41b6bb20863/go.mod h1:P/whXlVmDSpboXaZ/KCOFV31HgeCWusJZrWX6IbzE2M=
 github.com/solarwindscloud/apm-proto v0.0.0-20231107001908-432e697887b6 h1:VzTSxvPqSwcv//OBbxQrvIxjg0VP1Y1aqRun5MDgAxw=
 github.com/solarwindscloud/apm-proto v0.0.0-20231107001908-432e697887b6/go.mod h1:PIMzXc8HpB0ryT4Oci4pUz8F0m1X7Q/hVXkQE4jGv6Y=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
