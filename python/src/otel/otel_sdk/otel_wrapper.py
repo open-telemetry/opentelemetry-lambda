@@ -74,7 +74,7 @@ def _headers_and_sqs_context_extractor(lambda_event: Any) -> Context:
     except (TypeError, KeyError):
         logger.debug("Extracting context from Lambda Event records failed.")
 
-    if sqs_ctx is not None and 'traceparent' in sqs_ctx:
+    if 'traceparent' in sqs_ctx:
         return get_global_textmap().extract(sqs_ctx)
            
     if not isinstance(headers, dict):
