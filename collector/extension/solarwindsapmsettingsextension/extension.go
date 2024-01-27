@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"math"
 	"os"
@@ -145,6 +146,12 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 			ClientVersion: "2",
 		}
 		if response, err := extension.client.GetSettings(ctx, request); err != nil {
+			_, ok := status.FromError(err)
+			if ok {
+
+			} else {
+				// Non gRPC error
+			}
 			extension.logger.Error("Unable to getSettings from " + extension.config.Endpoint + " " + err.Error())
 		} else {
 			switch result := response.GetResult(); result {
@@ -275,27 +282,31 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 }
 
 func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ component.Host) error {
-	extension.logger.Debug("Starting up solarwinds apm settings extension")
+	extension.logger.Info("Starting up solarwinds apm settings extension")
 	ctx = context.Background()
 	ctx, extension.cancel = context.WithCancel(ctx)
 	configOK := validateSolarwindsApmSettingsExtensionConfiguration(extension.config, extension.logger)
 	if configOK {
-		extension.conn, _ = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
-		extension.logger.Info("Dailed to " + extension.config.Endpoint)
-		extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
-		go func() {
-			ticker := newTicker(extension.config.Interval)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-ticker.C:
-					refresh(extension)
-				case <-ctx.Done():
-					extension.logger.Debug("Received ctx.Done() from ticker")
-					return
+		var err error
+		if extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{}))); err != nil {
+			extension.logger.Error("Dialed error: " + err.Error() + ". Please check config")
+		} else {
+			extension.logger.Info("Dailed to " + extension.config.Endpoint)
+			extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
+			go func() {
+				ticker := newTicker(extension.config.Interval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						refresh(extension)
+					case <-ctx.Done():
+						extension.logger.Info("Received ctx.Done() from ticker")
+						return
+					}
 				}
-			}
-		}()
+			}()
+		}
 	} else {
 		extension.logger.Warn("solarwindsapmsettingsextension is in noop. Please check config")
 	}
@@ -303,7 +314,7 @@ func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ co
 }
 
 func (extension *solarwindsapmSettingsExtension) Shutdown(_ context.Context) error {
-	extension.logger.Debug("Shutting down solarwinds apm settings extension")
+	extension.logger.Info("Shutting down solarwinds apm settings extension")
 	if extension.conn != nil {
 		return extension.conn.Close()
 	} else {
