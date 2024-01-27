@@ -293,8 +293,9 @@ func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ co
 		} else {
 			extension.logger.Info("Dailed to " + extension.config.Endpoint)
 			extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
+			refresh(extension)
 			go func() {
-				ticker := newTicker(extension.config.Interval)
+				ticker := time.NewTicker(extension.config.Interval)
 				defer ticker.Stop()
 				for {
 					select {
