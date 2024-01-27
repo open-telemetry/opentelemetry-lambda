@@ -1,0 +1,83 @@
+name: "Release Ruby Lambda Layer"
+
+on:
+  # (Using tag push instead of release to allow filtering by tag prefix.)
+  push:
+    tags:
+      - layer-ruby/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-layer:
+    runs-on: ubuntu-latest
+    outputs:
+      RUBY_SDK_VERSION: ${{ steps.save-ruby-sdk-version.outputs.RUBY_SDK_VERSION}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2.0'
+
+      - name: Install SAM
+        run: |
+          apt-get update && apt-get install wget unzip make -y
+          wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+          unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+          ./sam-installation/install
+
+      - name: Build
+        id: save-ruby-sdk-version
+        run: |
+          sam build -u -t template.yml
+          export GEM_PATH=$PWD/.aws-sam/build/OTelLayer/ruby/gems/3.2.0/
+          RUBY_SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
+          echo "RUBY_SDK_VERSION=$RUBY_SDK_VERSION" >> $GITHUB_OUTPUT
+        working-directory: ruby/src
+
+      - name: Zip the layer file
+        run: |
+          echo ${{ steps.save-ruby-sdk-version.outputs.RUBY_SDK_VERSION}}
+          ./zip_ruby_layer.sh
+        working-directory: ruby/src
+        shell: bash
+
+      - uses: actions/upload-artifact@v3
+        name: Save assembled layer to build
+        with:
+          name: opentelemetry-ruby-layer.zip
+          path: ruby/src/opentelemetry-ruby-layer.zip
+
+  publish-layer:
+    uses: ./.github/workflows/layer-publish.yml
+    needs: build-layer
+    strategy:
+      matrix:
+        aws_region: 
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+    with:
+      artifact-name: opentelemetry-ruby-layer.zip
+      layer-name: opentelemetry-ruby
+      component-version: ${{needs.build-layer.outputs.RUBY_SDK_VERSION}}
+      runtimes: ruby3.2
+      release-group: prod
+      aws_region: ${{ matrix.aws_region }}
+    secrets: inherit
