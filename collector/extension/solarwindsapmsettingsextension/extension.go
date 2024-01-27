@@ -288,7 +288,7 @@ func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ co
 	configOK := validateSolarwindsApmSettingsExtensionConfiguration(extension.config, extension.logger)
 	if configOK {
 		var err error
-		if extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{}))); err != nil {
+		if extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})), grpc.WithReturnConnectionError()); err != nil {
 			extension.logger.Error("Dialed error: " + err.Error() + ". Please check config")
 		} else {
 			extension.logger.Info("Dailed to " + extension.config.Endpoint)
