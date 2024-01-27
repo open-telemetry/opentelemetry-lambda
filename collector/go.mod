@@ -12,6 +12,8 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/decou
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver => ./receiver/telemetryapireceiver
 
+replace github.com/open-telemetry/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension => ./extension/solarwindsapmsettingsextension
+
 // fixes ambiguous import error: found package cloud.google.com/go/compute/metadata in multiple modules:
 //        cloud.google.com/go
 //        cloud.google.com/go/compute
@@ -143,6 +145,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.92.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension v0.0.0-00010101000000-000000000000 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.92.0 // indirect
@@ -162,6 +165,7 @@ require (
 	github.com/rs/cors v1.10.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/solarwindscloud/apm-proto v0.0.0-20231107001908-432e697887b6 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
