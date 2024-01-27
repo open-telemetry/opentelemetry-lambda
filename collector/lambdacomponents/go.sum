@@ -477,6 +477,7 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterproces
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.92.0/go.mod h1:0iWaRiZA2jO2T3sq2l7d13/QqtmC0HZVhc1Bn+Us64c=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.92.0 h1:cbZE4M2qQU3Ii7pfUbtFgHRHk78fF8jPG/oWM/Yt4cc=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.92.0/go.mod h1:92//cxAwNUXTuZj7IvKQzkc/j+WFr6EXkqPzQFyqU3I=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.92.0/go.mod h1:IsnlC2Bz31YAs9uxBzdHMQ40jIRWEtvIGR/W54+2JXc=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0 h1:L+pCvFFY1sFLQI8bzLsjpj3jbk/vu/URan7jL0tY+m0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0/go.mod h1:XuEsoBYYtIvJghTAZcuL5cS/k6kKBpJhPCZukUfsUDY=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.92.0 h1:CU9N14qgtLDYcqEw2kmok6lgSePLVcfQaxSTWD+Gku8=
