@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"math"
 	"os"
@@ -135,7 +134,7 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 	if hostname, err := os.Hostname(); err != nil {
 		extension.logger.Error("Unable to call os.Hostname() " + err.Error())
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		request := &collectorpb.SettingsRequest{
@@ -147,19 +146,6 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 		}
 		if response, err := extension.client.GetSettings(ctx, request); err != nil {
 			extension.logger.Error("Unable to getSettings from " + extension.config.Endpoint + " " + err.Error())
-			_, gRPCStatus := status.FromError(err)
-			if gRPCStatus {
-				// RPC error
-			} else {
-				// Non RPC error
-				// Replace the connection and client
-				if extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})), grpc.WithReturnConnectionError()); err != nil {
-					extension.logger.Error("re-dialed error: " + err.Error() + ". Please check config")
-				} else {
-					extension.logger.Info("re-dailed to " + extension.config.Endpoint)
-					extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
-				}
-			}
 		} else {
 			switch result := response.GetResult(); result {
 			case collectorpb.ResultCode_OK:
@@ -294,28 +280,24 @@ func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ co
 	ctx, extension.cancel = context.WithCancel(ctx)
 	configOK := validateSolarwindsApmSettingsExtensionConfiguration(extension.config, extension.logger)
 	if configOK {
-		var err error
-		if extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})), grpc.WithReturnConnectionError()); err != nil {
-			extension.logger.Error("Dialed error: " + err.Error() + ". Please check config")
-		} else {
-			extension.logger.Info("Dailed to " + extension.config.Endpoint)
-			extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
-			// Perform refresh immediately
-			refresh(extension)
-			go func() {
-				ticker := time.NewTicker(extension.config.Interval)
-				defer ticker.Stop()
-				for {
-					select {
-					case <-ticker.C:
-						refresh(extension)
-					case <-ctx.Done():
-						extension.logger.Info("Received ctx.Done() from ticker")
-						return
-					}
+		extension.conn, _ = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+		extension.logger.Info("grpc.Dail to " + extension.config.Endpoint)
+		extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
+		// Perform refresh immediately
+		refresh(extension)
+		go func() {
+			ticker := time.NewTicker(extension.config.Interval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					refresh(extension)
+				case <-ctx.Done():
+					extension.logger.Info("Received ctx.Done() from ticker")
+					return
 				}
-			}()
-		}
+			}
+		}()
 	} else {
 		extension.logger.Warn("solarwindsapmsettingsextension is in noop. Please check config")
 	}
