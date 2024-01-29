@@ -22,7 +22,7 @@ func TestCreateExtension(t *testing.T) {
 		{
 			name: "default",
 			cfg: &Config{
-				Interval: time.Duration(10 * time.Second),
+				Interval: time.Duration(10) * time.Second,
 			},
 		},
 		{
@@ -30,7 +30,7 @@ func TestCreateExtension(t *testing.T) {
 			cfg: &Config{
 				Endpoint: "0.0.0.0:1234",
 				Key:      "something",
-				Interval: time.Duration(10 * time.Second),
+				Interval: time.Duration(10) * time.Second,
 			},
 		},
 	}
@@ -72,7 +72,7 @@ func TestValidateSolarwindsApmSettingsExtensionConfiguration(t *testing.T) {
 			cfg: &Config{
 				Endpoint: "apm.collector.na-02.cloud.solarwinds.com:443",
 				Key:      "token:name",
-				Interval: time.Duration(10 * time.Second),
+				Interval: time.Duration(10) * time.Second,
 			},
 			ok:      true,
 			message: []string{},
@@ -182,7 +182,7 @@ func TestValidateSolarwindsApmSettingsExtensionConfiguration(t *testing.T) {
 			cfg: &Config{
 				Endpoint: "apm.collector.na-01.cloud.solarwinds.com:443",
 				Key:      "token:name",
-				Interval: time.Duration(4 * time.Second),
+				Interval: time.Duration(4) * time.Second,
 			},
 			ok:      true,
 			message: []string{"Interval 4s is less than the minimum supported interval " + MinimumInterval.String() + ". use minimum interval " + MinimumInterval.String() + " instead"},
@@ -192,7 +192,7 @@ func TestValidateSolarwindsApmSettingsExtensionConfiguration(t *testing.T) {
 			cfg: &Config{
 				Endpoint: "apm.collector.na-01.cloud.solarwinds.com:443",
 				Key:      "token:name",
-				Interval: time.Duration(61 * time.Second),
+				Interval: time.Duration(61) * time.Second,
 			},
 			ok:      true,
 			message: []string{"Interval 1m1s is greater than the maximum supported interval " + MaximumInterval.String() + ". use maximum interval " + MaximumInterval.String() + " instead"},

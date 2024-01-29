@@ -22,10 +22,11 @@ import (
 )
 
 const (
-	RawOutputFile   = "/tmp/solarwinds-apm-settings-raw"
-	JSONOutputFile  = "/tmp/solarwinds-apm-settings.json"
-	MinimumInterval = time.Duration(5 * time.Second)
-	MaximumInterval = time.Duration(60 * time.Second)
+	RawOutputFile       = "/tmp/solarwinds-apm-settings-raw"
+	JSONOutputFile      = "/tmp/solarwinds-apm-settings.json"
+	GrpcContextDeadline = time.Duration(1) * time.Second
+	MinimumInterval     = time.Duration(5) * time.Second
+	MaximumInterval     = time.Duration(60) * time.Second
 )
 
 type solarwindsapmSettingsExtension struct {
@@ -134,7 +135,7 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 	if hostname, err := os.Hostname(); err != nil {
 		extension.logger.Error("Unable to call os.Hostname() " + err.Error())
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), GrpcContextDeadline)
 		defer cancel()
 
 		request := &collectorpb.SettingsRequest{
@@ -283,10 +284,8 @@ func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ co
 		extension.conn, _ = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
 		extension.logger.Info("grpc.Dail to " + extension.config.Endpoint)
 		extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
-		// Perform refresh immediately
-		refresh(extension)
 		go func() {
-			ticker := time.NewTicker(extension.config.Interval)
+			ticker := newTicker(extension.config.Interval)
 			defer ticker.Stop()
 			for {
 				select {
@@ -311,4 +310,20 @@ func (extension *solarwindsapmSettingsExtension) Shutdown(_ context.Context) err
 	} else {
 		return nil
 	}
+}
+
+// Start ticking immediately.
+// Ref: https://stackoverflow.com/questions/32705582/how-to-get-time-tick-to-tick-immediately
+func newTicker(repeat time.Duration) *time.Ticker {
+	ticker := time.NewTicker(repeat)
+	oc := ticker.C
+	nc := make(chan time.Time, 1)
+	go func() {
+		nc <- time.Now()
+		for tm := range oc {
+			nc <- tm
+		}
+	}()
+	ticker.C = nc
+	return ticker
 }
