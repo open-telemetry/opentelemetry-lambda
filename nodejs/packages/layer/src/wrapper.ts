@@ -23,6 +23,7 @@ import { getEnv } from '@opentelemetry/core';
 import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { MeterProvider, MeterProviderOptions } from '@opentelemetry/sdk-metrics';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
@@ -121,8 +122,12 @@ async function initializeProvider() {
   tracerProvider.register(sdkRegistrationConfig);
 
   // Configure default meter provider (doesn't export metrics)
+  const metricExporter = new OTLPMetricExporter();
   let meterConfig: MeterProviderOptions = {
     resource,
+    readers: [new PeriodicExportingMetricReader({
+      exporter: metricExporter,
+    })]
   }
   if (typeof configureMeter === 'function') {
     meterConfig = configureMeter(meterConfig);
