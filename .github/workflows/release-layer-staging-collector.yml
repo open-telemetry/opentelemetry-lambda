@@ -1,0 +1,75 @@
+name: "Release Staging Collector Lambda layer"
+
+on:
+  # (Using tag push instead of release to allow filtering by tag prefix.)
+  push:
+    tags:
+      - layer-staging-collector/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-layer:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture:
+          - amd64
+          - arm64
+    outputs:
+      COLLECTOR_VERSION: ${{ steps.save-collector-version.outputs.COLLECTOR_VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '^1.20.8'
+      - name: build
+        run: make -C collector package GOARCH=${{ matrix.architecture }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+      - name: Save Collector Version
+        if: ${{ matrix.architecture == 'amd64' }}
+        id: save-collector-version
+        shell: bash
+        # `./collector -v` output is in the form `v0.75.0`
+        run: |
+          COLLECTOR_VERSION=$( ${{ github.workspace }}/collector/build/extensions/collector -v)
+          echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> $GITHUB_OUTPUT
+
+  publish-layer:
+    uses: ./.github/workflows/layer-publish.yml
+    needs: build-layer
+    strategy:
+      matrix:
+        architecture:
+          - amd64
+          - arm64
+        aws_region:
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+    with:
+      artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+      layer-name: opentelemetry-collector
+      component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
+      architecture: ${{ matrix.architecture }}
+      release-group: staging
+      aws_region: ${{ matrix.aws_region }}
+    secrets: inherit
