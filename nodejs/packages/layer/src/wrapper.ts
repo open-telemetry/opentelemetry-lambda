@@ -22,8 +22,8 @@ import {
 import { getEnv } from '@opentelemetry/core';
 import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
-import { MeterProvider, MeterProviderOptions } from '@opentelemetry/sdk-metrics';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
+import { MeterProvider, MeterProviderOptions, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
