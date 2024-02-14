@@ -5,7 +5,7 @@ module "hello-lambda-function" {
   architectures = compact([var.architecture])
   function_name = var.name
   handler       = "index.handler"
-  runtime       = "nodejs14.x"
+  runtime       = "nodejs16.x"
 
   create_package         = false
   local_existing_package = "${path.module}/../../build/function.zip"
