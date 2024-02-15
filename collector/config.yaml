@@ -25,7 +25,7 @@ processors:
 
 exporters:
   logging:
-    verbosity: detailed
+    verbosity: ${SW_APM_EXPORTER_LOG_LEVEL}
   otlp:
     endpoint: "https://otel.collector.${SW_APM_DATA_CENTER}.cloud.solarwinds.com:443"
     headers:
