@@ -25,7 +25,7 @@ processors:
 
 exporters:
   logging:
-    verbosity: ${SW_APM_EXPORTER_LOG_LEVEL}
+    verbosity: detailed
   otlp:
     endpoint: "https://otel.collector.${SW_APM_DATA_CENTER}.cloud.solarwinds.com:443"
     headers:
@@ -37,11 +37,11 @@ service:
     traces:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
-      exporters: [otlp,logging]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
-      exporters: [otlp,logging]
+      exporters: [otlp]
   telemetry:
     metrics:
       address: localhost:8888
