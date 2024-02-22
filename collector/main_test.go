@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zapcore"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
 )
 
 func TestInitLogger(t *testing.T) {
