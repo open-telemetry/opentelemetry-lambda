@@ -77,9 +77,9 @@ function getConfigOrFallback<T>(provider: (p:T) => T, fallback: T): T {
 }
 
 const instrumentations = [
-  new AwsInstrumentation(getConfigOrFallback(configureAwsInstrumentation, { suppressInternalInstrumentation: true })),
-  new AwsLambdaInstrumentation(getConfigOrFallback(configureLambdaInstrumentation, {})),
-  ...(getConfigOrFallback(configureInstrumentations, undefined) ?? defaultConfigureInstrumentations())
+  new AwsInstrumentation(getConfigOrFallback(global.configureAwsInstrumentation, { suppressInternalInstrumentation: true })),
+  new AwsLambdaInstrumentation(getConfigOrFallback(global.configureLambdaInstrumentation, {})),
+  ...(getConfigOrFallback(global.configureInstrumentations, undefined) ?? defaultConfigureInstrumentations())
 ];
 
 // configure lambda logging
@@ -96,7 +96,7 @@ async function initializeProvider() {
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  const config: NodeTracerConfig = getConfigOrFallback(configureTracer, { resource })
+  const config: NodeTracerConfig = getConfigOrFallback(global.configureTracer, { resource })
 
   const tracerProvider = new NodeTracerProvider(config);
   if (typeof configureTracerProvider === 'function') {
@@ -112,11 +112,11 @@ async function initializeProvider() {
     tracerProvider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
   }
 
-  const sdkRegistrationConfig: SDKRegistrationConfig = getConfigOrFallback(configureSdkRegistration, {});
+  const sdkRegistrationConfig: SDKRegistrationConfig = getConfigOrFallback(global.configureSdkRegistration, {});
   tracerProvider.register(sdkRegistrationConfig);
 
   // Configure default meter provider (doesn't export metrics)
-  const meterConfig: MeterProviderOptions = getConfigOrFallback(configureMeter, { resource })
+  const meterConfig: MeterProviderOptions = getConfigOrFallback(global.configureMeter, { resource })
   const meterProvider = new MeterProvider(meterConfig);
   if (typeof configureMeterProvider === 'function') {
     configureMeterProvider(meterProvider)
