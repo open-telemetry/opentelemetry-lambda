@@ -12,7 +12,7 @@ import {
   envDetector,
   processDetector,
 } from '@opentelemetry/resources';
-import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk';
+import { AwsInstrumentation, AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
 import {
   diag,
@@ -65,18 +65,21 @@ declare global {
   ): SDKRegistrationConfig;
   function configureMeter(defaultConfig: MeterProviderOptions): MeterProviderOptions;
   function configureMeterProvider(meterProvider: MeterProvider): void
+  function configureAwsInstrumentation(config: AwsSdkInstrumentationConfig): AwsSdkInstrumentationConfig
   function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
   function configureInstrumentations(): Instrumentation[]
 }
 
 console.log('Registering OpenTelemetry');
 
+function getConfigOrFallback<T>(provider: (p:T) => T, fallback: T): T {
+  return typeof provider === 'function' ? provider(fallback) : fallback;
+}
+
 const instrumentations = [
-  new AwsInstrumentation({
-    suppressInternalInstrumentation: true,
-  }),
-  new AwsLambdaInstrumentation(typeof configureLambdaInstrumentation === 'function' ? configureLambdaInstrumentation({}) : {}),
-  ...(typeof configureInstrumentations === 'function' ? configureInstrumentations: defaultConfigureInstrumentations)()
+  new AwsInstrumentation(getConfigOrFallback(configureAwsInstrumentation, { suppressInternalInstrumentation: true })),
+  new AwsLambdaInstrumentation(getConfigOrFallback(configureLambdaInstrumentation, {})),
+  ...(getConfigOrFallback(configureInstrumentations, undefined) ?? defaultConfigureInstrumentations())
 ];
 
 // configure lambda logging
@@ -93,12 +96,7 @@ async function initializeProvider() {
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  let config: NodeTracerConfig = {
-    resource,
-  };
-  if (typeof configureTracer === 'function') {
-    config = configureTracer(config);
-  }
+  const config: NodeTracerConfig = getConfigOrFallback(configureTracer, { resource })
 
   const tracerProvider = new NodeTracerProvider(config);
   if (typeof configureTracerProvider === 'function') {
@@ -114,20 +112,11 @@ async function initializeProvider() {
     tracerProvider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
   }
 
-  let sdkRegistrationConfig: SDKRegistrationConfig = {};
-  if (typeof configureSdkRegistration === 'function') {
-    sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
-  }
+  const sdkRegistrationConfig: SDKRegistrationConfig = getConfigOrFallback(configureSdkRegistration, {});
   tracerProvider.register(sdkRegistrationConfig);
 
   // Configure default meter provider (doesn't export metrics)
-  let meterConfig: MeterProviderOptions = {
-    resource,
-  }
-  if (typeof configureMeter === 'function') {
-    meterConfig = configureMeter(meterConfig);
-  }
-
+  const meterConfig: MeterProviderOptions = getConfigOrFallback(configureMeter, { resource })
   const meterProvider = new MeterProvider(meterConfig);
   if (typeof configureMeterProvider === 'function') {
     configureMeterProvider(meterProvider)
