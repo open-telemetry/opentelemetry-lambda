@@ -37,11 +37,11 @@ service:
     traces:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
-      exporters: [otlp]
+      exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
-      exporters: [otlp]
+      exporters: [otlp,logging]
   telemetry:
     metrics:
       address: localhost:8888
