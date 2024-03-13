@@ -20,7 +20,7 @@ processors:
   resource:
     attributes:
       - key: sw.cloud.aws.resource.type
-        value: "lambda"
+        value: "Lambda"
         action: upsert
 
 exporters:
