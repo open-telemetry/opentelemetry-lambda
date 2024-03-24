@@ -33,12 +33,12 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/processor/processortest"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
 	"go.uber.org/multierr"
 )
 
 func TestProcessor(t *testing.T) {
-	executionTraceID := getTraceID()
+	invocationTraceID := getTraceID()
 	testCases := []struct {
 		desc          string
 		input         ptrace.Traces
@@ -53,7 +53,7 @@ func TestProcessor(t *testing.T) {
 			expectedError: processorhelper.ErrSkipProcessingData,
 		},
 		{
-			desc: "coldstart without execution",
+			desc: "coldstart without invocation",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
@@ -64,26 +64,26 @@ func TestProcessor(t *testing.T) {
 			expectedError: processorhelper.ErrSkipProcessingData,
 		},
 		{
-			desc: "execution without coldstart",
+			desc: "invocation without coldstart",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
-				addExecutionSpan(td, executionTraceID)
+				addInvocationSpan(td, invocationTraceID)
 				return td
 			}(),
 			expected: func() ptrace.Traces {
 				td := ptrace.NewTraces()
-				addExecutionSpan(td, executionTraceID)
+				addInvocationSpan(td, invocationTraceID)
 				return td
 			}(),
 		},
 		{
-			desc: "faas.execution and faas.coldstart with coldstart is first",
+			desc: "faas.invocation and faas.coldstart with coldstart is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 				span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
 				span.Attributes().PutBool("faas.initialization", true)
-				addExecutionSpan(td, executionTraceID)
+				addInvocationSpan(td, invocationTraceID)
 				return td
 			}(),
 			expected: func() ptrace.Traces {
@@ -91,19 +91,19 @@ func TestProcessor(t *testing.T) {
 				rs := td.ResourceSpans().AppendEmpty()
 				ss := rs.ScopeSpans().AppendEmpty()
 
-				rs.Resource().Attributes().PutStr("resource-attr", "faas-execution")
-				ss.Scope().SetName("app/execution")
-				executionSpan(ss.Spans().AppendEmpty(), executionTraceID)
-				initializationSpan(ss.Spans().AppendEmpty(), executionTraceID)
+				rs.Resource().Attributes().PutStr("resource-attr", "faas-invocation")
+				ss.Scope().SetName("app/invocation")
+				invocationSpan(ss.Spans().AppendEmpty(), invocationTraceID)
+				initializationSpan(ss.Spans().AppendEmpty(), invocationTraceID)
 				return td
 			}(),
 			reported: true,
 		},
 		{
-			desc: "faas.execution and faas.coldstart with execution is first",
+			desc: "faas.invocation and faas.coldstart with invocation is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
-				addExecutionSpan(td, executionTraceID)
+				addInvocationSpan(td, invocationTraceID)
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
 				span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
 				span.Attributes().PutBool("faas.initialization", true)
@@ -113,14 +113,14 @@ func TestProcessor(t *testing.T) {
 				td := ptrace.NewTraces()
 				rs := td.ResourceSpans().AppendEmpty()
 				ss := rs.ScopeSpans().AppendEmpty()
-				rs.Resource().Attributes().PutStr("resource-attr", "faas-execution")
-				ss.Scope().SetName("app/execution")
-				executionSpan(ss.Spans().AppendEmpty(), executionTraceID)
+				rs.Resource().Attributes().PutStr("resource-attr", "faas-invocation")
+				ss.Scope().SetName("app/invocation")
+				invocationSpan(ss.Spans().AppendEmpty(), invocationTraceID)
 				rs = td.ResourceSpans().AppendEmpty()
 				ss = rs.ScopeSpans().AppendEmpty()
-				rs.Resource().Attributes().PutStr("resource-attr", "faas-execution")
-				ss.Scope().SetName("app/execution")
-				initializationSpan(ss.Spans().AppendEmpty(), executionTraceID)
+				rs.Resource().Attributes().PutStr("resource-attr", "faas-invocation")
+				ss.Scope().SetName("app/invocation")
+				initializationSpan(ss.Spans().AppendEmpty(), invocationTraceID)
 				return td
 			}(),
 			reported: true,
@@ -153,7 +153,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 	require.NoError(t, err)
 	expected := ptrace.NewTraces()
 	input := ptrace.NewTraces()
-	addExecutionSpan(input, getTraceID())
+	addInvocationSpan(input, getTraceID())
 	input.CopyTo(expected)
 	output, err := c.processTraces(context.Background(), input)
 	require.NoError(t, err)
@@ -173,8 +173,8 @@ func TestMultipleProcessTraces(t *testing.T) {
 	require.Error(t, compareTraces(expected, output))
 	attr, ok := output.ResourceSpans().At(0).Resource().Attributes().Get("resource-attr")
 	require.True(t, ok)
-	require.Equal(t, "faas-execution", attr.AsString())
-	require.Equal(t, "app/execution", output.ResourceSpans().At(0).ScopeSpans().At(0).Scope().Name())
+	require.Equal(t, "faas-invocation", attr.AsString())
+	require.Equal(t, "app/invocation", output.ResourceSpans().At(0).ScopeSpans().At(0).Scope().Name())
 	require.True(t, c.reported)
 
 	c, err = newColdstartProcessor(
@@ -196,7 +196,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 
 	expected = ptrace.NewTraces()
 	input = ptrace.NewTraces()
-	addExecutionSpan(input, getTraceID())
+	addInvocationSpan(input, getTraceID())
 	input.CopyTo(expected)
 	output, err = c.processTraces(context.Background(), input)
 	require.NoError(t, err)
@@ -204,8 +204,8 @@ func TestMultipleProcessTraces(t *testing.T) {
 	require.Error(t, compareTraces(expected, output))
 	attr, ok = output.ResourceSpans().At(0).Resource().Attributes().Get("resource-attr")
 	require.True(t, ok)
-	require.Equal(t, "faas-execution", attr.AsString())
-	require.Equal(t, "app/execution", output.ResourceSpans().At(0).ScopeSpans().At(0).Scope().Name())
+	require.Equal(t, "faas-invocation", attr.AsString())
+	require.Equal(t, "app/invocation", output.ResourceSpans().At(0).ScopeSpans().At(0).Scope().Name())
 	require.True(t, c.reported)
 }
 
@@ -218,19 +218,19 @@ func getTraceID() pcommon.TraceID {
 	return tid
 }
 
-func addExecutionSpan(td ptrace.Traces, id pcommon.TraceID) {
+func addInvocationSpan(td ptrace.Traces, id pcommon.TraceID) {
 	rs := td.ResourceSpans().AppendEmpty()
-	rs.Resource().Attributes().PutStr("resource-attr", "faas-execution")
+	rs.Resource().Attributes().PutStr("resource-attr", "faas-invocation")
 	ss := rs.ScopeSpans().AppendEmpty()
-	ss.Scope().SetName("app/execution")
+	ss.Scope().SetName("app/invocation")
 	span := ss.Spans().AppendEmpty()
 	span.SetTraceID(id)
-	span.Attributes().PutStr(semconv.AttributeFaaSExecution, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(semconv.AttributeFaaSInvocationID, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
-func executionSpan(span ptrace.Span, id pcommon.TraceID) {
+func invocationSpan(span ptrace.Span, id pcommon.TraceID) {
 	span.SetTraceID(id)
-	span.Attributes().PutStr(semconv.AttributeFaaSExecution, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(semconv.AttributeFaaSInvocationID, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
 func initializationSpan(span ptrace.Span, id pcommon.TraceID) {

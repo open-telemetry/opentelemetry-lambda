@@ -22,22 +22,22 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
 	"go.uber.org/zap"
 )
 
-type faasExecution struct {
+type faasInvocation struct {
 	span     ptrace.Span
 	scope    pcommon.InstrumentationScope
 	resource pcommon.Resource
 }
 
 type coldstartProcessor struct {
-	coldstartSpan *ptrace.Span
-	faasExecution *faasExecution
-	logger        *zap.Logger
-	nextConsumer  consumer.Traces
-	reported      bool // whether the cold start has already been reported
+	coldstartSpan  *ptrace.Span
+	faasInvocation *faasInvocation
+	logger         *zap.Logger
+	nextConsumer   consumer.Traces
+	reported       bool // whether the cold start has already been reported
 }
 
 func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
@@ -53,31 +53,31 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 					return false
 				}
 				if attr, ok := span.Attributes().Get(semconv.AttributeFaaSColdstart); ok && attr.Bool() {
-					if p.faasExecution == nil {
+					if p.faasInvocation == nil {
 						sp := ptrace.NewSpan()
 						p.coldstartSpan = &sp
 						span.CopyTo(*p.coldstartSpan)
 						return true
 					} else {
-						p.faasExecution.scope.CopyTo(scope)
-						p.faasExecution.resource.CopyTo(resource)
-						span.SetParentSpanID(p.faasExecution.span.ParentSpanID())
-						span.SetTraceID(p.faasExecution.span.TraceID())
+						p.faasInvocation.scope.CopyTo(scope)
+						p.faasInvocation.resource.CopyTo(resource)
+						span.SetParentSpanID(p.faasInvocation.span.ParentSpanID())
+						span.SetTraceID(p.faasInvocation.span.TraceID())
 						p.reported = true
 						return false
 					}
 				}
-				if _, ok := span.Attributes().Get(semconv.AttributeFaaSExecution); ok {
+				if _, ok := span.Attributes().Get(semconv.AttributeFaaSInvocationID); ok {
 					if p.coldstartSpan == nil {
-						p.faasExecution = &faasExecution{
+						p.faasInvocation = &faasInvocation{
 							span:     ptrace.NewSpan(),
 							scope:    pcommon.NewInstrumentationScope(),
 							resource: pcommon.NewResource(),
 						}
 
-						scope.CopyTo(p.faasExecution.scope)
-						resource.CopyTo(p.faasExecution.resource)
-						span.CopyTo(p.faasExecution.span)
+						scope.CopyTo(p.faasInvocation.scope)
+						resource.CopyTo(p.faasInvocation.resource)
+						span.CopyTo(p.faasInvocation.span)
 					} else {
 						s := ss.Spans().AppendEmpty()
 						p.coldstartSpan.CopyTo(s)
