@@ -67,9 +67,10 @@ jobs:
           - us-west-2
     with:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
-      layer-name: opentelemetry-collector
+      layer-name: logzio-opentelemetry-collector
       component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
+      runtimes: "nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 provided.al2023"
     secrets: inherit
