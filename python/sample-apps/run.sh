@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euf -o pipefail
 
 cp -r ../src/otel .
 cp ../src/run.sh layer.sh

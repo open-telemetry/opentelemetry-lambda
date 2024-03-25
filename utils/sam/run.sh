@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -e
-set -u
+set -euf -o pipefail
 
 echo_usage() {
 	echo "usage: Deploy Lambda layer/application by SAM"

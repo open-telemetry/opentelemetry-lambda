@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ef -o pipefail
+
 # Copyright The OpenTelemetry Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,6 +98,12 @@ fi
 
 if [ -z "${OTEL_SERVICE_NAME}" ]; then
     export OTEL_SERVICE_NAME=$AWS_LAMBDA_FUNCTION_NAME;
+fi
+
+# - Set the propagators
+
+if [[ -z "$OTEL_PROPAGATORS" ]]; then
+  export OTEL_PROPAGATORS="tracecontext,baggage,xray"
 fi
 
 # - Set the Resource Detectors (Resource Attributes)
