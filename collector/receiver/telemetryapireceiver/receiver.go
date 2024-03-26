@@ -118,15 +118,15 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 	// Configure histogram aggregation based on configuration
 	var aggregation sdkmetric.Aggregation
 	if r.cfg.Metrics.UseExponentialHistograms {
+		aggregation = sdkmetric.AggregationBase2ExponentialHistogram{
+			MaxSize:  160,
+			MaxScale: 20,
+		}
+	} else {
 		aggregation = sdkmetric.AggregationExplicitBucketHistogram{
 			Boundaries: []float64{
 				0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10,
 			},
-		}
-	} else {
-		aggregation = sdkmetric.AggregationBase2ExponentialHistogram{
-			MaxSize:  160,
-			MaxScale: 20,
 		}
 	}
 	view := sdkmetric.NewView(
@@ -166,7 +166,7 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 	r.metricColdstarts, err = meter.Int64Counter(
 		"faas.coldstarts",
 		metric.WithDescription("Number of invocation cold starts."),
-		metric.WithUnit("s"),
+		metric.WithUnit("1"),
 	)
 	r.metricSuccesses, err = meter.Int64Counter(
 		"faas.invocations",
