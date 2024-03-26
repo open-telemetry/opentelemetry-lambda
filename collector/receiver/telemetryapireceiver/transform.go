@@ -5,6 +5,7 @@ import (
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
@@ -17,23 +18,23 @@ func transformMetric(src metricdata.Metrics, dst pmetric.Metric) error {
 	dst.SetName(src.Name)
 	dst.SetDescription(src.Description)
 	dst.SetUnit(src.Unit)
-	// switch data := src.Data.(type) {
+	switch data := src.Data.(type) {
 	// case metricdata.ExponentialHistogram[float64]:
 	// 	instrument := dst.SetEmptyExponentialHistogram()
 	// 	transformExponentialHistogram(data, instrument)
 	// case metricdata.ExponentialHistogram[int64]:
 	// 	instrument := dst.SetEmptyExponentialHistogram()
 	// 	transformExponentialHistogram(data, instrument)
-	// case metricdata.Sum[int64]:
-	// 	instrument := dst.SetEmptySum()
-	// 	transformCounterInt(data, instrument)
+	case metricdata.Sum[int64]:
+		instrument := dst.SetEmptySum()
+		transformCounterInt(data, instrument)
 	// case metricdata.Sum[float64]:
 	// 	instrument := dst.SetEmptySum()
 	// 	transformCounterFloat(data, instrument)
-	// default:
-	// 	break
-	// return errUnsupportedInstrumentType
-	// }
+	default:
+		break
+		// return errUnsupportedInstrumentType
+	}
 	return nil
 }
 
@@ -74,6 +75,7 @@ func transformCounterInt(src metricdata.Sum[int64], dst pmetric.Sum) {
 		dp.SetIntValue(datapoint.Value)
 		dp.SetStartTimestamp(pcommon.NewTimestampFromTime(datapoint.StartTime))
 		dp.SetTimestamp(pcommon.NewTimestampFromTime(datapoint.Time))
+		transformAttributes(datapoint.Attributes, dp.Attributes())
 	}
 }
 
@@ -89,6 +91,28 @@ func transformCounterFloat(src metricdata.Sum[float64], dst pmetric.Sum) {
 }
 
 /* ------------------------------------------- UTILS ------------------------------------------- */
+
+func transformAttributes(src attribute.Set, dst pcommon.Map) {
+	iter := src.Iter()
+	for _, kv := range iter.ToSlice() {
+		if !kv.Valid() || !kv.Key.Defined() {
+			continue
+		}
+		key := string(kv.Key)
+		switch kv.Value.Type() {
+		case attribute.BOOL:
+			dst.PutBool(key, kv.Value.AsBool())
+		case attribute.FLOAT64:
+			dst.PutDouble(key, kv.Value.AsFloat64())
+		case attribute.INT64:
+			dst.PutInt(key, kv.Value.AsInt64())
+		case attribute.STRING:
+			dst.PutStr(key, kv.Value.AsString())
+		default:
+			continue
+		}
+	}
+}
 
 func mapTemporality(t metricdata.Temporality) pmetric.AggregationTemporality {
 	switch t {
