@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
@@ -375,6 +376,11 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 			}
 		}
 	}
+
+	rr := pmetricotlp.NewExportRequestFromMetrics(metricData)
+	json, err := rr.MarshalJSON()
+	fmt.Printf("JSON: %s\n", string(json))
+	fmt.Printf("Error: %s\n", err)
 
 	// Eventually, forward the metrics to the consumer
 	if err := r.nextMetricsConsumer.ConsumeMetrics(context.Background(), metricData); err != nil {
