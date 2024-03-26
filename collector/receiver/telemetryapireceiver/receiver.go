@@ -360,9 +360,8 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 
 	// Initialize internal metrics representation
 	metricData := pmetric.NewMetrics()
-	rs := metricData.ResourceMetrics().AppendEmpty()
-	r.resource.CopyTo(rs.Resource())
 	resourceMetricData := metricData.ResourceMetrics().AppendEmpty()
+	r.resource.CopyTo(resourceMetricData.Resource())
 
 	// Parse metrics from metrics reader into internal representation
 	for _, scope := range resourceMetrics.ScopeMetrics {
