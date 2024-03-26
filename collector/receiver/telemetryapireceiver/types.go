@@ -19,3 +19,43 @@ type event struct {
 	Type   string         `json:"type"`
 	Record map[string]any `json:"record"`
 }
+
+// NOTE: Types defined here do not include all attributes sent by the Telemetry API but only those
+//       relevant to this package. For a full overview, consult the documentation:
+//       https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-events
+
+type platformInitReportRecord struct {
+	Metrics struct {
+		DurationMs float64 `mapstructure:"durationMs"`
+	} `mapstructure:"metrics"`
+}
+
+type platformStartRecord struct {
+	RequestID string `mapstructure:"requestId"`
+}
+
+type platformRuntimeDoneRecord struct {
+	RequestID string `mapstructure:"requestId"`
+	Status    status `mapstructure:"status"`
+	Metrics   *struct {
+		DurationMs float64 `mapstructure:"durationMs"`
+	} `mapstructure:"metrics"`
+}
+
+type platformReport struct {
+	Metrics struct {
+		BilledDurationMs float64 `mapstructure:"billedDurationMs"`
+		MaxMemoryUsedMb  int64   `mapstructure:"maxMemoryUsedMB"`
+	} `mapstructure:"metrics"`
+}
+
+/* ----------------------------------------- CONSTANTS ----------------------------------------- */
+
+type status string
+
+const (
+	statusSuccess = status("success")
+	statusFailure = status("failure")
+	statusError   = status("error")
+	statusTimeout = status("timeout")
+)

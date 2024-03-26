@@ -17,6 +17,13 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 // Config defines the configuration for the various elements of the receiver agent.
 type Config struct {
 	extensionID string
+	Metrics     MetricsConfig `mapstructure:"metrics"`
+}
+
+// MetricsConfig defines configuration for the collection of metrics from the Telemetry API.
+type MetricsConfig struct {
+	UseExponentialHistograms bool `mapstructure:"use_exponential_histograms"`
+	IncludeBilledDuration    bool `mapstructure:"include_billed_duration"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields

@@ -17,6 +17,7 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -32,6 +33,7 @@ var errConfigNotTelemetryAPI = errors.New("config was not a Telemetry API receiv
 
 // NewFactory creates a new receiver factory
 func NewFactory(extensionID string) receiver.Factory {
+	cache := &ReceiverCache{}
 	return receiver.NewFactory(
 		typeStr,
 		func() component.Config {
@@ -39,14 +41,65 @@ func NewFactory(extensionID string) receiver.Factory {
 				extensionID: extensionID,
 			}
 		},
-		receiver.WithTraces(createTracesReceiver, stability))
+		receiver.WithTraces(cache.createTracesReceiver, stability),
+		receiver.WithMetrics(cache.createMetricsReceiver, stability),
+	)
 }
 
-func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
+/* ------------------------------------------- CACHE ------------------------------------------- */
+
+type ReceiverCache struct {
+	lock     sync.Mutex
+	receiver *telemetryAPIReceiver
+}
+
+func (c *ReceiverCache) createTracesReceiver(
+	_ context.Context,
+	params receiver.CreateSettings,
+	rConf component.Config,
+	next consumer.Traces,
+) (receiver.Traces, error) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	if c.receiver == nil {
+		if err := c.setReceiver(params, rConf); err != nil {
+			return nil, err
+		}
+	}
+	c.receiver.setTracesConsumer(next)
+	return c.receiver, nil
+}
+
+func (c *ReceiverCache) createMetricsReceiver(
+	_ context.Context,
+	params receiver.CreateSettings,
+	rConf component.Config,
+	next consumer.Metrics,
+) (receiver.Metrics, error) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	if c.receiver == nil {
+		if err := c.setReceiver(params, rConf); err != nil {
+			return nil, err
+		}
+	}
+	c.receiver.setMetricsConsumer(next)
+	return c.receiver, nil
+}
+
+func (c *ReceiverCache) setReceiver(
+	params receiver.CreateSettings, rConf component.Config,
+) error {
 	cfg, ok := rConf.(*Config)
 	if !ok {
-		return nil, errConfigNotTelemetryAPI
+		return errConfigNotTelemetryAPI
 	}
-
-	return newTelemetryAPIReceiver(cfg, next, params)
+	receiver, err := newTelemetryAPIReceiver(cfg, params)
+	if err != nil {
+		return err
+	}
+	c.receiver = receiver
+	return nil
 }
