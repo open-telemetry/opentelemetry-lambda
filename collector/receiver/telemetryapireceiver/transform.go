@@ -18,12 +18,12 @@ func transformMetric(src metricdata.Metrics, dst pmetric.Metric) error {
 	dst.SetDescription(src.Description)
 	dst.SetUnit(src.Unit)
 	switch data := src.Data.(type) {
-	case metricdata.ExponentialHistogram[float64]:
-		instrument := dst.SetEmptyExponentialHistogram()
-		transformExponentialHistogram(data, instrument)
-	case metricdata.ExponentialHistogram[int64]:
-		instrument := dst.SetEmptyExponentialHistogram()
-		transformExponentialHistogram(data, instrument)
+	// case metricdata.ExponentialHistogram[float64]:
+	// 	instrument := dst.SetEmptyExponentialHistogram()
+	// 	transformExponentialHistogram(data, instrument)
+	// case metricdata.ExponentialHistogram[int64]:
+	// 	instrument := dst.SetEmptyExponentialHistogram()
+	// 	transformExponentialHistogram(data, instrument)
 	case metricdata.Sum[int64]:
 		instrument := dst.SetEmptySum()
 		transformCounterInt(data, instrument)
@@ -31,7 +31,8 @@ func transformMetric(src metricdata.Metrics, dst pmetric.Metric) error {
 		instrument := dst.SetEmptySum()
 		transformCounterFloat(data, instrument)
 	default:
-		return errUnsupportedInstrumentType
+		break
+		// return errUnsupportedInstrumentType
 	}
 	return nil
 }
