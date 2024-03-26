@@ -7,13 +7,13 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-lambda/collector v0.91.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/collector/component v0.92.0
 	go.opentelemetry.io/collector/consumer v0.92.0
 	go.opentelemetry.io/collector/pdata v1.0.1
 	go.opentelemetry.io/collector/receiver v0.92.0
 	go.opentelemetry.io/collector/semconv v0.92.0
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 )
 
 require (
@@ -43,6 +43,6 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/grpc v1.60.1 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
