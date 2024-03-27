@@ -24,6 +24,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -87,14 +88,15 @@ func newTelemetryAPIReceiver(
 	} else {
 		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
 	}
-	envSources := map[string]string{
-		semconv.AttributeFaaSMaxMemory: "AWS_LAMBDA_FUNCTION_MEMORY_SIZE",
-		semconv.AttributeFaaSVersion:   "AWS_LAMBDA_FUNCTION_VERSION",
-		semconv.AttributeFaaSInstance:  "AWS_LAMBDA_LOG_STREAM_NAME",
+	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_VERSION"); ok {
+		r.Attributes().PutStr(semconv.AttributeFaaSVersion, val)
 	}
-	for resourceAttribute, env := range envSources {
-		if val, ok := os.LookupEnv(env); ok {
-			r.Attributes().PutStr(resourceAttribute, val)
+	if val, ok := os.LookupEnv("AWS_LAMBDA_LOG_STREAM_NAME"); ok {
+		r.Attributes().PutStr(semconv.AttributeFaaSInstance, val)
+	}
+	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"); ok {
+		if mb, err := strconv.Atoi(val); err == nil {
+			r.Attributes().PutInt(semconv.AttributeFaaSMaxMemory, int64(mb)*1024*1024)
 		}
 	}
 
@@ -110,6 +112,7 @@ func newTelemetryAPIReceiver(
 
 func (r *telemetryAPIReceiver) setTracesConsumer(next consumer.Traces) {
 	r.nextTracesConsumer = next
+	r.logger.Info("set traces consumer")
 }
 
 func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
@@ -189,6 +192,7 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
+	r.logger.Info("set metrics consumer")
 	return err
 }
 
