@@ -14,9 +14,11 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
+      processors: [decouple]
       exporters: [logging]
     metrics:
       receivers: [otlp]
+      processors: [decouple]
       exporters: [logging]
   telemetry:
     metrics:
