@@ -2,6 +2,7 @@ package telemetryapireceiver
 
 import (
 	"errors"
+	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -13,23 +14,23 @@ import (
 
 var errUnsupportedInstrumentType = errors.New("instrument type is currently unsupported")
 
-func transformMetric(src metricdata.Metrics, dst pmetric.Metric) error {
+func transformMetric(src metricdata.Metrics, dst pmetric.Metric, timestamp time.Time) error {
 	dst.SetName(src.Name)
 	dst.SetDescription(src.Description)
 	dst.SetUnit(src.Unit)
 	switch data := src.Data.(type) {
 	case metricdata.ExponentialHistogram[float64]:
 		instrument := dst.SetEmptyExponentialHistogram()
-		transformExponentialHistogram(data, instrument)
+		transformExponentialHistogram(data, instrument, timestamp)
 	case metricdata.ExponentialHistogram[int64]:
 		instrument := dst.SetEmptyExponentialHistogram()
-		transformExponentialHistogram(data, instrument)
+		transformExponentialHistogram(data, instrument, timestamp)
 	case metricdata.Sum[int64]:
 		instrument := dst.SetEmptySum()
-		transformCounterInt(data, instrument)
+		transformCounterInt(data, instrument, timestamp)
 	case metricdata.Sum[float64]:
 		instrument := dst.SetEmptySum()
-		transformCounterFloat(data, instrument)
+		transformCounterFloat(data, instrument, timestamp)
 	default:
 		return errUnsupportedInstrumentType
 	}
@@ -41,6 +42,7 @@ func transformMetric(src metricdata.Metrics, dst pmetric.Metric) error {
 func transformExponentialHistogram[N int64 | float64](
 	src metricdata.ExponentialHistogram[N],
 	dst pmetric.ExponentialHistogram,
+	timestamp time.Time,
 ) {
 	dst.SetAggregationTemporality(mapTemporality(src.Temporality))
 	for _, datapoint := range src.DataPoints {
@@ -55,7 +57,7 @@ func transformExponentialHistogram[N int64 | float64](
 		dp.SetScale(datapoint.Scale)
 		dp.SetStartTimestamp(pcommon.NewTimestampFromTime(datapoint.StartTime))
 		dp.SetSum(float64(datapoint.Sum))
-		dp.SetTimestamp(pcommon.NewTimestampFromTime(datapoint.Time))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 		dp.SetZeroCount(datapoint.ZeroCount)
 		dp.SetZeroThreshold(datapoint.ZeroThreshold)
 		dp.Negative().SetOffset(datapoint.NegativeBucket.Offset)
@@ -65,25 +67,25 @@ func transformExponentialHistogram[N int64 | float64](
 	}
 }
 
-func transformCounterInt(src metricdata.Sum[int64], dst pmetric.Sum) {
+func transformCounterInt(src metricdata.Sum[int64], dst pmetric.Sum, timestamp time.Time) {
 	dst.SetAggregationTemporality(mapTemporality(src.Temporality))
 	dst.SetIsMonotonic(src.IsMonotonic)
 	for _, datapoint := range src.DataPoints {
 		dp := dst.DataPoints().AppendEmpty()
 		dp.SetIntValue(datapoint.Value)
 		dp.SetStartTimestamp(pcommon.NewTimestampFromTime(datapoint.StartTime))
-		dp.SetTimestamp(pcommon.NewTimestampFromTime(datapoint.Time))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	}
 }
 
-func transformCounterFloat(src metricdata.Sum[float64], dst pmetric.Sum) {
+func transformCounterFloat(src metricdata.Sum[float64], dst pmetric.Sum, timestamp time.Time) {
 	dst.SetAggregationTemporality(mapTemporality(src.Temporality))
 	dst.SetIsMonotonic(src.IsMonotonic)
 	for _, datapoint := range src.DataPoints {
 		dp := dst.DataPoints().AppendEmpty()
 		dp.SetDoubleValue(datapoint.Value)
 		dp.SetStartTimestamp(pcommon.NewTimestampFromTime(datapoint.StartTime))
-		dp.SetTimestamp(pcommon.NewTimestampFromTime(datapoint.Time))
+		dp.SetTimestamp(pcommon.NewTimestampFromTime(timestamp))
 	}
 }
 

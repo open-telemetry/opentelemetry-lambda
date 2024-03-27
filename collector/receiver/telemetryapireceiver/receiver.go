@@ -19,6 +19,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -48,6 +49,8 @@ const (
 	instrumentationScope = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 )
 
+var errUnknownMetric = errors.New("metric is unknown")
+
 /* ------------------------------------------ CREATION ----------------------------------------- */
 
 type telemetryAPIReceiver struct {
@@ -64,16 +67,19 @@ type telemetryAPIReceiver struct {
 	// METRICS
 	// NOTE: We're using the OpenTelemetry SDK here as generating 'pmetric' structures entirely
 	//  manually is error-prone and would duplicate plenty of code available in the SDK.
-	nextMetricsConsumer   consumer.Metrics
-	metricsReader         *sdkmetric.ManualReader
-	metricInitDurations   metric.Float64Histogram
-	metricInvokeDurations metric.Float64Histogram
-	metricColdstarts      metric.Int64Counter
-	metricBilledDuration  metric.Float64Counter
-	metricSuccesses       metric.Int64Counter
-	metricFailures        metric.Int64Counter
-	metricTimeouts        metric.Int64Counter
-	metricMemoryUsages    metric.Int64Histogram
+	nextMetricsConsumer         consumer.Metrics
+	metricsReader               *sdkmetric.ManualReader
+	metricInitDurations         metric.Float64Histogram
+	metricInvokeDurations       metric.Float64Histogram
+	metricColdstarts            metric.Int64Counter
+	metricBilledDuration        metric.Float64Counter
+	metricSuccesses             metric.Int64Counter
+	metricFailures              metric.Int64Counter
+	metricTimeouts              metric.Int64Counter
+	metricMemoryUsages          metric.Int64Histogram
+	lastPlatformInitReportTime  string
+	lastPlatformRuntimeDoneTime string
+	lastPlatformReportTime      string
 	// LOGS
 	nextLogsConsumer consumer.Logs
 }
@@ -272,6 +278,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Concluding report on function initialization.
 		case string(telemetryapi.PlatformInitReport):
 			r.logger.Debug(fmt.Sprintf("Init report: %s", el.Time), zap.Any("event", el))
+			r.lastPlatformReportTime = el.Time
 			if r.metricsReader == nil {
 				continue
 			}
@@ -286,6 +293,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function invocation completed.
 		case string(telemetryapi.PlatformRuntimeDone):
 			r.logger.Debug(fmt.Sprintf("Invoke end: %s", el.Time), zap.Any("event", el))
+			r.lastPlatformRuntimeDoneTime = el.Time
 			if r.metricsReader == nil {
 				continue
 			}
@@ -303,6 +311,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Concluding report on function invocation (after runtime freeze).
 		case string(telemetryapi.PlatformReport):
 			r.logger.Debug(fmt.Sprintf("Invoke report: %s", el.Time), zap.Any("event", el))
+			r.lastPlatformReportTime = el.Time
 			if r.metricsReader == nil {
 				continue
 			}
@@ -390,8 +399,16 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 		scopeMetrics := resourceMetricData.ScopeMetrics().AppendEmpty()
 		scopeMetrics.Scope().SetName(scope.Scope.Name)
 		for _, metric := range scope.Metrics {
+			ts, err := r.metricTimestamp(metric.Name)
+			if err != nil {
+				r.logger.Error(
+					fmt.Sprintf("failed to obtain last timestamp for metric '%s'", metric.Name),
+					zap.Error(err),
+				)
+				continue
+			}
 			innerMetric := scopeMetrics.Metrics().AppendEmpty()
-			if err := transformMetric(metric, innerMetric); err != nil {
+			if err := transformMetric(metric, innerMetric, ts); err != nil {
 				r.logger.Error("error parsing collected metrics", zap.Error(err))
 				return
 			}
@@ -450,13 +467,12 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	span.SetName("platform.initRuntimeDone")
 	span.SetKind(ptrace.SpanKindInternal)
 	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
-	layout := "2006-01-02T15:04:05.000Z"
-	startTime, err := time.Parse(layout, start)
+	startTime, err := parseTime(start)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}
 	span.SetStartTimestamp(pcommon.NewTimestampFromTime(startTime))
-	endTime, err := time.Parse(layout, end)
+	endTime, err := parseTime(end)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}
@@ -464,9 +480,29 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	return traceData, nil
 }
 
+/* ------------------------------------------ METRICS ------------------------------------------ */
+
+func (r *telemetryAPIReceiver) metricTimestamp(metricName string) (time.Time, error) {
+	switch metricName {
+	case "faas.coldstarts", "faas.init_durations":
+		return parseTime(r.lastPlatformInitReportTime)
+	case "faas.invoke_duration", "faas.invocations", "faas.errors", "faas.timeouts":
+		return parseTime(r.lastPlatformRuntimeDoneTime)
+	case "faas.billed_duration", "faas.mem_usage":
+		return parseTime(r.lastPlatformReportTime)
+	default:
+		return time.Time{}, errUnknownMetric
+	}
+}
+
 /* -------------------------------------------- LOGS ------------------------------------------- */
 
 /* ------------------------------------------- UTILS ------------------------------------------- */
+
+func parseTime(t string) (time.Time, error) {
+	layout := "2006-01-02T15:04:05.000Z"
+	return time.Parse(layout, t)
+}
 
 func listenOnAddress() string {
 	envAwsLocal, ok := os.LookupEnv("AWS_SAM_LOCAL")
