@@ -278,7 +278,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Concluding report on function initialization.
 		case string(telemetryapi.PlatformInitReport):
 			r.logger.Debug(fmt.Sprintf("Init report: %s", el.Time), zap.Any("event", el))
-			r.lastPlatformReportTime = el.Time
+			r.lastPlatformInitReportTime = el.Time
 			if r.metricsReader == nil {
 				continue
 			}
@@ -484,7 +484,7 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 
 func (r *telemetryAPIReceiver) metricTimestamp(metricName string) (time.Time, error) {
 	switch metricName {
-	case "faas.coldstarts", "faas.init_durations":
+	case "faas.coldstarts", "faas.init_duration":
 		return parseTime(r.lastPlatformInitReportTime)
 	case "faas.invoke_duration", "faas.invocations", "faas.errors", "faas.timeouts":
 		return parseTime(r.lastPlatformRuntimeDoneTime)
