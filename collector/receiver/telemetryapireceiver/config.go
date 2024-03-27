@@ -23,7 +23,6 @@ type Config struct {
 // MetricsConfig defines configuration for the collection of metrics from the Telemetry API.
 type MetricsConfig struct {
 	UseExponentialHistograms bool `mapstructure:"use_exponential_histograms"`
-	IncludeBilledDuration    bool `mapstructure:"include_billed_duration"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields

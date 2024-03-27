@@ -72,7 +72,6 @@ type telemetryAPIReceiver struct {
 	metricInitDurations         metric.Float64Histogram
 	metricInvokeDurations       metric.Float64Histogram
 	metricColdstarts            metric.Int64Counter
-	metricBilledDuration        metric.Float64Counter
 	metricSuccesses             metric.Int64Counter
 	metricFailures              metric.Int64Counter
 	metricTimeouts              metric.Int64Counter
@@ -151,10 +150,12 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 	)
 	meter := provider.Meter(instrumentationScope)
 
-	// Build the metrics and propagate the last error
+	// Build the metrics and propagate the last error. For all counters, we push a value of
+	// zero to properly indicate the start of the counter. This is particularly important if the
+	// Lambda function is called rarely. Unfortunately, histograms cannot easily be
+	// zero-initialized.
 	// NOTE: The metrics defined here follow the semantic conventions for FaaS Metrics:
 	//       https://opentelemetry.io/docs/specs/semconv/faas/faas-metrics/
-	//       The only exception is `faas.billed_duration` which can be enabled via config.
 	var err error
 	r.metricInvokeDurations, err = meter.Float64Histogram(
 		"faas.invoke_duration",
@@ -167,48 +168,44 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithUnit("s"),
 	)
 
-	if r.cfg.Metrics.IncludeBilledDuration {
-		r.metricBilledDuration, err = meter.Float64Counter(
-			"faas.billed_duration",
-			metric.WithDescription("The duration for which the function was billed."),
-			metric.WithUnit("s"),
-		)
-		// r.metricBilledDuration.Add(context.Background(), 0)
-	}
-
 	r.metricColdstarts, err = meter.Int64Counter(
 		"faas.coldstarts",
 		metric.WithDescription("Number of invocation cold starts."),
 		metric.WithUnit("1"),
 	)
-	// r.metricColdstarts.Add(context.Background(), 0)
+	r.metricColdstarts.Add(context.Background(), 0)
 
 	r.metricSuccesses, err = meter.Int64Counter(
 		"faas.invocations",
 		metric.WithDescription("Number of successful invocations."),
 		metric.WithUnit("1"),
 	)
-	// r.metricSuccesses.Add(context.Background(), 0)
+	r.metricSuccesses.Add(context.Background(), 0)
 
 	r.metricFailures, err = meter.Int64Counter(
 		"faas.errors",
 		metric.WithDescription("Number of invocation errors."),
 		metric.WithUnit("1"),
 	)
-	// r.metricFailures.Add(context.Background(), 0)
+	r.metricFailures.Add(context.Background(), 0)
 
 	r.metricTimeouts, err = meter.Int64Counter(
 		"faas.timeouts",
 		metric.WithDescription("Number of invocation timeouts."),
 		metric.WithUnit("1"),
 	)
-	// r.metricTimeouts.Add(context.Background(), 0)
+	r.metricTimeouts.Add(context.Background(), 0)
 
 	r.metricMemoryUsages, err = meter.Int64Histogram(
 		"faas.mem_usage",
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
+
+	if err == nil {
+		// Make sure to push zero-initialized metrics early
+		r.forwardMetrics()
+	}
 	return err
 }
 
@@ -316,9 +313,6 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 				continue
 			}
 			if record, err := parseRecord[platformReport](el, r.logger); err == nil {
-				if r.metricBilledDuration != nil { // conditionally initialized
-					r.metricBilledDuration.Add(ctx, record.Metrics.BilledDurationMs/1000.0)
-				}
 				r.metricMemoryUsages.Record(ctx, record.Metrics.MaxMemoryUsedMb*1024*1024)
 			}
 		// Log record emitted by function.
@@ -488,7 +482,7 @@ func (r *telemetryAPIReceiver) metricTimestamp(metricName string) (time.Time, er
 		return parseTime(r.lastPlatformInitReportTime)
 	case "faas.invoke_duration", "faas.invocations", "faas.errors", "faas.timeouts":
 		return parseTime(r.lastPlatformRuntimeDoneTime)
-	case "faas.billed_duration", "faas.mem_usage":
+	case "faas.mem_usage":
 		return parseTime(r.lastPlatformReportTime)
 	default:
 		return time.Time{}, errUnknownMetric
