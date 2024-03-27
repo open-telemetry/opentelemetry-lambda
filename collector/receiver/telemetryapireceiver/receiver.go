@@ -112,7 +112,6 @@ func newTelemetryAPIReceiver(
 
 func (r *telemetryAPIReceiver) setTracesConsumer(next consumer.Traces) {
 	r.nextTracesConsumer = next
-	r.logger.Info("set traces consumer")
 }
 
 func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
@@ -192,7 +191,6 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
-	r.logger.Info("set metrics consumer")
 	return err
 }
 
@@ -359,6 +357,10 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 	var resourceMetrics metricdata.ResourceMetrics
 	if err := r.metricsReader.Collect(context.Background(), &resourceMetrics); err != nil {
 		r.logger.Error("error collecting metrics", zap.Error(err))
+		return
+	}
+	if len(resourceMetrics.ScopeMetrics) == 0 {
+		// If there are no scope metrics, we do not need to export anything
 		return
 	}
 
