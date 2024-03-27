@@ -201,11 +201,6 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
-
-	if err == nil {
-		// Make sure to push zero-initialized metrics early
-		r.forwardMetrics()
-	}
 	return err
 }
 
