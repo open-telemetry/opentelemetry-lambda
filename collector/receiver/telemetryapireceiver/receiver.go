@@ -31,7 +31,6 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
 	semconv "go.opentelemetry.io/collector/semconv/v1.22.0"
@@ -75,6 +74,8 @@ type telemetryAPIReceiver struct {
 	metricFailures        metric.Int64Counter
 	metricTimeouts        metric.Int64Counter
 	metricMemoryUsages    metric.Int64Histogram
+	// LOGS
+	nextLogsConsumer consumer.Logs
 }
 
 func newTelemetryAPIReceiver(
@@ -159,39 +160,54 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithDescription("The duration of the function's initialization."),
 		metric.WithUnit("s"),
 	)
+
 	if r.cfg.Metrics.IncludeBilledDuration {
 		r.metricBilledDuration, err = meter.Float64Counter(
 			"faas.billed_duration",
 			metric.WithDescription("The duration for which the function was billed."),
 			metric.WithUnit("s"),
 		)
+		r.metricBilledDuration.Add(context.Background(), 0)
 	}
+
 	r.metricColdstarts, err = meter.Int64Counter(
 		"faas.coldstarts",
 		metric.WithDescription("Number of invocation cold starts."),
 		metric.WithUnit("1"),
 	)
+	r.metricColdstarts.Add(context.Background(), 0)
+
 	r.metricSuccesses, err = meter.Int64Counter(
 		"faas.invocations",
 		metric.WithDescription("Number of successful invocations."),
 		metric.WithUnit("1"),
 	)
+	r.metricSuccesses.Add(context.Background(), 0)
+
 	r.metricFailures, err = meter.Int64Counter(
 		"faas.errors",
 		metric.WithDescription("Number of invocation errors."),
 		metric.WithUnit("1"),
 	)
+	r.metricFailures.Add(context.Background(), 0)
+
 	r.metricTimeouts, err = meter.Int64Counter(
 		"faas.timeouts",
 		metric.WithDescription("Number of invocation timeouts."),
 		metric.WithUnit("1"),
 	)
+	r.metricTimeouts.Add(context.Background(), 0)
+
 	r.metricMemoryUsages, err = meter.Int64Histogram(
 		"faas.mem_usage",
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
 	return err
+}
+
+func (r *telemetryAPIReceiver) setLogsConsumer(next consumer.Logs) {
+	r.nextLogsConsumer = next
 }
 
 /* ------------------------------------ COMPONENT INTERFACE ------------------------------------ */
@@ -382,16 +398,24 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 		}
 	}
 
-	rr := pmetricotlp.NewExportRequestFromMetrics(metricData)
-	json, err := rr.MarshalJSON()
-	fmt.Printf("JSON: %s\n", string(json))
-	fmt.Printf("Error: %s\n", err)
-
 	// Eventually, forward the metrics to the consumer
 	if err := r.nextMetricsConsumer.ConsumeMetrics(context.Background(), metricData); err != nil {
 		r.logger.Error("error receiving metrics", zap.Error(err))
 	}
 }
+
+// func (r *telemetryAPIReceiver) forwardLogLine(line string) {
+// 	logData := plog.NewLogs()
+// 	rs := logData.ResourceLogs().AppendEmpty()
+// 	r.resource.CopyTo(rs.Resource())
+
+// 	scopeLog := rs.ScopeLogs().AppendEmpty()
+// 	scopeLog.Scope().SetName(instrumentationScope)
+
+// 	log := scopeLog.LogRecords().AppendEmpty()
+// 	log.SetSeverityNumber(plog.SeverityNumberDebug)
+// 	log.Body()
+// }
 
 /* ------------------------------------------- TRACES ------------------------------------------ */
 
@@ -439,6 +463,8 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	span.SetEndTimestamp(pcommon.NewTimestampFromTime(endTime))
 	return traceData, nil
 }
+
+/* -------------------------------------------- LOGS ------------------------------------------- */
 
 /* ------------------------------------------- UTILS ------------------------------------------- */
 
