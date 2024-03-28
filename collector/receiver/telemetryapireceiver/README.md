@@ -29,7 +29,6 @@ receivers:
   telemetryapi:
     metrics:
       useExponentialHistograms: true
-      includeBilledDuration: true
 ```
 
 [in development]: https://github.com/open-telemetry/opentelemetry-collector#development

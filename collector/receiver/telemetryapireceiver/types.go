@@ -44,8 +44,7 @@ type platformRuntimeDoneRecord struct {
 
 type platformReport struct {
 	Metrics struct {
-		BilledDurationMs float64 `mapstructure:"billedDurationMs"`
-		MaxMemoryUsedMb  int64   `mapstructure:"maxMemoryUsedMB"`
+		MaxMemoryUsedMb int64 `mapstructure:"maxMemoryUsedMB"`
 	} `mapstructure:"metrics"`
 }
 
