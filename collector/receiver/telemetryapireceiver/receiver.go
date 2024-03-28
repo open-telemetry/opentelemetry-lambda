@@ -150,7 +150,10 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 	)
 	meter := provider.Meter(instrumentationScope)
 
-	// Build the metrics and propagate the last error.
+	// Build the metrics and propagate the last error. For all counters, we push a value of
+	// zero to properly indicate the start of the counter. This is particularly important if the
+	// Lambda function is called rarely. Unfortunately, histograms cannot easily be
+	// zero-initialized.
 	// NOTE: The metrics defined here follow the semantic conventions for FaaS Metrics:
 	//       https://opentelemetry.io/docs/specs/semconv/faas/faas-metrics/
 	var err error
@@ -164,31 +167,45 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 		metric.WithDescription("The duration of the function's initialization."),
 		metric.WithUnit("s"),
 	)
+
 	r.metricColdstarts, err = meter.Int64Counter(
 		"faas.coldstarts",
 		metric.WithDescription("Number of invocation cold starts."),
 		metric.WithUnit("1"),
 	)
+	r.metricColdstarts.Add(context.Background(), 0)
+
 	r.metricSuccesses, err = meter.Int64Counter(
 		"faas.invocations",
 		metric.WithDescription("Number of successful invocations."),
 		metric.WithUnit("1"),
 	)
+	r.metricSuccesses.Add(context.Background(), 0)
+
 	r.metricFailures, err = meter.Int64Counter(
 		"faas.errors",
 		metric.WithDescription("Number of invocation errors."),
 		metric.WithUnit("1"),
 	)
+	r.metricFailures.Add(context.Background(), 0)
+
 	r.metricTimeouts, err = meter.Int64Counter(
 		"faas.timeouts",
 		metric.WithDescription("Number of invocation timeouts."),
 		metric.WithUnit("1"),
 	)
+	r.metricTimeouts.Add(context.Background(), 0)
+
 	r.metricMemoryUsages, err = meter.Int64Histogram(
 		"faas.mem_usage",
 		metric.WithDescription("Max memory usage per invocation."),
 		metric.WithUnit("By"),
 	)
+
+	if err == nil {
+		// Make sure to push zero-initialized metrics early
+		r.forwardMetrics()
+	}
 	return err
 }
 
@@ -478,7 +495,11 @@ func (r *telemetryAPIReceiver) metricTimestamp(metricName string) (time.Time, er
 
 func parseTime(t string) (time.Time, error) {
 	layout := "2006-01-02T15:04:05.000Z"
-	return time.Parse(layout, t)
+	out, err := time.Parse(layout, t)
+	if err != nil {
+		return time.Now(), nil
+	}
+	return out, nil
 }
 
 func listenOnAddress() string {
