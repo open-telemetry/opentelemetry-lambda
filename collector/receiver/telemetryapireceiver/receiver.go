@@ -61,13 +61,14 @@ var (
 /* ------------------------------------------ CREATION ----------------------------------------- */
 
 type telemetryAPIReceiver struct {
+	mutex      sync.Mutex
+	didStartUp bool
 	// SHARED
 	httpServer  *http.Server
 	logger      *zap.Logger
 	extensionID string
 	resource    pcommon.Resource
 	cfg         *Config
-	mutex       sync.Mutex
 	// TRACES
 	nextTracesConsumer  consumer.Traces
 	lastRequestID       string
@@ -235,6 +236,13 @@ func (r *telemetryAPIReceiver) setLogsConsumer(next consumer.Logs) {
 /* ------------------------------------ COMPONENT INTERFACE ------------------------------------ */
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.didStartUp {
+		return nil
+	}
+
 	address := listenOnAddress()
 	r.logger.Info(
 		"Listening for requests",
@@ -260,6 +268,8 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 		)
 		return err
 	}
+
+	r.didStartUp = true
 	return nil
 }
 
@@ -490,10 +500,6 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 }
 
 func (r *telemetryAPIReceiver) forwardLogs() {
-	if len(r.logsCache) == 0 {
-		return
-	}
-
 	logData := plog.NewLogs()
 	rs := logData.ResourceLogs().AppendEmpty()
 	r.resource.CopyTo(rs.Resource())
@@ -503,7 +509,18 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 
 	for _, item := range r.logsCache {
 		log := scopeLog.LogRecords().AppendEmpty()
-		r.populateLogRecord(log, item.log, item.timestamp)
+		if line, ok := item.log.(string); ok {
+			var parsed any
+			// Log lines are delivered as raw strings, we try to parse them here
+			if err := json.Unmarshal([]byte(line), &parsed); err != nil {
+				r.populateLogRecord(log, parsed, item.timestamp)
+			} else {
+				// Otherwise, we process them as raw string
+				r.populateLogRecord(log, item.log, item.timestamp)
+			}
+		} else {
+			r.logger.Warn("received log line in a format other than a plain string, ignoring")
+		}
 	}
 	r.logsCache = nil
 
