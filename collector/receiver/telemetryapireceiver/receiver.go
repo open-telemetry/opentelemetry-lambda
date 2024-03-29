@@ -330,7 +330,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function invocation started.
 		case string(telemetryapi.PlatformStart):
 			r.logger.Debug(fmt.Sprintf("Invoke start: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
+			if time, err := parseTime(el.Time); err == nil {
 				r.lastTraceTimestamps.platformRuntimeStartTime = &time
 			} else {
 				r.lastTraceTimestamps.platformRuntimeStartTime = nil
@@ -338,7 +338,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function invocation completed.
 		case string(telemetryapi.PlatformRuntimeDone):
 			r.logger.Debug(fmt.Sprintf("Invoke end: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
+			if time, err := parseTime(el.Time); err == nil {
 				r.lastTraceTimestamps.platformRuntimeEndTime = &time
 				r.lastMetricTimestamps.platformRuntimeEndTime = &time
 			} else {
@@ -363,11 +363,12 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Concluding report on function invocation (after runtime freeze).
 		case string(telemetryapi.PlatformReport):
 			r.logger.Debug(fmt.Sprintf("Invoke report: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
+			time, err := parseTime(el.Time)
+			if err == nil {
 				r.logger.Debug("setting last report time to value")
 				r.lastMetricTimestamps.platformReportTime = &time
 			} else {
-				r.logger.Debug("setting last report time to nil")
+				r.logger.Debug("setting last report time to nil", zap.Error(err))
 				r.lastMetricTimestamps.platformReportTime = nil
 			}
 			if r.metricsReader == nil {
