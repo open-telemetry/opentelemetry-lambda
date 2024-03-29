@@ -649,10 +649,10 @@ func (r *telemetryAPIReceiver) populateLogRecord(log plog.LogRecord, record any,
 
 	// Set metadata
 	log.SetObservedTimestamp(pcommon.NewTimestampFromTime(timestamp))
-	if recordValue.Kind() == reflect.Map {
+	if recordValue.Type().Kind() == reflect.Map {
 		levelKey := reflect.ValueOf("level")
 		levelValue := recordValue.MapIndex(levelKey)
-		if levelValue.Kind() == reflect.String {
+		if levelValue.Type().Kind() == reflect.String {
 			log.SetSeverityText(levelValue.String())
 			// Remove from map to not include severity in body
 			recordValue.SetMapIndex(levelKey, reflect.Value{})
@@ -662,7 +662,7 @@ func (r *telemetryAPIReceiver) populateLogRecord(log plog.LogRecord, record any,
 	// Populate body: if the receiver's configuration indicates that we should only add a "subkey",
 	// let's do so
 	if r.cfg.Logs.BodyKey != "" {
-		if recordValue.Kind() == reflect.Map {
+		if recordValue.Type().Kind() == reflect.Map {
 			bodyValue := recordValue.MapIndex(reflect.ValueOf(r.cfg.Logs.BodyKey))
 			if !bodyValue.IsNil() {
 				r.populateLogValue(log.Body(), bodyValue)
@@ -675,7 +675,7 @@ func (r *telemetryAPIReceiver) populateLogRecord(log plog.LogRecord, record any,
 }
 
 func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src reflect.Value) {
-	switch src.Kind() {
+	switch src.Type().Kind() {
 	case reflect.String:
 		value.SetStr(src.String())
 	case reflect.Bool:
@@ -698,8 +698,7 @@ func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src reflect
 	default:
 		r.logger.Warn(
 			"Encountered invalid value when parsing log",
-			zap.String("value", src.String()),
-			zap.String("kind", src.Kind().String()),
+			zap.String("kind", src.Type().Kind().String()),
 		)
 	}
 }
