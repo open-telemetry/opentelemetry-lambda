@@ -506,6 +506,10 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 		r.populateLogRecord(log, item.log, item.timestamp)
 	}
 	r.logsCache = nil
+
+	if err := r.nextLogsConsumer.ConsumeLogs(context.Background(), logData); err != nil {
+		r.logger.Error("error receiving logs", zap.Error(err))
+	}
 }
 
 /* ------------------------------------------- TRACES ------------------------------------------ */
