@@ -345,11 +345,11 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 				r.lastTraceTimestamps.platformRuntimeEndTime = nil
 				r.lastMetricTimestamps.platformRuntimeEndTime = nil
 			}
-			if r.metricsReader == nil {
-				continue
-			}
 			if record, err := parseRecord[platformRuntimeDoneRecord](el, r.logger); err == nil {
 				r.lastRequestID = record.RequestID
+				if r.metricsReader == nil {
+					continue
+				}
 				r.metricInvokeDurations.Record(ctx, record.Metrics.DurationMs/1000.0)
 				switch record.Status {
 				case statusSuccess:
@@ -364,8 +364,10 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		case string(telemetryapi.PlatformReport):
 			r.logger.Debug(fmt.Sprintf("Invoke report: %s", el.Time), zap.Any("event", el))
 			if time, err := parseTime(el.Time); err != nil {
+				r.logger.Debug("setting last report time to value")
 				r.lastMetricTimestamps.platformReportTime = &time
 			} else {
+				r.logger.Debug("setting last report time to nil")
 				r.lastMetricTimestamps.platformReportTime = nil
 			}
 			if r.metricsReader == nil {
