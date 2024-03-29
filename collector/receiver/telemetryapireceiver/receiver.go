@@ -526,11 +526,8 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 			log := scopeLog.LogRecords().AppendEmpty()
 			var parsed any
 			// Log lines are delivered as raw strings, we try to parse them here
-			if err := json.Unmarshal([]byte(line), &parsed); err != nil {
-				r.logger.Debug(
-					"interpreting log line as JSON",
-					zap.String("line", line), zap.Error(err),
-				)
+			if err := json.Unmarshal([]byte(line), &parsed); err == nil {
+				r.logger.Debug("interpreting log line as JSON", zap.String("line", line))
 				r.populateLogRecord(log, parsed, item.timestamp)
 			} else {
 				// Otherwise, we process them as raw string
