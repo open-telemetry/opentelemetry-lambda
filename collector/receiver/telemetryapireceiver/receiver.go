@@ -645,60 +645,55 @@ func (r *telemetryAPIReceiver) getMetricTimestamp(metricName string) (time.Time,
 /* -------------------------------------------- LOGS ------------------------------------------- */
 
 func (r *telemetryAPIReceiver) populateLogRecord(log plog.LogRecord, record any, timestamp time.Time) {
-	recordValue := reflect.ValueOf(record)
-
 	// Set metadata
 	log.SetObservedTimestamp(pcommon.NewTimestampFromTime(timestamp))
-	if recordValue.Type().Kind() == reflect.Map {
-		levelKey := reflect.ValueOf("level")
-		levelValue := recordValue.MapIndex(levelKey)
-		if levelValue.Type().Kind() == reflect.String {
-			log.SetSeverityText(levelValue.String())
-			// Remove from map to not include severity in body
-			recordValue.SetMapIndex(levelKey, reflect.Value{})
+	if m, ok := record.(map[string]any); ok {
+		if rawLevel, ok := m["level"]; ok {
+			if level, ok := rawLevel.(string); ok {
+				log.SetSeverityText(level)
+				// Remove from map to not include severity in body
+				delete(m, "level")
+			}
 		}
 	}
 
 	// Populate body: if the receiver's configuration indicates that we should only add a "subkey",
 	// let's do so
-	if r.cfg.Logs.BodyKey != "" {
-		if recordValue.Type().Kind() == reflect.Map {
-			bodyValue := recordValue.MapIndex(reflect.ValueOf(r.cfg.Logs.BodyKey))
-			if !bodyValue.IsNil() {
-				r.populateLogValue(log.Body(), bodyValue)
-				return
+	if r.cfg.Logs.JSON.BodyPath != "" {
+		if m, ok := record.(map[string]any); ok {
+			if body, ok := m[r.cfg.Logs.JSON.BodyPath]; ok {
+				r.populateLogValue(log.Body(), body)
 			}
 		}
 	}
 	// If we didn't return above, we just populate the entire body from the record
-	r.populateLogValue(log.Body(), recordValue)
+	r.populateLogValue(log.Body(), record)
 }
 
-func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src reflect.Value) {
-	switch src.Type().Kind() {
-	case reflect.String:
-		value.SetStr(src.String())
-	case reflect.Bool:
-		value.SetBool(src.Bool())
-	case reflect.Float32, reflect.Float64:
-		value.SetDouble(src.Float())
-	case reflect.Int, reflect.Uint:
-		value.SetInt(src.Int())
-	case reflect.Slice:
+func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src any) {
+	switch v := src.(type) {
+	case string:
+		value.SetStr(v)
+	case bool:
+		value.SetBool(v)
+	case float64:
+		value.SetDouble(v)
+	case int64:
+		value.SetInt(v)
+	case []any:
 		slice := value.SetEmptySlice()
-		for i := 0; i < src.Len(); i++ {
-			r.populateLogValue(slice.AppendEmpty(), src.Index(i))
+		for _, item := range v {
+			r.populateLogValue(slice.AppendEmpty(), item)
 		}
-	case reflect.Map:
+	case map[string]any:
 		m := value.SetEmptyMap()
-		iter := src.MapRange()
-		for iter.Next() {
-			r.populateLogValue(m.PutEmpty(iter.Key().String()), iter.Value())
+		for key, item := range v {
+			r.populateLogValue(m.PutEmpty(key), item)
 		}
 	default:
 		r.logger.Warn(
 			"Encountered invalid value when parsing log",
-			zap.String("kind", src.Type().Kind().String()),
+			zap.String("type", reflect.TypeOf(src).String()),
 		)
 	}
 }

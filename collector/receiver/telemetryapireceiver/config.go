@@ -21,7 +21,9 @@ type Config struct {
 		UseExponentialHistograms bool `mapstructure:"use_exponential_histograms"`
 	} `mapstructure:"metrics"`
 	Logs struct {
-		BodyKey string `mapstructure:"body_key"`
+		JSON struct {
+			BodyPath string `mapstructure:"body_path"`
+		} `mapstructure:"json"`
 	} `mapstructure:"logs"`
 }
 
