@@ -476,7 +476,7 @@ func (r *telemetryAPIReceiver) createPlatformRuntimeSpan() (ptrace.Traces, error
 			return ptrace.Traces{}, err
 		}
 	}
-	return ptrace.Traces{}, nil
+	return traceData, nil
 }
 
 func newSpanID() pcommon.SpanID {
