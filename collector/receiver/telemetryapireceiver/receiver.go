@@ -509,6 +509,11 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 }
 
 func (r *telemetryAPIReceiver) forwardLogs() {
+	if len(r.logsCache) == 0 {
+		// Return early if there are no logs
+		return
+	}
+
 	logData := plog.NewLogs()
 	rs := logData.ResourceLogs().AppendEmpty()
 	r.resource.CopyTo(rs.Resource())
@@ -517,12 +522,15 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 	scopeLog.Scope().SetName(instrumentationScope)
 
 	for _, item := range r.logsCache {
-		log := scopeLog.LogRecords().AppendEmpty()
 		if line, ok := item.log.(string); ok {
+			log := scopeLog.LogRecords().AppendEmpty()
 			var parsed any
 			// Log lines are delivered as raw strings, we try to parse them here
 			if err := json.Unmarshal([]byte(line), &parsed); err != nil {
-				r.logger.Debug("interpreting log line as JSON", zap.String("line", line))
+				r.logger.Debug(
+					"interpreting log line as JSON",
+					zap.String("line", line), zap.Error(err),
+				)
 				r.populateLogRecord(log, parsed, item.timestamp)
 			} else {
 				// Otherwise, we process them as raw string
@@ -535,6 +543,10 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 	}
 	r.logsCache = nil
 
+	if scopeLog.LogRecords().Len() == 0 {
+		// Return before forwarding if we couldn't process any logs
+		return
+	}
 	if err := r.nextLogsConsumer.ConsumeLogs(context.Background(), logData); err != nil {
 		r.logger.Error("error receiving logs", zap.Error(err))
 	}
