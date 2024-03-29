@@ -698,7 +698,8 @@ func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src reflect
 	default:
 		r.logger.Warn(
 			"Encountered invalid value when parsing log",
-			zap.String("value", value.AsString()),
+			zap.String("value", src.String()),
+			zap.String("kind", src.Kind().String()),
 		)
 	}
 }
