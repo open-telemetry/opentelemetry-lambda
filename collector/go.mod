@@ -1,6 +1,8 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector
 
-go 1.20
+go 1.21
+
+toolchain go1.21.5
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents => ./lambdacomponents
 
@@ -102,8 +104,8 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.92.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.92.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
@@ -153,7 +155,7 @@ require (
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.92.0 // indirect
 	go.opentelemetry.io/collector/receiver v0.92.0 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.92.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.92.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.97.0 // indirect
 	go.opentelemetry.io/collector/service v0.92.0 // indirect
 	go.opentelemetry.io/contrib/config v0.1.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.1 // indirect
