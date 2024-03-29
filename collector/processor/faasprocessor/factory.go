@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coldstartprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	typeStr   = "coldstart"
+	typeStr   = "faas"
 	stability = component.StabilityLevelDevelopment
 )
 
@@ -52,7 +52,7 @@ func createTracesProcessor(ctx context.Context, params processor.CreateSettings,
 		return nil, errConfigNotColdstart
 	}
 
-	cp, err := newColdstartProcessor(cfg, next, params)
+	cp, err := newFaasProcessor(cfg, next, params)
 	if err != nil {
 		return nil, err
 	}
@@ -64,5 +64,4 @@ func createTracesProcessor(ctx context.Context, params processor.CreateSettings,
 		cp.processTraces,
 		processorhelper.WithCapabilities(processorCapabilities),
 	)
-
 }

@@ -6,7 +6,7 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponent
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle => ./lambdalifecycle
 
-replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor => ./processor/coldstartprocessor
+replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor => ./processor/faasprocessor
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor => ./processor/decoupleprocessor
 
@@ -102,7 +102,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.92.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.92.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor v0.92.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.92.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

@@ -1,15 +1,17 @@
-module github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor
+module github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor
 
-go 1.20
+go 1.21
+
+toolchain go1.21.5
 
 require (
 	github.com/cespare/xxhash v1.1.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/collector/component v0.91.0
 	go.opentelemetry.io/collector/consumer v0.91.0
 	go.opentelemetry.io/collector/pdata v1.0.0
 	go.opentelemetry.io/collector/processor v0.91.0
-	go.opentelemetry.io/collector/semconv v0.91.0
+	go.opentelemetry.io/collector/semconv v0.97.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
 )

@@ -49,7 +49,10 @@ const (
 	instrumentationScope = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 )
 
-var errUnknownMetric = errors.New("metric is unknown")
+var (
+	errUnknownMetric      = errors.New("metric is unknown")
+	errMissingServiceName = errors.New("service name is missing")
+)
 
 /* ------------------------------------------ CREATION ----------------------------------------- */
 
@@ -61,24 +64,26 @@ type telemetryAPIReceiver struct {
 	resource    pcommon.Resource
 	cfg         *Config
 	// TRACES
-	nextTracesConsumer        consumer.Traces
-	lastPlatformInitStartTime string
-	lastPlatformInitEndTime   string
+	nextTracesConsumer           consumer.Traces
+	lastRequestID                string
+	lastPlatformInitStartTime    string
+	lastPlatformInitEndTime      string
+	lastPlatformRuntimeStartTime string
+	lastPlatformRuntimeDoneTime  string
 	// METRICS
 	// NOTE: We're using the OpenTelemetry SDK here as generating 'pmetric' structures entirely
 	//  manually is error-prone and would duplicate plenty of code available in the SDK.
-	nextMetricsConsumer         consumer.Metrics
-	metricsReader               *sdkmetric.ManualReader
-	metricInitDurations         metric.Float64Histogram
-	metricInvokeDurations       metric.Float64Histogram
-	metricColdstarts            metric.Int64Counter
-	metricSuccesses             metric.Int64Counter
-	metricFailures              metric.Int64Counter
-	metricTimeouts              metric.Int64Counter
-	metricMemoryUsages          metric.Int64Histogram
-	lastPlatformInitReportTime  string
-	lastPlatformRuntimeDoneTime string
-	lastPlatformReportTime      string
+	nextMetricsConsumer        consumer.Metrics
+	metricsReader              *sdkmetric.ManualReader
+	metricInitDurations        metric.Float64Histogram
+	metricInvokeDurations      metric.Float64Histogram
+	metricColdstarts           metric.Int64Counter
+	metricSuccesses            metric.Int64Counter
+	metricFailures             metric.Int64Counter
+	metricTimeouts             metric.Int64Counter
+	metricMemoryUsages         metric.Int64Histogram
+	lastPlatformInitReportTime string
+	lastPlatformReportTime     string
 	// LOGS
 	nextLogsConsumer consumer.Logs
 }
@@ -280,7 +285,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function invocation started.
 		case string(telemetryapi.PlatformStart):
 			r.logger.Debug(fmt.Sprintf("Invoke start: %s", el.Time), zap.Any("event", el))
-			continue
+			r.lastPlatformRuntimeStartTime = el.Time
 		// Function invocation completed.
 		case string(telemetryapi.PlatformRuntimeDone):
 			r.logger.Debug(fmt.Sprintf("Invoke end: %s", el.Time), zap.Any("event", el))
@@ -289,6 +294,7 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 				continue
 			}
 			if record, err := parseRecord[platformRuntimeDoneRecord](el, r.logger); err == nil {
+				r.lastRequestID = record.RequestID
 				r.metricInvokeDurations.Record(ctx, record.Metrics.DurationMs/1000.0)
 				switch record.Status {
 				case statusSuccess:
@@ -326,8 +332,9 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Lambda dropped log entries.
 		// case "platform.logsDropped":
 	}
-	r.forwardTraces()
+	// NOTE: Forward metrics first as trace forwarding clears timestamps
 	r.forwardMetrics()
+	r.forwardTraces()
 	slice = nil
 }
 
@@ -346,13 +353,14 @@ func parseRecord[T any](el event, logger *zap.Logger) (T, error) {
 /* ----------------------------------------- FORWARDING ---------------------------------------- */
 
 func (r *telemetryAPIReceiver) forwardTraces() {
-	// Create trace for init span
-	if len(r.lastPlatformInitStartTime) > 0 && len(r.lastPlatformInitEndTime) > 0 {
-		if td, err := r.createPlatformInitSpan(r.lastPlatformInitStartTime, r.lastPlatformInitEndTime); err == nil {
+	if r.lastPlatformRuntimeDoneTime != "" {
+		if td, err := r.createPlatformRuntimeSpan(); err == nil {
 			err := r.nextTracesConsumer.ConsumeTraces(context.Background(), td)
 			if err == nil {
 				r.lastPlatformInitEndTime = ""
 				r.lastPlatformInitStartTime = ""
+				r.lastPlatformRuntimeStartTime = ""
+				r.lastPlatformRuntimeDoneTime = ""
 			} else {
 				r.logger.Error("error receiving traces", zap.Error(err))
 			}
@@ -387,7 +395,7 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 		scopeMetrics := resourceMetricData.ScopeMetrics().AppendEmpty()
 		scopeMetrics.Scope().SetName(scope.Scope.Name)
 		for _, metric := range scope.Metrics {
-			ts, err := r.metricTimestamp(metric.Name)
+			ts, err := r.getMetricTimestamp(metric.Name)
 			if err != nil {
 				r.logger.Error(
 					fmt.Sprintf("failed to obtain last timestamp for metric '%s'", metric.Name),
@@ -424,6 +432,53 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 
 /* ------------------------------------------- TRACES ------------------------------------------ */
 
+func (r *telemetryAPIReceiver) createPlatformRuntimeSpan() (ptrace.Traces, error) {
+	serviceName, ok := r.resource.Attributes().Get(semconv.AttributeServiceName)
+	if !ok {
+		return ptrace.Traces{}, errMissingServiceName
+	}
+
+	// Build trace data
+	traceData := ptrace.NewTraces()
+	rs := traceData.ResourceSpans().AppendEmpty()
+	r.resource.CopyTo(rs.Resource())
+
+	ss := rs.ScopeSpans().AppendEmpty()
+	ss.Scope().SetName(instrumentationScope)
+
+	// Create root span for the entire runtime invocation
+	traceID := newTraceID()
+	rootSpan := ss.Spans().AppendEmpty()
+	rootSpan.SetTraceID(traceID)
+	rootSpan.SetSpanID(newSpanID())
+	rootSpan.SetName(serviceName.Str())
+	rootSpan.SetKind(ptrace.SpanKindServer)
+	rootSpan.Attributes().PutBool(semconv.AttributeFaaSColdstart, r.lastPlatformInitEndTime != "")
+	rootSpan.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.lastRequestID)
+	rootStartTime := r.lastPlatformRuntimeStartTime
+	if r.lastPlatformInitStartTime != "" {
+		rootStartTime = r.lastPlatformInitStartTime
+	}
+	if err := setSpanTimestamps(rootSpan, rootStartTime, r.lastPlatformRuntimeDoneTime); err != nil {
+		return ptrace.Traces{}, err
+	}
+
+	// Optionally create an additional span for the init span
+	if r.lastPlatformInitEndTime != "" {
+		initSpan := ss.Spans().AppendEmpty()
+		initSpan.SetTraceID(traceID)
+		initSpan.SetSpanID(newSpanID())
+		initSpan.SetParentSpanID(rootSpan.SpanID())
+		initSpan.SetName("faas.runtimeInit")
+		initSpan.SetKind(ptrace.SpanKindInternal)
+		initSpan.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.lastRequestID)
+		if err := setSpanTimestamps(initSpan, r.lastPlatformInitStartTime, r.lastPlatformInitEndTime); err != nil {
+			return ptrace.Traces{}, err
+		}
+	}
+	return ptrace.Traces{}, nil
+}
+
 func newSpanID() pcommon.SpanID {
 	var rngSeed int64
 	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
@@ -442,35 +497,23 @@ func newTraceID() pcommon.TraceID {
 	return tid
 }
 
-func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace.Traces, error) {
-	traceData := ptrace.NewTraces()
-	rs := traceData.ResourceSpans().AppendEmpty()
-	r.resource.CopyTo(rs.Resource())
-
-	ss := rs.ScopeSpans().AppendEmpty()
-	ss.Scope().SetName(instrumentationScope)
-	span := ss.Spans().AppendEmpty()
-	span.SetTraceID(newTraceID())
-	span.SetSpanID(newSpanID())
-	span.SetName("platform.initRuntimeDone")
-	span.SetKind(ptrace.SpanKindInternal)
-	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+func setSpanTimestamps(span ptrace.Span, start, end string) error {
 	startTime, err := parseTime(start)
 	if err != nil {
-		return ptrace.Traces{}, err
+		return err
 	}
 	span.SetStartTimestamp(pcommon.NewTimestampFromTime(startTime))
 	endTime, err := parseTime(end)
 	if err != nil {
-		return ptrace.Traces{}, err
+		return err
 	}
 	span.SetEndTimestamp(pcommon.NewTimestampFromTime(endTime))
-	return traceData, nil
+	return nil
 }
 
 /* ------------------------------------------ METRICS ------------------------------------------ */
 
-func (r *telemetryAPIReceiver) metricTimestamp(metricName string) (time.Time, error) {
+func (r *telemetryAPIReceiver) getMetricTimestamp(metricName string) (time.Time, error) {
 	switch metricName {
 	case "faas.coldstarts", "faas.init_duration":
 		if r.lastPlatformInitReportTime == "" {

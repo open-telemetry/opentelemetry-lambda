@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coldstartprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 
 // Config defines the configuration for the various elements of the processor.
 type Config struct{}

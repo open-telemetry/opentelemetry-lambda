@@ -36,7 +36,7 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.uber.org/multierr"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
@@ -68,7 +68,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		probabilisticsamplerprocessor.NewFactory(),
 		resourceprocessor.NewFactory(),
 		spanprocessor.NewFactory(),
-		coldstartprocessor.NewFactory(),
+		faasprocessor.NewFactory(),
 		decoupleprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
 	)
