@@ -17,12 +17,13 @@ package lifecycle
 import (
 	"context"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sync"
 	"syscall"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -33,9 +34,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 )
 
-var (
-	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
-)
+var extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 
 type collectorWrapper interface {
 	Start(ctx context.Context) error
@@ -75,7 +74,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 	}
 
 	telemetryClient := telemetryapi.NewClient(logger)
-	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr)
+	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr, false)
 	if err != nil {
 		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
 	}

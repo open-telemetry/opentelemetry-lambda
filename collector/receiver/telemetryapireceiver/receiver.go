@@ -236,7 +236,11 @@ func (r *telemetryAPIReceiver) setLogsConsumer(next consumer.Logs) {
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
 	address := listenOnAddress()
-	r.logger.Info("Listening for requests", zap.String("address", address))
+	r.logger.Info(
+		"Listening for requests",
+		zap.String("address", address),
+		zap.Bool("logs", r.nextLogsConsumer != nil),
+	)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", r.httpHandler)
@@ -246,7 +250,9 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(ctx, r.extensionID, fmt.Sprintf("http://%s/", address))
+	_, err := telemetryClient.Subscribe(
+		ctx, r.extensionID, fmt.Sprintf("http://%s/", address), r.nextLogsConsumer != nil,
+	)
 	if err != nil {
 		r.logger.Info(
 			"Listening for requests",
