@@ -309,26 +309,32 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function initialization started.
 		case string(telemetryapi.PlatformInitStart):
 			r.logger.Debug(fmt.Sprintf("Init start: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
-				r.lastTraceTimestamps.platformInitStartTime = &time
-			} else {
+			time, err := parseTime(el.Time)
+			if err != nil {
+				r.logger.Error("unable to set last platform init start time", zap.Error(err))
 				r.lastTraceTimestamps.platformInitStartTime = nil
+			} else {
+				r.lastTraceTimestamps.platformInitStartTime = &time
 			}
 		// Function initialization completed.
 		case string(telemetryapi.PlatformInitRuntimeDone):
 			r.logger.Debug(fmt.Sprintf("Init end: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
-				r.lastTraceTimestamps.platformInitEndTime = &time
-			} else {
+			time, err := parseTime(el.Time)
+			if err != nil {
+				r.logger.Error("unable to set last platform init end time", zap.Error(err))
 				r.lastTraceTimestamps.platformInitEndTime = nil
+			} else {
+				r.lastTraceTimestamps.platformInitEndTime = &time
 			}
 		// Concluding report on function initialization.
 		case string(telemetryapi.PlatformInitReport):
 			r.logger.Debug(fmt.Sprintf("Init report: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err != nil {
-				r.lastMetricTimestamps.platformInitReportTime = &time
-			} else {
+			time, err := parseTime(el.Time)
+			if err != nil {
+				r.logger.Error("unable to set last platform init report time", zap.Error(err))
 				r.lastMetricTimestamps.platformInitReportTime = nil
+			} else {
+				r.lastMetricTimestamps.platformInitReportTime = &time
 			}
 			if r.metricsReader == nil {
 				continue
@@ -340,20 +346,24 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		// Function invocation started.
 		case string(telemetryapi.PlatformStart):
 			r.logger.Debug(fmt.Sprintf("Invoke start: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err == nil {
-				r.lastTraceTimestamps.platformRuntimeStartTime = &time
-			} else {
+			time, err := parseTime(el.Time)
+			if err != nil {
+				r.logger.Error("unable to set last platform runtime start time", zap.Error(err))
 				r.lastTraceTimestamps.platformRuntimeStartTime = nil
+			} else {
+				r.lastTraceTimestamps.platformRuntimeStartTime = &time
 			}
 		// Function invocation completed.
 		case string(telemetryapi.PlatformRuntimeDone):
 			r.logger.Debug(fmt.Sprintf("Invoke end: %s", el.Time), zap.Any("event", el))
-			if time, err := parseTime(el.Time); err == nil {
-				r.lastTraceTimestamps.platformRuntimeEndTime = &time
-				r.lastMetricTimestamps.platformRuntimeEndTime = &time
-			} else {
+			time, err := parseTime(el.Time)
+			if err != nil {
+				r.logger.Error("unable to set last platform runtime end time", zap.Error(err))
 				r.lastTraceTimestamps.platformRuntimeEndTime = nil
 				r.lastMetricTimestamps.platformRuntimeEndTime = nil
+			} else {
+				r.lastTraceTimestamps.platformRuntimeEndTime = &time
+				r.lastMetricTimestamps.platformRuntimeEndTime = &time
 			}
 			if record, err := parseRecord[platformRuntimeDoneRecord](el, r.logger); err == nil {
 				r.lastRequestID = record.RequestID
@@ -374,12 +384,11 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		case string(telemetryapi.PlatformReport):
 			r.logger.Debug(fmt.Sprintf("Invoke report: %s", el.Time), zap.Any("event", el))
 			time, err := parseTime(el.Time)
-			if err == nil {
-				r.logger.Debug("setting last report time to value")
-				r.lastMetricTimestamps.platformReportTime = &time
-			} else {
-				r.logger.Debug("setting last report time to nil", zap.Error(err))
+			if err != nil {
+				r.logger.Error("unable to set last platform report time", zap.Error(err))
 				r.lastMetricTimestamps.platformReportTime = nil
+			} else {
+				r.lastMetricTimestamps.platformReportTime = &time
 			}
 			if r.metricsReader == nil {
 				continue
@@ -513,9 +522,11 @@ func (r *telemetryAPIReceiver) forwardLogs() {
 			var parsed any
 			// Log lines are delivered as raw strings, we try to parse them here
 			if err := json.Unmarshal([]byte(line), &parsed); err != nil {
+				r.logger.Debug("interpreting log line as JSON", zap.String("line", line))
 				r.populateLogRecord(log, parsed, item.timestamp)
 			} else {
 				// Otherwise, we process them as raw string
+				r.logger.Debug("interpreting log line as raw string", zap.String("line", line))
 				r.populateLogRecord(log, item.log, item.timestamp)
 			}
 		} else {
