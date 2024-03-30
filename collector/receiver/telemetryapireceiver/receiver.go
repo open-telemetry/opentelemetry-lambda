@@ -103,7 +103,15 @@ func newTelemetryAPIReceiver(
 	cfg *Config,
 	set receiver.CreateSettings,
 ) (*telemetryAPIReceiver, error) {
+	// Resource attributes follow the OTEL semantiv conventions...
 	r := pcommon.NewResource()
+	// Cloud Resource Attributes: https://opentelemetry.io/docs/specs/semconv/resource/cloud/
+	r.Attributes().PutStr(semconv.AttributeCloudProvider, semconv.AttributeCloudProviderAWS)
+	r.Attributes().PutStr(semconv.AttributeCloudPlatform, semconv.AttributeCloudPlatformAWSLambda)
+	if val, ok := os.LookupEnv("AWS_REGION"); ok {
+		r.Attributes().PutStr(semconv.AttributeCloudRegion, val)
+	}
+	// FaaS Resource Attributes: https://opentelemetry.io/docs/specs/semconv/resource/faas/
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeServiceName, val)
 		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
@@ -122,8 +130,8 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
-	// This telemetry API receiver is very minimal. We're lazily initializing most members as this
-	// receiver is requested in processing pipelines.
+	// This telemetry API receiver is very minimal. We're lazily initializing most members when
+	// this receiver is requested in processing pipelines.
 	return &telemetryAPIReceiver{
 		logger:      set.Logger,
 		extensionID: cfg.extensionID,
