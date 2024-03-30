@@ -43,7 +43,6 @@ func NewFactory(extensionID string) receiver.Factory {
 		},
 		receiver.WithTraces(cache.createTracesReceiver, stability),
 		receiver.WithMetrics(cache.createMetricsReceiver, stability),
-		receiver.WithLogs(cache.createLogsReceiver, stability),
 	)
 }
 
@@ -87,24 +86,6 @@ func (c *ReceiverCache) createMetricsReceiver(
 		}
 	}
 	c.receiver.setMetricsConsumer(next)
-	return c.receiver, nil
-}
-
-func (c *ReceiverCache) createLogsReceiver(
-	_ context.Context,
-	params receiver.CreateSettings,
-	rConf component.Config,
-	next consumer.Logs,
-) (receiver.Logs, error) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	if c.receiver == nil {
-		if err := c.setReceiver(params, rConf); err != nil {
-			return nil, err
-		}
-	}
-	c.receiver.setLogsConsumer(next)
 	return c.receiver, nil
 }
 

@@ -74,7 +74,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 	}
 
 	telemetryClient := telemetryapi.NewClient(logger)
-	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr, false)
+	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr)
 	if err != nil {
 		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
 	}

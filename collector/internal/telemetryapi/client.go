@@ -50,15 +50,11 @@ func (c *Client) Subscribe(
 	ctx context.Context,
 	extensionID string,
 	listenerURI string,
-	functionLogs bool,
 ) (string, error) {
 	eventTypes := []EventType{
 		Platform,
 		// Function,
 		// Extension,
-	}
-	if functionLogs {
-		eventTypes = append(eventTypes, Function)
 	}
 
 	bufferingConfig := BufferingCfg{

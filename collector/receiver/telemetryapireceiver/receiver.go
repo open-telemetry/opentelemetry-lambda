@@ -25,7 +25,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -33,7 +32,6 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
@@ -86,9 +84,6 @@ type telemetryAPIReceiver struct {
 	metricTimeouts        metric.Int64Counter
 	metricMemoryUsages    metric.Int64Histogram
 	lastMetricTimestamps  metricTimestamps
-	// LOGS
-	nextLogsConsumer consumer.Logs
-	logsCache        []logLine
 }
 
 type traceTimestamps struct {
@@ -102,11 +97,6 @@ type metricTimestamps struct {
 	platformInitReportTime *time.Time
 	platformRuntimeEndTime *time.Time
 	platformReportTime     *time.Time
-}
-
-type logLine struct {
-	timestamp time.Time
-	log       any
 }
 
 func newTelemetryAPIReceiver(
@@ -229,10 +219,6 @@ func (r *telemetryAPIReceiver) setMetricsConsumer(next consumer.Metrics) error {
 	return err
 }
 
-func (r *telemetryAPIReceiver) setLogsConsumer(next consumer.Logs) {
-	r.nextLogsConsumer = next
-}
-
 /* ------------------------------------ COMPONENT INTERFACE ------------------------------------ */
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
@@ -244,11 +230,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}
 
 	address := listenOnAddress()
-	r.logger.Info(
-		"Listening for requests",
-		zap.String("address", address),
-		zap.Bool("logs", r.nextLogsConsumer != nil),
-	)
+	r.logger.Info("Listening for requests", zap.String("address", address))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", r.httpHandler)
@@ -258,9 +240,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(
-		ctx, r.extensionID, fmt.Sprintf("http://%s/", address), r.nextLogsConsumer != nil,
-	)
+	_, err := telemetryClient.Subscribe(ctx, r.extensionID, fmt.Sprintf("http://%s/", address))
 	if err != nil {
 		r.logger.Info(
 			"Listening for requests",
@@ -286,8 +266,7 @@ func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
 func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Request) {
 	// We should not run HTTP handlers in parallel, this would cause all kinds of issues. Let's
 	// just lock very coarsely here for simplicity. The TelemetryAPI should not send concurrent
-	// requests anyway as it should not send requests more often than every 25ms unless a LOT of
-	// logs are generated (see configuration in `telemetryClient.Subscribe` above).
+	// requests anyway.
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -396,18 +375,6 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 			if record, err := parseRecord[platformReport](el, r.logger); err == nil {
 				r.metricMemoryUsages.Record(ctx, record.Metrics.MaxMemoryUsedMb*1024*1024)
 			}
-		// Log record emitted by function.
-		case string(telemetryapi.Function):
-			r.logger.Debug(fmt.Sprintf("Log entry: %s", el.Time), zap.Any("event", el))
-			time, err := parseTime(el.Time)
-			if err != nil {
-				r.logger.Warn("Dropping log line as time cannot be parsed", zap.Error(err))
-			} else {
-				r.logsCache = append(r.logsCache, logLine{
-					timestamp: time,
-					log:       el.Record,
-				})
-			}
 		}
 		// TODO: potentially add support for additional events, see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api.html
 		// Runtime restore started (reserved for future use)
@@ -424,7 +391,6 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	// NOTE: Forward metrics first as trace forwarding clears timestamps
 	r.forwardMetrics()
 	r.forwardTraces()
-	r.forwardLogs()
 	slice = nil
 }
 
@@ -505,47 +471,6 @@ func (r *telemetryAPIReceiver) forwardMetrics() {
 	// Eventually, forward the metrics to the consumer
 	if err := r.nextMetricsConsumer.ConsumeMetrics(context.Background(), metricData); err != nil {
 		r.logger.Error("error receiving metrics", zap.Error(err))
-	}
-}
-
-func (r *telemetryAPIReceiver) forwardLogs() {
-	if len(r.logsCache) == 0 {
-		// Return early if there are no logs
-		return
-	}
-
-	logData := plog.NewLogs()
-	rs := logData.ResourceLogs().AppendEmpty()
-	r.resource.CopyTo(rs.Resource())
-
-	scopeLog := rs.ScopeLogs().AppendEmpty()
-	scopeLog.Scope().SetName(instrumentationScope)
-
-	for _, item := range r.logsCache {
-		if line, ok := item.log.(string); ok {
-			log := scopeLog.LogRecords().AppendEmpty()
-			var parsed any
-			// Log lines are delivered as raw strings, we try to parse them here
-			if err := json.Unmarshal([]byte(line), &parsed); err == nil {
-				r.logger.Debug("interpreting log line as JSON", zap.String("line", line))
-				r.populateLogRecord(log, parsed, item.timestamp)
-			} else {
-				// Otherwise, we process them as raw string
-				r.logger.Debug("interpreting log line as raw string", zap.String("line", line))
-				r.populateLogRecord(log, item.log, item.timestamp)
-			}
-		} else {
-			r.logger.Warn("received log line in a format other than a plain string, ignoring")
-		}
-	}
-	r.logsCache = nil
-
-	if scopeLog.LogRecords().Len() == 0 {
-		// Return before forwarding if we couldn't process any logs
-		return
-	}
-	if err := r.nextLogsConsumer.ConsumeLogs(context.Background(), logData); err != nil {
-		r.logger.Error("error receiving logs", zap.Error(err))
 	}
 }
 
@@ -639,62 +564,6 @@ func (r *telemetryAPIReceiver) getMetricTimestamp(metricName string) (time.Time,
 		return time.Time{}, errMissingTimestamp
 	default:
 		return time.Time{}, errUnknownMetric
-	}
-}
-
-/* -------------------------------------------- LOGS ------------------------------------------- */
-
-func (r *telemetryAPIReceiver) populateLogRecord(log plog.LogRecord, record any, timestamp time.Time) {
-	// Set metadata
-	log.SetObservedTimestamp(pcommon.NewTimestampFromTime(timestamp))
-	if m, ok := record.(map[string]any); ok {
-		if rawLevel, ok := m["level"]; ok {
-			if level, ok := rawLevel.(string); ok {
-				log.SetSeverityText(level)
-				// Remove from map to not include severity in body
-				delete(m, "level")
-			}
-		}
-	}
-
-	// Populate body: if the receiver's configuration indicates that we should only add a "subkey",
-	// let's do so
-	if r.cfg.Logs.JSON.BodyPath != "" {
-		if m, ok := record.(map[string]any); ok {
-			if body, ok := m[r.cfg.Logs.JSON.BodyPath]; ok {
-				r.populateLogValue(log.Body(), body)
-			}
-		}
-	}
-	// If we didn't return above, we just populate the entire body from the record
-	r.populateLogValue(log.Body(), record)
-}
-
-func (r *telemetryAPIReceiver) populateLogValue(value pcommon.Value, src any) {
-	switch v := src.(type) {
-	case string:
-		value.SetStr(v)
-	case bool:
-		value.SetBool(v)
-	case float64:
-		value.SetDouble(v)
-	case int64:
-		value.SetInt(v)
-	case []any:
-		slice := value.SetEmptySlice()
-		for _, item := range v {
-			r.populateLogValue(slice.AppendEmpty(), item)
-		}
-	case map[string]any:
-		m := value.SetEmptyMap()
-		for key, item := range v {
-			r.populateLogValue(m.PutEmpty(key), item)
-		}
-	default:
-		r.logger.Warn(
-			"Encountered invalid value when parsing log",
-			zap.String("type", reflect.TypeOf(src).String()),
-		)
 	}
 }
 
