@@ -20,11 +20,6 @@ type Config struct {
 	Metrics     struct {
 		UseExponentialHistograms bool `mapstructure:"use_exponential_histograms"`
 	} `mapstructure:"metrics"`
-	Logs struct {
-		JSON struct {
-			BodyPath string `mapstructure:"body_path"`
-		} `mapstructure:"json"`
-	} `mapstructure:"logs"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
