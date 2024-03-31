@@ -86,8 +86,8 @@ func (p *faasProcessor) processTraces(ctx context.Context, td ptrace.Traces) (pt
 		if invocationSpan, ok := p.invocationSpans[requestID]; ok {
 			// Augment the spans as required
 			telemetryApiSpan.span.SetParentSpanID(invocationSpan.span.ParentSpanID())
-			invocationSpan.span.SetParentSpanID(telemetryApiSpan.span.SpanID())
 			telemetryApiSpan.span.SetTraceID(invocationSpan.span.TraceID())
+			invocationSpan.span.SetParentSpanID(telemetryApiSpan.span.SpanID())
 
 			// Add spans to the output
 			telemetryApiSpan.addToTraces(td)

@@ -25,6 +25,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"sync"
 	"time"
@@ -68,6 +69,7 @@ type telemetryAPIReceiver struct {
 	extensionID string
 	resource    pcommon.Resource
 	cfg         *Config
+	shutdown    chan struct{}
 	// TRACES
 	nextTracesConsumer  consumer.Traces
 	lastRequestID       string
@@ -112,22 +114,22 @@ func newTelemetryAPIReceiver(
 	if val, ok := os.LookupEnv("AWS_REGION"); ok {
 		r.Attributes().PutStr(semconv.AttributeCloudRegion, val)
 	}
-	// FaaS Resource Attributes: https://opentelemetry.io/docs/specs/semconv/resource/faas/
+	// Service attributes: https://opentelemetry.io/docs/specs/semconv/resource/#service
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeServiceName, val)
 		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
 	} else {
 		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
 	}
+	// In order for metrics to adhere to the single-writer principle, service.instance.id MUST be set:
+	// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/metrics/datamodel.md#single-writer
+	r.Attributes().PutStr(semconv.AttributeServiceInstanceID, uuid.New().String())
+	// FaaS Resource Attributes: https://opentelemetry.io/docs/specs/semconv/resource/faas/
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_VERSION"); ok {
 		r.Attributes().PutStr(semconv.AttributeFaaSVersion, val)
 	}
-	// In order for metrics to adhere to the single-writer principle, faas.instance MUST be set:
-	// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/metrics/datamodel.md#single-writer
 	if val, ok := os.LookupEnv("AWS_LAMBDA_LOG_STREAM_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeFaaSInstance, val)
-	} else {
-		r.Attributes().PutStr(semconv.AttributeFaaSInstance, uuid.New().String())
 	}
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"); ok {
 		if mb, err := strconv.Atoi(val); err == nil {
@@ -142,6 +144,7 @@ func newTelemetryAPIReceiver(
 		extensionID: cfg.extensionID,
 		resource:    r,
 		cfg:         cfg,
+		shutdown:    make(chan struct{}),
 	}, nil
 }
 
@@ -251,6 +254,13 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	go func() {
 		_ = r.httpServer.ListenAndServe()
 	}()
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		_ = <-c
+		_ = r.httpServer.Shutdown(context.Background())
+		close(r.shutdown)
+	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
 	_, err := telemetryClient.Subscribe(ctx, r.extensionID, fmt.Sprintf("http://%s/", address))
@@ -267,7 +277,13 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 }
 
 func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
-	return nil
+	r.httpServer.Shutdown(ctx)
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-r.shutdown:
+		return nil
+	}
 }
 
 /* --------------------------------------- EVENT HANDLER --------------------------------------- */
