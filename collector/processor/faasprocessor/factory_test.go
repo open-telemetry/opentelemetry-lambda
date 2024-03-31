@@ -59,7 +59,7 @@ func TestNewFactory(t *testing.T) {
 					nil,
 					consumertest.NewNop(),
 				)
-				require.ErrorIs(t, err, errConfigNotColdstart)
+				require.ErrorIs(t, err, errConfigNotFaas)
 			},
 		},
 	}

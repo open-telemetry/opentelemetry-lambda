@@ -17,6 +17,7 @@ package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/
 import (
 	"context"
 
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -38,7 +39,23 @@ type faasProcessor struct {
 	nextConsumer             consumer.Traces
 }
 
-func (p *faasProcessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
+func newFaasProcessor(next consumer.Traces, set processor.CreateSettings) (*faasProcessor, error) {
+	return &faasProcessor{
+		telemetryAPIRuntimeSpans: make(map[string]cachedSpan),
+		telemetryAPIInitSpans:    make(map[string]cachedSpan),
+		invocationSpans:          make(map[string]cachedSpan),
+		nextConsumer:             next,
+		logger:                   set.Logger,
+	}, nil
+}
+
+/* -------------------------------------- TRACES INTERFACE ------------------------------------- */
+
+func (*faasProcessor) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{MutatesData: true}
+}
+
+func (p *faasProcessor) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	// Remove spans which ought to be matched on the request ID
 	td.ResourceSpans().RemoveIf(func(rs ptrace.ResourceSpans) bool {
 		resource := rs.Resource()
@@ -105,25 +122,33 @@ func (p *faasProcessor) processTraces(ctx context.Context, td ptrace.Traces) (pt
 			}
 		}
 	}
-
 	if td.ResourceSpans().Len() == 0 {
-		return td, processorhelper.ErrSkipProcessingData
+		return processorhelper.ErrSkipProcessingData
 	}
-	return td, nil
+	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
-func newFaasProcessor(
-	cfg *Config,
-	next consumer.Traces,
-	set processor.CreateSettings,
-) (*faasProcessor, error) {
-	return &faasProcessor{
-		telemetryAPIRuntimeSpans: make(map[string]cachedSpan),
-		telemetryAPIInitSpans:    make(map[string]cachedSpan),
-		invocationSpans:          make(map[string]cachedSpan),
-		nextConsumer:             next,
-		logger:                   set.Logger,
-	}, nil
+func (p *faasProcessor) Start(ctx context.Context, host component.Host) error {
+	return nil
+}
+
+func (p *faasProcessor) Shutdown(ctx context.Context) error {
+	// If there are still any spans left, let's just forward them as-is. We don't want to lose any
+	// in our cache.
+	td := ptrace.NewTraces()
+	for _, item := range p.invocationSpans {
+		item.addToTraces(td)
+	}
+	for _, item := range p.telemetryAPIInitSpans {
+		item.addToTraces(td)
+	}
+	for _, item := range p.telemetryAPIRuntimeSpans {
+		item.addToTraces(td)
+	}
+	if td.ResourceSpans().Len() == 0 {
+		return nil
+	}
+	return p.nextConsumer.ConsumeTraces(ctx, td)
 }
 
 /* ---------------------------------------- CACHED SPAN ---------------------------------------- */
