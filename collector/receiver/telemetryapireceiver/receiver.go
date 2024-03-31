@@ -28,6 +28,7 @@ import (
 	"os/signal"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
@@ -256,7 +257,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 	go func() {
 		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
+		signal.Notify(c, syscall.SIGTERM)
 		_ = <-c
 		_ = r.httpServer.Shutdown(context.Background())
 		close(r.shutdown)
