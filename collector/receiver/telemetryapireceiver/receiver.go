@@ -41,6 +41,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.uber.org/zap"
 
+	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
@@ -121,8 +122,12 @@ func newTelemetryAPIReceiver(
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_VERSION"); ok {
 		r.Attributes().PutStr(semconv.AttributeFaaSVersion, val)
 	}
+	// In order for metrics to adhere to the single-writer principle, faas.instance MUST be set:
+	// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/metrics/datamodel.md#single-writer
 	if val, ok := os.LookupEnv("AWS_LAMBDA_LOG_STREAM_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeFaaSInstance, val)
+	} else {
+		r.Attributes().PutStr(semconv.AttributeFaaSInstance, uuid.New().String())
 	}
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_MEMORY_SIZE"); ok {
 		if mb, err := strconv.Atoi(val); err == nil {

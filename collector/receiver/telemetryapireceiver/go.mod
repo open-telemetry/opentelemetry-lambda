@@ -7,6 +7,7 @@ toolchain go1.21.5
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 
 require (
+	github.com/google/uuid v1.5.0
 	github.com/mitchellh/mapstructure v1.5.1-0.20220423185008-bf980b35cac4
 	github.com/open-telemetry/opentelemetry-lambda/collector v0.91.0
 	github.com/stretchr/testify v1.9.0
