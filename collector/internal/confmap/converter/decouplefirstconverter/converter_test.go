@@ -23,6 +23,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+
+
 func TestConvert(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -48,19 +50,21 @@ func TestConvert(t *testing.T) {
 			expected: confmap.NewFromStringMap(map[string]interface{}{
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{},
+						"traces": map[string]interface{}{
+							"processors": []interface{}{"batch", "decouple"},
+						},
 					},
 				},
 			}),
 			err: nil,
 		},
 		{
-			name: "decouple processor first",
+			name: "processors in pipeline",
 			conf: confmap.NewFromStringMap(map[string]interface{}{
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"decouple", "processor1"},
+							"processors": []interface{}{"processor1", "processor2"},
 						},
 					},
 				},
@@ -69,7 +73,7 @@ func TestConvert(t *testing.T) {
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"decouple", "processor1"},
+							"processors": []interface{}{"processor1", "processor2", "batch", "decouple"},
 						},
 					},
 				},
@@ -77,12 +81,12 @@ func TestConvert(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "decouple processor not first",
+			name: "batch and decouple processors already present",
 			conf: confmap.NewFromStringMap(map[string]interface{}{
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "decouple", "processor2"},
+							"processors": []interface{}{"processor1", "batch", "processor2", "decouple"},
 						},
 					},
 				},
@@ -91,29 +95,7 @@ func TestConvert(t *testing.T) {
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"decouple", "processor1", "processor2"},
-						},
-					},
-				},
-			}),
-			err: nil,
-		},
-		{
-			name: "multiple decouple processors",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "decouple", "decouple/instance1", "processor2", "decouple/instance2"},
-						},
-					},
-				},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"decouple", "processor1", "processor2"},
+							"processors": []interface{}{"processor1", "processor2", "batch", "decouple"},
 						},
 					},
 				},
