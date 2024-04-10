@@ -34,24 +34,6 @@ func New() confmap.Converter {
 	return &converter{}
 }
 
-type arr []interface{}
-
-func (a arr) moveLast(x int) error {
-	if x < 0 || x >= len(a) {
-		return fmt.Errorf("index out of bounds: %d", x)
-	}
-	return nil
-}
-
-func (a arr) move2ndLast(x int) error {
-	// if index out of bounds then return error
-	return nil
-}
-
-func (a arr) drop(x int) error {
-	return nil
-}
-
 func (c converter) convertProcessors(processors []interface{}) []interface{} {
 	// Drop occurrences of "batch" and "decouple".
 	// This ignores edge cases and if user has configured processors earlier in the pipeline then

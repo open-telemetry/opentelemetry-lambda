@@ -68,7 +68,7 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig(l)},
 			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New(), decouplefirstconverter.New()},
 		},
 	}
 	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)
