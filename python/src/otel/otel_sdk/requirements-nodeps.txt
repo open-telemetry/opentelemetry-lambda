@@ -1,6 +1,6 @@
 opentelemetry-instrumentation-aiohttp-client==0.44b0
 opentelemetry-util-http==0.44b0
-asgiref~=3.7
+asgiref~=3.8
 opentelemetry-instrumentation-asgi==0.44b0
 opentelemetry-instrumentation-asyncpg==0.44b0
 opentelemetry-instrumentation-boto==0.44b0
