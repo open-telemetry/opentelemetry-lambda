@@ -20,7 +20,7 @@ val DEPENDENCIES = listOf(
     "com.squareup.okhttp3:okhttp:4.12.0",
     "io.opentelemetry.javaagent:opentelemetry-javaagent:2.2.0",
     "io.opentelemetry:opentelemetry-sdk-extension-aws:1.19.0",
-    "io.opentelemetry.contrib:opentelemetry-aws-resources:1.33.0-alpha",
+    "io.opentelemetry.contrib:opentelemetry-aws-resources:1.34.0-alpha",
 )
 
 javaPlatform {
