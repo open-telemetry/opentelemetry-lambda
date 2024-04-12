@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package decouplefirstconverter
+package decoupleafterbatchconverter
 
 import (
 	"context"
@@ -23,8 +23,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-
-
 func TestConvert(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -33,10 +31,20 @@ func TestConvert(t *testing.T) {
 		err      error
 	}{
 		{
-			name:     "no pipelines",
+			name:     "no service",
 			conf:     confmap.New(),
 			expected: confmap.New(),
 			err:      nil,
+		},
+		{
+			name: "no pipelines",
+			conf: confmap.NewFromStringMap(map[string]interface{}{
+				"service": map[string]interface{}{},
+			}),
+			expected: confmap.NewFromStringMap(map[string]interface{}{
+				"service": map[string]interface{}{},
+			}),
+			err: nil,
 		},
 		{
 			name: "no processors in pipeline",
@@ -44,6 +52,26 @@ func TestConvert(t *testing.T) {
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{},
+					},
+				},
+			}),
+			expected: confmap.NewFromStringMap(map[string]interface{}{
+				"service": map[string]interface{}{
+					"pipelines": map[string]interface{}{
+						"traces": map[string]interface{}{},
+					},
+				},
+			}),
+			err: nil,
+		},
+		{
+			name: "batch processor present",
+			conf: confmap.NewFromStringMap(map[string]interface{}{
+				"service": map[string]interface{}{
+					"pipelines": map[string]interface{}{
+						"traces": map[string]interface{}{
+							"processors": []interface{}{"batch"},
+						},
 					},
 				},
 			}),
@@ -59,7 +87,7 @@ func TestConvert(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "processors in pipeline",
+			name: "batch processor not present",
 			conf: confmap.NewFromStringMap(map[string]interface{}{
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
@@ -73,7 +101,7 @@ func TestConvert(t *testing.T) {
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "processor2", "batch", "decouple"},
+							"processors": []interface{}{"processor1", "processor2"},
 						},
 					},
 				},
@@ -95,7 +123,7 @@ func TestConvert(t *testing.T) {
 				"service": map[string]interface{}{
 					"pipelines": map[string]interface{}{
 						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "processor2", "batch", "decouple"},
+							"processors": []interface{}{"processor1", "batch", "processor2", "decouple"},
 						},
 					},
 				},
@@ -109,9 +137,6 @@ func TestConvert(t *testing.T) {
 				t.Errorf("unexpected error converting: %v", err)
 			}
 
-			// check that tc.conf is equal to tc.expected, but for something
-			// that must work on maps which are unordered
-			// assert.NoError(t, err)
 			if diff := cmp.Diff(tc.expected.ToStringMap(), tc.conf.ToStringMap()); diff != "" {
 				t.Errorf("Convert() mismatch: (-want +got):\n%s", diff)
 			}
