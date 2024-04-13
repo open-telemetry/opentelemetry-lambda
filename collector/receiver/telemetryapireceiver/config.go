@@ -17,6 +17,9 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 // Config defines the configuration for the various elements of the receiver agent.
 type Config struct {
 	extensionID string
+	Metrics     struct {
+		UseExponentialHistograms bool `mapstructure:"use_exponential_histograms"`
+	} `mapstructure:"metrics"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coldstartprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func TestNewFactory(t *testing.T) {
 					nil,
 					consumertest.NewNop(),
 				)
-				require.ErrorIs(t, err, errConfigNotColdstart)
+				require.ErrorIs(t, err, errConfigNotFaas)
 			},
 		},
 	}

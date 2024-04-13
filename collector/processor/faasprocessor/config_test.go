@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coldstartprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 
 import (
 	"testing"
@@ -41,7 +41,6 @@ func TestValidate(t *testing.T) {
 			} else {
 				require.NoError(t, actualErr)
 			}
-
 		})
 	}
 }

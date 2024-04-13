@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coldstartprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
+package faasprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/faasprocessor"
 
 import (
 	"context"
@@ -21,18 +21,14 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
-	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
 const (
-	typeStr   = "coldstart"
+	typeStr   = "faas"
 	stability = component.StabilityLevelDevelopment
 )
 
-var (
-	errConfigNotColdstart = errors.New("config was not a Coldstart processor config")
-	processorCapabilities = consumer.Capabilities{MutatesData: true}
-)
+var errConfigNotFaas = errors.New("config was not a faas processor config")
 
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
@@ -47,22 +43,14 @@ func createDefaultConfig() component.Config {
 }
 
 func createTracesProcessor(ctx context.Context, params processor.CreateSettings, rConf component.Config, next consumer.Traces) (processor.Traces, error) {
-	cfg, ok := rConf.(*Config)
+	_, ok := rConf.(*Config)
 	if !ok {
-		return nil, errConfigNotColdstart
+		return nil, errConfigNotFaas
 	}
 
-	cp, err := newColdstartProcessor(cfg, next, params)
+	cp, err := newFaasProcessor(next, params)
 	if err != nil {
 		return nil, err
 	}
-	return processorhelper.NewTracesProcessor(
-		ctx,
-		params,
-		cfg,
-		next,
-		cp.processTraces,
-		processorhelper.WithCapabilities(processorCapabilities),
-	)
-
+	return cp, nil
 }

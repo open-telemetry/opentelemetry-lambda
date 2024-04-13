@@ -24,6 +24,14 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformInitReport is used to report on function initialization.
+	PlatformInitReport EventType = Platform + ".initReport"
+	// PlatformStart is used when function invocation started.
+	PlatformStart EventType = Platform + ".start"
+	// PlatformRuntimeDone is used when function invocation ended.
+	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
+	// PlatformReport is used to report on function invocation.
+	PlatformReport EventType = Platform + ".report"
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
 	// Extension is used is to receive log events emitted by the extension

@@ -15,7 +15,46 @@
 package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 
 type event struct {
-	Time   string         `json:"time"`
-	Type   string         `json:"type"`
-	Record map[string]any `json:"record"`
+	Time   string `json:"time"`
+	Type   string `json:"type"`
+	Record any    `json:"record"`
 }
+
+// NOTE: Types defined here do not include all attributes sent by the Telemetry API but only those
+//       relevant to this package. For a full overview, consult the documentation:
+//       https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-events
+
+type platformInitReportRecord struct {
+	Metrics struct {
+		DurationMs float64 `mapstructure:"durationMs"`
+	} `mapstructure:"metrics"`
+}
+
+type platformStartRecord struct {
+	RequestID string `mapstructure:"requestId"`
+}
+
+type platformRuntimeDoneRecord struct {
+	RequestID string `mapstructure:"requestId"`
+	Status    status `mapstructure:"status"`
+	Metrics   *struct {
+		DurationMs float64 `mapstructure:"durationMs"`
+	} `mapstructure:"metrics"`
+}
+
+type platformReport struct {
+	Metrics struct {
+		MaxMemoryUsedMb int64 `mapstructure:"maxMemoryUsedMB"`
+	} `mapstructure:"metrics"`
+}
+
+/* ----------------------------------------- CONSTANTS ----------------------------------------- */
+
+type status string
+
+const (
+	statusSuccess = status("success")
+	statusFailure = status("failure")
+	statusError   = status("error")
+	statusTimeout = status("timeout")
+)

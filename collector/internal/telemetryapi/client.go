@@ -46,7 +46,11 @@ func NewClient(logger *zap.Logger) *Client {
 	}
 }
 
-func (c *Client) Subscribe(ctx context.Context, extensionID string, listenerURI string) (string, error) {
+func (c *Client) Subscribe(
+	ctx context.Context,
+	extensionID string,
+	listenerURI string,
+) (string, error) {
 	eventTypes := []EventType{
 		Platform,
 		// Function,
@@ -73,7 +77,6 @@ func (c *Client) Subscribe(ctx context.Context, extensionID string, listenerURI 
 			BufferingCfg:  bufferingConfig,
 			Destination:   destination,
 		})
-
 	if err != nil {
 		return "", fmt.Errorf("Failed to marshal SubscribeRequest: %w", err)
 	}
