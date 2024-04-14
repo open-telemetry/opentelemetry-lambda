@@ -43,6 +43,15 @@ func TestConvert(t *testing.T) {
         expectedProcessors []interface{}
         err         error
     }{
+		// This test is first, because it illustrates the difference in making the rule that when
+		// batch is present the converter appends decouple processor to the end of chain versus
+		// the approach of this code which is to do this only when the last instance of batch
+		// is not followed by decouple processor.
+		{
+			name: 	   "batch then decouple in middle of chain",
+			processors: []interface{}{"processor1", "batch", "decouple", "processor2"},
+			expectedProcessors: []interface{}{"processor1", "batch", "decouple", "processor2"},
+		},
         {
             name:       "no service",
             processors: nil,
@@ -54,22 +63,34 @@ func TestConvert(t *testing.T) {
             expectedProcessors: nil,
         },
         {
-            name:       "no processors in pipeline",
+            name:       "no processors in chain",
             processors: nil,
             expectedProcessors: nil,
         },
         {
-            name:       "batch processor present",
+            name:       "batch processor in singleton chain",
             processors: []interface{}{"batch"},
             expectedProcessors: []interface{}{"batch", "decouple"},
         },
+        {
+            name:       "batch processor present twice",
+            processors: []interface{}{"batch", "processor1", "batch"},
+            expectedProcessors: []interface{}{"batch", "processor1", "batch", "decouple"},
+        },
+
         {
             name:       "batch processor not present",
             processors: []interface{}{"processor1", "processor2"},
             expectedProcessors: []interface{}{"processor1", "processor2"},
         },
         {
-            name:       "batch and decouple processors already present",
+            name:       "batch sandwiched between processors no decouple",
+            processors: []interface{}{"processor1", "batch", "processor2"},
+            expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
+        },
+
+        {
+            name:       "batch and decouple processors already present in correct position",
             processors: []interface{}{"processor1", "batch", "processor2", "decouple"},
             expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
         },
