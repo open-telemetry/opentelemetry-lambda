@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package decoupleafterbatchconverter
 
 import (
@@ -24,122 +23,71 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	for _, tc := range []struct {
-		name     string
-		conf     *confmap.Conf
-		expected *confmap.Conf
-		err      error
-	}{
-		{
-			name:     "no service",
-			conf:     confmap.New(),
-			expected: confmap.New(),
-			err:      nil,
-		},
-		{
-			name: "no pipelines",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{},
-			}),
-			err: nil,
-		},
-		{
-			name: "no processors in pipeline",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{},
-					},
-				},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{},
-					},
-				},
-			}),
-			err: nil,
-		},
-		{
-			name: "batch processor present",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"batch"},
-						},
-					},
-				},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"batch", "decouple"},
-						},
-					},
-				},
-			}),
-			err: nil,
-		},
-		{
-			name: "batch processor not present",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "processor2"},
-						},
-					},
-				},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "processor2"},
-						},
-					},
-				},
-			}),
-			err: nil,
-		},
-		{
-			name: "batch and decouple processors already present",
-			conf: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "batch", "processor2", "decouple"},
-						},
-					},
-				},
-			}),
-			expected: confmap.NewFromStringMap(map[string]interface{}{
-				"service": map[string]interface{}{
-					"pipelines": map[string]interface{}{
-						"traces": map[string]interface{}{
-							"processors": []interface{}{"processor1", "batch", "processor2", "decouple"},
-						},
-					},
-				},
-			}),
-			err: nil,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			c := New()
-			if err := c.Convert(context.Background(), tc.conf); err != nil {
-				t.Errorf("unexpected error converting: %v", err)
-			}
+	// Since this really tests differences in processors, it's easier to read cases
+	// without the repeated definition of other fields in the config.
+    baseConf := func(processors []interface{}) *confmap.Conf {
+        return confmap.NewFromStringMap(map[string]interface{}{
+            "service": map[string]interface{}{
+                "pipelines": map[string]interface{}{
+                    "traces": map[string]interface{}{
+                        "processors": processors,
+                    },
+                },
+            },
+        })
+    }
 
-			if diff := cmp.Diff(tc.expected.ToStringMap(), tc.conf.ToStringMap()); diff != "" {
-				t.Errorf("Convert() mismatch: (-want +got):\n%s", diff)
-			}
-		})
-	}
+    testCases := []struct {
+        name        string
+        processors  []interface{}
+        expectedProcessors []interface{}
+        err         error
+    }{
+        {
+            name:       "no service",
+            processors: nil,
+            expectedProcessors: nil,
+        },
+        {
+            name:       "no pipelines",
+            processors: nil,
+            expectedProcessors: nil,
+        },
+        {
+            name:       "no processors in pipeline",
+            processors: nil,
+            expectedProcessors: nil,
+        },
+        {
+            name:       "batch processor present",
+            processors: []interface{}{"batch"},
+            expectedProcessors: []interface{}{"batch", "decouple"},
+        },
+        {
+            name:       "batch processor not present",
+            processors: []interface{}{"processor1", "processor2"},
+            expectedProcessors: []interface{}{"processor1", "processor2"},
+        },
+        {
+            name:       "batch and decouple processors already present",
+            processors: []interface{}{"processor1", "batch", "processor2", "decouple"},
+            expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            conf := baseConf(tc.processors)
+            expected := baseConf(tc.expectedProcessors)
+
+            c := New()
+            err := c.Convert(context.Background(), conf)
+            if err != tc.err {
+                t.Errorf("unexpected error converting: %v", err)
+            }
+            if diff := cmp.Diff(expected.ToStringMap(), conf.ToStringMap()); diff != "" {
+                t.Errorf("Convert() mismatch: (-want +got):\n%s", diff)
+            }
+        })
+    }
 }
