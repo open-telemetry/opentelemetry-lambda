@@ -107,7 +107,6 @@ func appendDecouple(processors []interface{}) bool {
 		if !ok {
 			continue
 		}
-		appendDecouple = false
 		processorBaseName := strings.Split(processor, "/")[0]
 		if processorBaseName == batchProcessor {
 			appendDecouple = true
