@@ -97,9 +97,9 @@ func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
 	return nil
 }
 
-// The appendDecouple predicate encodes most of the logic for mutating processor pipelines
-// in the Convert function. It tells whether there was a decouple processor after the last
-// batch processor and if so it appends decouple to the end.
+// The appendDecouple is the filter predicate for the Convert function action. It tells whether
+// (bool) there was a decouple processor after the last
+// batch processor, which Convert uses to decide whether to append the decouple processor.
 func appendDecouple(processors []interface{}) bool {
 	var appendDecouple bool
 	for _, processorVal := range processors {
