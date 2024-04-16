@@ -9,5 +9,3 @@ The converter scans the collector's configuration and makes the following adjust
 1. If a pipeline contains a batch processor with no decouple processor defined after it, the converter will automatically add a decouple processor to the pipeline immediately after the batch processor.
 
 2. If a pipeline contains a batch processor with a decouple processor already defined after it or there is no batch processor defined, the converter will not make any changes to the pipeline configuration.
-
-The automatically added decouple processor will have a default queue size of 2000. This value was chosen to be high enough to accommodate the default batch processor timeout of 200ms.
