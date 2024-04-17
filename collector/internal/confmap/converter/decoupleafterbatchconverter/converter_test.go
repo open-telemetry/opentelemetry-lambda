@@ -94,6 +94,16 @@ func TestConvert(t *testing.T) {
             processors: []interface{}{"processor1", "batch", "processor2", "decouple"},
             expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
         },
+        {
+            name:       "decouple and batch",
+            processors: []interface{}{"decouple", "batch"},
+            expectedProcessors: []interface{}{"decouple", "batch", "decouple"},
+        },
+        {
+            name:       "decouple then match mixed with others in the pipelinefirst then batch somewhere",
+            processors: []interface{}{"processor1", "decouple", "processor2", "batch", "processor3"},
+            expectedProcessors: []interface{}{"processor1", "decouple", "processor2", "batch", "processor3", "decouple"},
+        },
     }
 
     for _, tc := range testCases {
