@@ -23,14 +23,14 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	// Since this really tests differences in processors, it's easier to read cases
+	// Since this really tests differences in input, it's easier to read cases
 	// without the repeated definition of other fields in the config.
-	baseConf := func(processors []interface{}) *confmap.Conf {
+	baseConf := func(input []interface{}) *confmap.Conf {
 		return confmap.NewFromStringMap(map[string]interface{}{
 			"service": map[string]interface{}{
 				"pipelines": map[string]interface{}{
 					"traces": map[string]interface{}{
-						"processors": processors,
+						"processors": input,
 					},
 				},
 			},
@@ -38,78 +38,107 @@ func TestConvert(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name               string
-		processors         []interface{}
-		expectedProcessors []interface{}
-		err                error
+		name     string
+		input    *confmap.Conf
+		expected *confmap.Conf
+		err      error
 	}{
 		// This test is first, because it illustrates the difference in making the rule that when
 		// batch is present the converter appends decouple processor to the end of chain versus
 		// the approach of this code which is to do this only when the last instance of batch
 		// is not followed by decouple processor.
 		{
-			name:               "batch then decouple in middle of chain",
-			processors:         []interface{}{"processor1", "batch", "decouple", "processor2"},
-			expectedProcessors: []interface{}{"processor1", "batch", "decouple", "processor2"},
+			name:     "batch then decouple in middle of chain",
+			input:    baseConf([]interface{}{"processor1", "batch", "decouple", "processor2"}),
+			expected: baseConf([]interface{}{"processor1", "batch", "decouple", "processor2"}),
 		},
 		{
-			name:               "no service",
-			processors:         nil,
-			expectedProcessors: nil,
+			name:     "no service",
+			input:    confmap.New(),
+			expected: confmap.New(),
 		},
 		{
-			name:               "no pipelines",
-			processors:         nil,
-			expectedProcessors: nil,
+			name: "no pipelines",
+			input: confmap.NewFromStringMap(
+				map[string]interface{}{
+					"service": map[string]interface{}{
+						"extensions": map[string]interface{}{},
+					},
+				},
+			),
+			expected: confmap.NewFromStringMap(
+				map[string]interface{}{
+					"service": map[string]interface{}{
+						"extensions": map[string]interface{}{},
+					},
+				},
+			),
 		},
 		{
-			name:               "no processors in chain",
-			processors:         nil,
-			expectedProcessors: nil,
+			name: "no processors in chain",
+			input: confmap.NewFromStringMap(
+				map[string]interface{}{
+					"service": map[string]interface{}{
+						"extensions": map[string]interface{}{},
+						"pipelines": map[string]interface{}{
+							"traces": map[string]interface{}{},
+						},
+					},
+				},
+			),
+			expected: confmap.NewFromStringMap(map[string]interface{}{
+				"service": map[string]interface{}{
+					"extensions": map[string]interface{}{},
+					"pipelines": map[string]interface{}{
+						"traces": map[string]interface{}{},
+					},
+				},
+			},
+			),
 		},
 		{
-			name:               "batch processor in singleton chain",
-			processors:         []interface{}{"batch"},
-			expectedProcessors: []interface{}{"batch", "decouple"},
+			name:     "batch processor in singleton chain",
+			input:    baseConf([]interface{}{"batch"}),
+			expected: baseConf([]interface{}{"batch", "decouple"}),
 		},
 		{
-			name:               "batch processor present twice",
-			processors:         []interface{}{"batch", "processor1", "batch"},
-			expectedProcessors: []interface{}{"batch", "processor1", "batch", "decouple"},
+			name:     "batch processor present twice",
+			input:    baseConf([]interface{}{"batch", "processor1", "batch"}),
+			expected: baseConf([]interface{}{"batch", "processor1", "batch", "decouple"}),
 		},
 
 		{
-			name:               "batch processor not present",
-			processors:         []interface{}{"processor1", "processor2"},
-			expectedProcessors: []interface{}{"processor1", "processor2"},
+			name:     "batch processor not present",
+			input:    baseConf([]interface{}{"processor1", "processor2"}),
+			expected: baseConf([]interface{}{"processor1", "processor2"}),
 		},
 		{
-			name:               "batch sandwiched between processors no decouple",
-			processors:         []interface{}{"processor1", "batch", "processor2"},
-			expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
+			name:     "batch sandwiched between input no decouple",
+			input:    baseConf([]interface{}{"processor1", "batch", "processor2"}),
+			expected: baseConf([]interface{}{"processor1", "batch", "processor2", "decouple"}),
 		},
 
 		{
-			name:               "batch and decouple processors already present in correct position",
-			processors:         []interface{}{"processor1", "batch", "processor2", "decouple"},
-			expectedProcessors: []interface{}{"processor1", "batch", "processor2", "decouple"},
+			name:     "batch and decouple input already present in correct position",
+			input:    baseConf([]interface{}{"processor1", "batch", "processor2", "decouple"}),
+			expected: baseConf([]interface{}{"processor1", "batch", "processor2", "decouple"}),
 		},
 		{
-			name:               "decouple and batch",
-			processors:         []interface{}{"decouple", "batch"},
-			expectedProcessors: []interface{}{"decouple", "batch", "decouple"},
+			name:     "decouple and batch",
+			input:    baseConf([]interface{}{"decouple", "batch"}),
+			expected: baseConf([]interface{}{"decouple", "batch", "decouple"}),
 		},
 		{
-			name:               "decouple then batch mixed with others in the pipelinefirst then batch somewhere",
-			processors:         []interface{}{"processor1", "decouple", "processor2", "batch", "processor3"},
-			expectedProcessors: []interface{}{"processor1", "decouple", "processor2", "batch", "processor3", "decouple"},
+			name:     "decouple then batch mixed with others in the pipelinefirst then batch somewhere",
+			input:    baseConf([]interface{}{"processor1", "decouple", "processor2", "batch", "processor3"}),
+			expected: baseConf([]interface{}{"processor1", "decouple", "processor2", "batch", "processor3", "decouple"}),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			conf := baseConf(tc.processors)
-			expected := baseConf(tc.expectedProcessors)
+			conf := tc.input
+			expected := tc.expected
 
 			c := New()
 			err := c.Convert(context.Background(), conf)
