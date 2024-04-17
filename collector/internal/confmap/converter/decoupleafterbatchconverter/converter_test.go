@@ -100,7 +100,7 @@ func TestConvert(t *testing.T) {
             expectedProcessors: []interface{}{"decouple", "batch", "decouple"},
         },
         {
-            name:       "decouple then match mixed with others in the pipelinefirst then batch somewhere",
+            name:       "decouple then batch mixed with others in the pipelinefirst then batch somewhere",
             processors: []interface{}{"processor1", "decouple", "processor2", "batch", "processor3"},
             expectedProcessors: []interface{}{"processor1", "decouple", "processor2", "batch", "processor3", "decouple"},
         },
