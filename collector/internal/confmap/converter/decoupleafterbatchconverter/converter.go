@@ -79,7 +79,7 @@ func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
 		}
 
 		// accumulate config updates
-		if appendDecouple(processors) {
+		if shouldAppendDecouple(processors) {
 			processors = append(processors, decoupleProcessor)
 			updates[fmt.Sprintf("%s::%s::%s::%s", serviceKey, pipelinesKey, telemetryType, processorsKey)] = processors
 			break
@@ -97,11 +97,11 @@ func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
 	return nil
 }
 
-// The appendDecouple is the filter predicate for the Convert function action. It tells whether
+// The shouldAppendDecouple is the filter predicate for the Convert function action. It tells whether
 // (bool) there was a decouple processor after the last
 // batch processor, which Convert uses to decide whether to append the decouple processor.
-func appendDecouple(processors []interface{}) bool {
-	var appendDecouple bool
+func shouldAppendDecouple(processors []interface{}) bool {
+	var shouldAppendDecouple bool
 	for _, processorVal := range processors {
 		processor, ok := processorVal.(string)
 		if !ok {
@@ -109,10 +109,10 @@ func appendDecouple(processors []interface{}) bool {
 		}
 		processorBaseName := strings.Split(processor, "/")[0]
 		if processorBaseName == batchProcessor {
-			appendDecouple = true
+			shouldAppendDecouple = true
 		} else if processorBaseName == decoupleProcessor {
-			appendDecouple = false
+			shouldAppendDecouple = false
 		}
 	}
-	return appendDecouple
+	return shouldAppendDecouple
 }
