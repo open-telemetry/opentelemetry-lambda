@@ -15,7 +15,7 @@ When combined with the batch processor, the number of exports required can be si
 
 ## Auto-Configuration
 
-Due to the significance of performance improvement with this approach, the OpenTelemetry Lambda Layer automatically configures the decouple processor when the batch processor is used. This provides the best performance by default.
+Due to the significant performance improvements with this approach, the OpenTelemetry Lambda Layer automatically configures the decouple processor when the batch processor is used. This ensures the best performance by default.
 
 When running the Collector for the Lambda Layer, the configuration is converted by automatically adding the decouple processor to all pipelines if the following conditions are met:
 
