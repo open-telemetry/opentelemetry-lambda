@@ -42,9 +42,9 @@
     "copyfiles": "2.4.1",
     "rimraf": "5.0.5",
     "ts-node": "10.9.2",
-    "typescript": "5.3.3"
+    "typescript": "5.4.5"
   },
   "dependencies": {
-    "aws-sdk": "2.1594.0"
+    "aws-sdk": "2.1601.0"
   }
 }
