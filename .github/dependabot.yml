@@ -50,6 +50,10 @@ updates:
     directory: "/nodejs"
     schedule:
       interval: "weekly"
+    groups:
+      all:
+        patterns:
+          - "*"
   - package-ecosystem: "npm"
     directory: "/nodejs/packages/layer"
     schedule:
