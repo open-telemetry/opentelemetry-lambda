@@ -32,6 +32,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/decoupleafterbatchconverter"
 )
 
 // Collector runs a single otelcol as a go routine within the
@@ -68,7 +69,7 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig(l)},
 			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New(), decoupleafterbatchconverter.New()},
 		},
 	}
 	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)
