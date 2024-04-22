@@ -15,10 +15,11 @@
 package decoupleprocessor // import "github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
 
 import (
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/confmap/confmaptest"
 	"path/filepath"
 	"testing"
+
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -65,13 +66,13 @@ func TestLoadConfig(t *testing.T) {
 		expected component.Config
 	}{
 		{
-			id: component.NewIDWithName(typeStr, ""),
+			id: component.NewIDWithName(component.MustNewType(typeStr), ""),
 			expected: &Config{
 				MaxQueueSize: 100,
 			},
 		},
 		{
-			id:       component.NewIDWithName(typeStr, "empty"),
+			id:       component.NewIDWithName(component.MustNewType(typeStr), "empty"),
 			expected: createDefaultConfig(),
 		},
 	}
