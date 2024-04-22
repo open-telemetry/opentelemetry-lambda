@@ -33,7 +33,7 @@ func TestNewFactory(t *testing.T) {
 			desc: "creates a new factory with correct type",
 			testFunc: func(t *testing.T) {
 				factory := NewFactory("test")
-				require.EqualValues(t, typeStr, factory.Type())
+				require.EqualValues(t, typeStr, factory.Type().String())
 			},
 		},
 		{
