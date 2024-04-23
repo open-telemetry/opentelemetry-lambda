@@ -31,6 +31,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/decoupleafterbatchconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 )
 
@@ -57,18 +58,21 @@ func getConfig(logger *zap.Logger) string {
 
 func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
-	providers := []confmap.Provider{fileprovider.New(), envprovider.New(), yamlprovider.New(), httpprovider.New(), s3provider.New()}
+	providerSettings := confmap.ProviderSettings{Logger: l}
+	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
 
 	for _, provider := range providers {
 		mapProvider[provider.Scheme()] = provider
 	}
 
+	converterSettings := confmap.ConverterSettings{}
+
 	cfgSet := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{getConfig(l)},
 			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New(), disablequeuedretryconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(converterSettings), disablequeuedretryconverter.New(), decoupleafterbatchconverter.New()},
 		},
 	}
 	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)

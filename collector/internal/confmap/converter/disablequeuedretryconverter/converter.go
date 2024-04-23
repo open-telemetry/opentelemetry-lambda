@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package disablequeuedretryconverter // import "github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 
 import (
@@ -57,6 +56,8 @@ var exporters = map[string]struct{}{
 
 type converter struct {
 }
+
+
 
 // New returns a confmap.Converter, that ensures queued retry is disabled for all configured exporters.
 func New() confmap.Converter {
