@@ -5,7 +5,7 @@ module "hello-lambda-function" {
   architectures = compact([var.architecture])
   function_name = var.name
   handler       = "io.opentelemetry.lambda.sampleapps.awssdk.AwsSdkRequestHandler::handleRequest"
-  runtime       = "java11"
+  runtime       = var.runtime
 
   create_package         = false
   local_existing_package = "${path.module}/../../build/libs/aws-sdk-all.jar"
