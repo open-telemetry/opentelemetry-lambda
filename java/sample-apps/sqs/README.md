@@ -23,6 +23,14 @@ terraform init
 terraform apply
 ```
 
+Use the following command to configure runtime and architecture
+
+```
+TF_VAR_architecture=x86_64 \
+TF_VAR_runtime=java11 \
+terraform apply -auto-approve
+```
+
 For the agent version, to change the configuration of the OpenTelemetry collector, you can provide the ARN of a Lambda layer with a custom collector configuration in a file named `config.yaml` when prompted after running the `terraform apply` command.
 
 After deployment, login to AWS and test the Lambda function using the predefined SQS test payload. The agent version tends to take 10-20s for the first request, while the wrapper version tends to take 5-10s. Confirm

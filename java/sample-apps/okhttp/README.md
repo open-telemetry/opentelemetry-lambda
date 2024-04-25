@@ -36,6 +36,14 @@ terraform init
 terraform apply
 ```
 
+Use the following command to configure runtime and architecture
+
+```
+TF_VAR_architecture=x86_64 \
+TF_VAR_runtime=java11 \
+terraform apply -auto-approve
+```
+
 After deployment, a URL which can be used to invoke the function via API Gateway will be displayed. As it uses the 
 wrapper, it tends to take 5-10s. Confirm that spans are logged in the CloudWatch logs for the function on the AWS Console for the
 [wrapper](https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Faws$252Flambda$252Fhello-awssdk-java-wrapper).n
