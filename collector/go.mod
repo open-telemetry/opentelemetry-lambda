@@ -31,6 +31,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.98.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.98.0
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v0.98.0
+	go.opentelemetry.io/collector/confmap/provider/httpsprovider v0.98.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.98.0
 	go.opentelemetry.io/collector/otelcol v0.98.0
 	go.uber.org/multierr v1.11.0
@@ -138,7 +139,6 @@ require (
 	go.opentelemetry.io/collector/config/configtelemetry v0.98.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v0.98.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.98.0 // indirect
-	go.opentelemetry.io/collector/confmap/provider/httpsprovider v0.98.0 // indirect
 	go.opentelemetry.io/collector/connector v0.98.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.98.0 // indirect
 	go.opentelemetry.io/collector/exporter v0.98.0 // indirect
