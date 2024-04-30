@@ -3,37 +3,37 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
     schedule:
       interval: "weekly"
     groups:
       actions:
         patterns:
           - "*"
+
   - package-ecosystem: "gomod"
-    directory: "/collector"
+    directories:
+      - "/collector"
+      - "/collector/internal/tools"
+      - "/collector/lambdacomponents"
+      - "/collector/lambdalifecycle"
+      - "/collector/processor/coldstartprocessor"
+      - "/collector/processor/decoupleprocessor"
+      - "/collector/receiver/telemetryapireceiver"
     schedule:
       interval: "weekly"
     groups:
       opentelemetry-deps-collector:
         patterns:
           - "*opentelemetry*"
-      other:
+      collector-other:
         patterns:
           - "*"
-  - package-ecosystem: "gomod"
-    directory: "/collector/lambdacomponents"
-    schedule:
-      interval: "weekly"
-    groups:
-      opentelemetry-deps-lambdacomponents:
-        patterns:
-          - "*opentelemetry*"
-      other:
-        patterns:
-          - "*"
+
   - package-ecosystem: "gradle"
-    directory: "/java"
+    directories:
+      - "/java"
     schedule:
       interval: "weekly"
     groups:
@@ -43,44 +43,51 @@ updates:
       amazon-deps:
         patterns:
           - "*amazon*"
-      other:
+      java-other:
         patterns:
           - "*"
+
   - package-ecosystem: "npm"
-    directory: "/nodejs"
-    schedule:
-      interval: "weekly"
-    groups:
-      all:
-        patterns:
-          - "*"
-  - package-ecosystem: "npm"
-    directory: "/nodejs/packages/layer"
+    directories:
+      - "/nodejs"
+      - "/nodejs/packages/layer"
+      - "/nodejs/sample-apps/aws-sdk"
     schedule:
       interval: "weekly"
     groups:
       opentelemetry-deps-nodejs:
         patterns:
           - "@opentelemetry/*"
-      other:
+      nodejs-other:
         patterns:
           - "*"
+
   - package-ecosystem: "pip"
-    directory: "/python/src/otel"
+    directories:
+      - "/python/src/otel"
+      - "/python/sample-apps/function"
+      - "/python/src/otel/otel_sdk"
+      - "/python/src/otel/tests"
     schedule:
       interval: "weekly"
     groups:
       opentelemetry-deps-python:
         patterns:
           - "opentelemetry-*"
+      python-other:
+        patterns:
+          - "*"
+
   - package-ecosystem: "bundler"
-    directory: "/ruby/src/layer"
+    directories:
+      - "/ruby/src/layer"
+      - "/ruby/sample-apps/function"
     schedule:
       interval: "weekly"
     groups:
       opentelemetry-deps-ruby:
         patterns:
           - "opentelemetry-*"
-      other:
+      ruby-other:
         patterns:
           - "*"
