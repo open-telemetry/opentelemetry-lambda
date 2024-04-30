@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/httpprovider"
+	"go.opentelemetry.io/collector/confmap/provider/httpsprovider"
 	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.uber.org/zap"
@@ -38,13 +39,14 @@ import (
 // Collector runs a single otelcol as a go routine within the
 // same process as the executor.
 type Collector struct {
-	factories      otelcol.Factories
-	configProvider otelcol.ConfigProvider
-	svc            *otelcol.Collector
-	appDone        chan struct{}
-	stopped        bool
-	logger         *zap.Logger
-	version        string
+	factories              otelcol.Factories
+	configProvider         otelcol.ConfigProvider
+	configProviderSettings otelcol.ConfigProviderSettings
+	svc                    *otelcol.Collector
+	appDone                chan struct{}
+	stopped                bool
+	logger                 *zap.Logger
+	version                string
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -59,7 +61,7 @@ func getConfig(logger *zap.Logger) string {
 func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
 	providerSettings := confmap.ProviderSettings{Logger: l}
-	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New()}
+	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New(), httpsprovider.NewWithSettings(providerSettings)}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
 
 	for _, provider := range providers {
@@ -82,10 +84,11 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 	}
 
 	col := &Collector{
-		factories:      factories,
-		configProvider: cfgProvider,
-		logger:         logger,
-		version:        version,
+		factories:              factories,
+		configProvider:         cfgProvider,
+		configProviderSettings: cfgSet,
+		logger:                 logger,
+		version:                version,
 	}
 	return col
 }
@@ -97,7 +100,7 @@ func (c *Collector) Start(ctx context.Context) error {
 			Description: "Lambda Collector",
 			Version:     c.version,
 		},
-		ConfigProvider: c.configProvider,
+		ConfigProviderSettings: c.configProviderSettings,
 		Factories: func() (otelcol.Factories, error) {
 			return c.factories, nil
 		},
