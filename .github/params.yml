@@ -1,0 +1,17 @@
+docker:
+  - go_worker:
+      image_tag: "1.22"
+
+parameters:
+  coverage_report_path: ./cp.out
+  include_regions: gov_com
+  lead_developer: hanxie
+  package_directory: dist
+  sonar_exclusions: "Makefile,README.md,go.mod,go.sum"
+  sonar_test_inclusions: "**/*_test.go"
+  test_report_path: ./junit-report.xml
+  track_name: datalake
+
+artifacts:
+  - upload_artifact: {source_path: ./dist/collector-amd64.zip, artifact_type: lambda, artifact_name: aws-otel-collector-amd64}
+  - upload_artifact: {source_path: ./dist/collector-arm64.zip, artifact_type: lambda, artifact_name: aws-otel-collector-arm64}

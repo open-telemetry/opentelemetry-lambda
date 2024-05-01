@@ -18,3 +18,19 @@ __pycache__/*
 build.toml
 
 *.zip
+
+# from CXDL
+.cache
+build
+dist
+bin
+
+.vscode
+
+**/.venv
+.idea
+**/*.iml
+cp.out
+junit-report.xml
+test_coverage.html
+test_coverage.txt
