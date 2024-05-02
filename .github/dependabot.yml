@@ -40,9 +40,6 @@ updates:
       opentelemetry-deps-java:
         patterns:
           - "io.opentelemetry.*"
-      amazon-deps:
-        patterns:
-          - "*amazon*"
       java-other:
         patterns:
           - "*"
