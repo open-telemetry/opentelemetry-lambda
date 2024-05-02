@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'python/**'
+      - '.github/workflows/ci-python.yml'
     branches:
       - main
   pull_request:
     paths:
       - 'python/**'
+      - '.github/workflows/ci-python.yml'
     branches:
       - main
 

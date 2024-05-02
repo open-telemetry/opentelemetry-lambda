@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'java/**'
+      - '.github/workflows/ci-java.yml'
     branches:
       - main
   pull_request:
     paths:
       - 'java/**'
+      - '.github/workflows/ci-java.yml'
     branches:
       - main
 

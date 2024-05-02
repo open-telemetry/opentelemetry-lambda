@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - 'nodejs/**'
+      - '.github/workflows/ci-nodejs.yml'
     branches:
       - main
   pull_request:
     paths:
       - 'nodejs/**'
+      - '.github/workflows/ci-nodejs.yml'
     branches:
       - main
 

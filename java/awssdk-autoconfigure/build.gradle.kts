@@ -4,7 +4,7 @@ plugins {
     `java-library`
 }
 
-base.archivesBaseName = "opentelemetry-lambda-awsdk-autoconfigure"
+base.archivesName = "opentelemetry-lambda-awsdk-autoconfigure"
 
 dependencies {
     compileOnly("io.opentelemetry:opentelemetry-api")
