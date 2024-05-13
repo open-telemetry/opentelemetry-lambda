@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export ORIG_HANDLER=$_HANDLER;
+export ORIG_HANDLER="$_HANDLER";
 export _HANDLER="/opt/wrapper.otel_wrapper";
 
 if [ -z "${OTEL_SERVICE_NAME}" ]; then
