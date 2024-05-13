@@ -17,9 +17,9 @@ const (
 )
 
 func Meter(settings component.TelemetrySettings) metric.Meter {
-	return settings.MeterProvider.Meter("github.com/solarwinds/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension")
+	return settings.MeterProvider.Meter("github.com/open-telemetry/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension")
 }
 
 func Tracer(settings component.TelemetrySettings) trace.Tracer {
-	return settings.TracerProvider.Tracer("github.com/solarwinds/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension")
+	return settings.TracerProvider.Tracer("github.com/open-telemetry/opentelemetry-lambda/collector/extension/solarwindsapmsettingsextension")
 }
