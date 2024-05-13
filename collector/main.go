@@ -56,12 +56,16 @@ func main() {
 }
 
 func initLogger() *zap.Logger {
-	lvl := zap.NewAtomicLevelAt(zapcore.InfoLevel)
+	lvl := zap.NewAtomicLevelAt(zapcore.WarnLevel)
 
-	envLvl := os.Getenv("OPENTELEMETRY_EXTENSION_LOG_LEVEL")
-	userLvl, err := zap.ParseAtomicLevel(envLvl)
-	if err == nil {
-		lvl = userLvl
+	var err error
+	envLvl, ok := os.LookupEnv("OPENTELEMETRY_EXTENSION_LOG_LEVEL")
+	if ok {
+		var userLvl zap.AtomicLevel
+		userLvl, err = zap.ParseAtomicLevel(envLvl)
+		if err == nil {
+			lvl = userLvl
+		}
 	}
 
 	l := zap.New(zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), os.Stdout, lvl))
