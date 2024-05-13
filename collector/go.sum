@@ -255,6 +255,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 h1:f9RyWNtS8oH7cZ
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5/go.mod h1:h5CoMZV2VF297/VLhRhO1WF+XYWOzXo+4HsObA4HjBQ=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1 h1:6cnno47Me9bRykw9AEv9zkXE+5or7jz8TsskTTccbgc=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1/go.mod h1:qmdkIIAC+GCLASF7R2whgNrJADz0QZPX+Seiw/i4S3o=
+github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6 h1:TIOEjw0i2yyhmhRry3Oeu9YtiiHWISZ6j/irS1W3gX4=
+github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6/go.mod h1:3Ba++UwWd154xtP4FRX5pUK3Gt4up5sDHCve6kVfE+g=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 h1:vN8hEbpRnL7+Hopy9dzmRle1xmDc7o8tmY0klsr175w=
 github.com/aws/aws-sdk-go-v2/service/sso v1.20.5/go.mod h1:qGzynb/msuZIE8I75DVRCUXw3o3ZyBmUvMwQ2t/BrGM=
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 h1:Jux+gDDyi1Lruk+KHF91tK2KCuY61kzoCpvtvJJBtOE=
@@ -417,6 +419,8 @@ github.com/mostynb/go-grpc-compression v1.2.2 h1:XaDbnRvt2+1vgr0b/l0qh4mJAfIxE0b
 github.com/mostynb/go-grpc-compression v1.2.2/go.mod h1:GOCr2KBxXcblCuczg3YdLQlcin1/NfyDA348ckuCH6w=
 github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.99.0 h1:jQ+U5v7IG9tTuCl3cNfEUEsLWelBWw/XY4UlZX0PWzc=
 github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.99.0/go.mod h1:/J80bgLUI1ASjMrwWEb0zHl4trx+ogz1xM8HZvsaPRk=
+github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.99.0 h1:w1lN0CiLVtSyaI24tmWuD5qVpGRDU0DaSA0/Dl9NhTg=
+github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.99.0/go.mod h1:wyZZhLDGnIIAfsS638pAn5rZ9EPDHj7a68cmNrkwugQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.99.0 h1:Us+HCnULFKE0k2dN+r/K+f0c0DbKR01A4ouBPGiICY8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.99.0/go.mod h1:m1Ip+DxFnvfozwzSCGG4FxE5ITmjxvNg6H9qpQi61IM=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.99.0 h1:UTctoFx3O8CEPCLoFEO64HvFlzDFPHBZqsLDaUA1jqs=

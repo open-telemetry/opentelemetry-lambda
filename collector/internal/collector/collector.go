@@ -20,6 +20,7 @@ import (
 	"os"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
@@ -59,7 +60,7 @@ func getConfig(logger *zap.Logger) string {
 func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
 	providerSettings := confmap.ProviderSettings{Logger: l}
-	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New()}
+	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New(), secretsmanagerprovider.New()}
 	mapProvider := make(map[string]confmap.Provider, len(providers))
 
 	for _, provider := range providers {
