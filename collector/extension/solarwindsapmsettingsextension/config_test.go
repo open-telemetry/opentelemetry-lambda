@@ -1,6 +1,7 @@
 package solarwindsapmsettingsextension
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -27,17 +28,185 @@ func TestLoadConfig(t *testing.T) {
 		{
 			id: component.NewIDWithName(metadata.Type, "1"),
 			expected: &Config{
-				Endpoint: "0.0.0.0:1234",
-				Key:      "something",
+				Endpoint: "apm.collector.na-01.cloud.solarwinds.com:443",
+				Key:      "something:name",
 				Interval: time.Duration(10) * time.Second,
 			},
 		},
 		{
 			id: component.NewIDWithName(metadata.Type, "2"),
 			expected: &Config{
-				Endpoint: "0.0.0.0:1234",
-				Key:      "something",
+				Endpoint: "apm.collector.na-02.cloud.solarwinds.com:443",
+				Key:      "something:name",
 				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "3"),
+			expected: &Config{
+				Endpoint: "apm.collector.eu-01.cloud.solarwinds.com:443",
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "4"),
+			expected: &Config{
+				Endpoint: "apm.collector.apj-01.cloud.solarwinds.com:443",
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "5"),
+			expected: &Config{
+				Endpoint: "apm.collector.na-01.st-ssp.solarwinds.com:443",
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "6"),
+			expected: &Config{
+				Endpoint: "apm.collector.na-01.dev-ssp.solarwinds.com:443",
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "7"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "8"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "9"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "10"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "11"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "12"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "13"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "14"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "15"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "something:name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "16"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "17"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      ":",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "18"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "::",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "19"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      ":name",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "20"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "token:",
+				Interval: time.Duration(10) * time.Second,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "21"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "token:name",
+				Interval: MinimumInterval,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "22"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "token:name",
+				Interval: MaximumInterval,
+			},
+		},
+		{
+			id: component.NewIDWithName(metadata.Type, "23"),
+			expected: &Config{
+				Endpoint: DefaultEndpoint,
+				Key:      "token:name",
+				Interval: MinimumInterval,
 			},
 		},
 	}
@@ -54,4 +223,23 @@ func TestLoadConfig(t *testing.T) {
 			assert.Equal(t, tt.expected, cfg)
 		})
 	}
+}
+
+func TestResolveServiceNameBestEffort(t *testing.T) {
+	// Without any environment variables
+	require.Empty(t, resolveServiceNameBestEffort())
+	// With OTEL_SERVICE_NAME only
+	require.NoError(t, os.Setenv("OTEL_SERVICE_NAME", "otel_ser1"))
+	require.Equal(t, "otel_ser1", resolveServiceNameBestEffort())
+	require.NoError(t, os.Unsetenv("OTEL_SERVICE_NAME"))
+	// With AWS_LAMBDA_FUNCTION_NAME only
+	require.NoError(t, os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "lambda"))
+	require.Equal(t, "lambda", resolveServiceNameBestEffort())
+	require.NoError(t, os.Unsetenv("AWS_LAMBDA_FUNCTION_NAME"))
+	// With both
+	require.NoError(t, os.Setenv("OTEL_SERVICE_NAME", "otel_ser1"))
+	require.NoError(t, os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "lambda"))
+	require.Equal(t, "otel_ser1", resolveServiceNameBestEffort())
+	require.NoError(t, os.Unsetenv("AWS_LAMBDA_FUNCTION_NAME"))
+	require.NoError(t, os.Unsetenv("OTEL_SERVICE_NAME"))
 }
