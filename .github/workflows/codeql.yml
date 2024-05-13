@@ -103,7 +103,7 @@ jobs:
       if: ${{ matrix.target.language == 'java' }}
 
     - name: build Java
-      uses: gradle/gradle-build-action@v2
+      uses: gradle/gradle-build-action@v3
       with:
         arguments: build --no-build-cache
         build-root-directory: ${{ matrix.target.directory }}

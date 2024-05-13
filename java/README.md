@@ -4,7 +4,7 @@ Layers for running Java applications on AWS Lambda with OpenTelemetry.
 
 ## Prerequisites
 
-- Supports Lambda functions using Java 11 (Corretto) runtime only.
+- Supports Lambda functions using Java 8, 11, and 17 (Corretto) runtime only.
 
 ## Provided layers
 
@@ -20,6 +20,23 @@ loaded and instrument your application for all supported libraries.
 Note, automatic instrumentation has a notable impact on startup time on AWS Lambda and you will
 generally need to use this along with provisioned concurrency and warmup requests to serve production
 requests without causing timeouts on initial requests while it initializes.
+
+#### Fast startup for Java agent
+
+Fast startup mode is disabled by default but can be enabled by specifying the `OTEL_JAVA_AGENT_FAST_STARTUP_ENABLED=true`
+in your Lambda configuration.
+
+When fast startup mode is enabled, **JIT** (Just-In-Time) **Tiered compilation** is configured to stop at level 1 
+and bytecode verification is disabled. So, the JVM uses the **C1** compiler which is optimized for fast start-up time. 
+This compiler (**C1**) quickly produces optimized native code 
+but it does not generate any profiling data and never uses the **C2** compiler 
+which optimized for the best overall performance but uses more memory and takes a longer time to achieve it.
+Therefore, this option is not enabled by default and needs to be enabled by the user explicitly 
+by taking care of the behavioural change mentioned above.
+
+For more information about the idea behind this optimization, you can check the following resources:
+- https://aws.amazon.com/tr/blogs/compute/optimizing-aws-lambda-function-performance-for-java/
+- https://aws.amazon.com/tr/blogs/compute/increasing-performance-of-java-aws-lambda-functions-using-tiered-compilation/
 
 ### Wrapper
 

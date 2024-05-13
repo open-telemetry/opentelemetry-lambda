@@ -45,7 +45,7 @@ jobs:
         working-directory: ruby/src
         shell: bash
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-ruby-layer.zip

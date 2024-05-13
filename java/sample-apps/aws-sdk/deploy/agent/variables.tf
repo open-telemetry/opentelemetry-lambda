@@ -32,3 +32,9 @@ variable "architecture" {
   description = "Lambda function architecture, valid values are arm64 or x86_64"
   default     = "x86_64"
 }
+
+variable "runtime" {
+  type        = string
+  description = "java agent runtime used for sample Lambda Function"
+  default     = "java11"
+}

@@ -1,10 +1,16 @@
 #!/bin/bash
 
+set -ef -o pipefail
+
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_HANDLER="$_HANDLER"
 export _HANDLER="io.opentelemetry.instrumentation.awslambdaevents.v2_2.TracingRequestWrapper"
 
 if [[ $OTEL_RESOURCE_ATTRIBUTES != *"service.name="* ]]; then
   export OTEL_RESOURCE_ATTRIBUTES="service.name=${AWS_LAMBDA_FUNCTION_NAME},${OTEL_RESOURCE_ATTRIBUTES}"
+fi
+
+if [[ -z "$OTEL_PROPAGATORS" ]]; then
+  export OTEL_PROPAGATORS="tracecontext,baggage,xray"
 fi
 
 export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000

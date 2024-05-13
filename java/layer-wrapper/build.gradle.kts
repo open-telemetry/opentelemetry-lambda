@@ -10,7 +10,7 @@ dependencies {
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
     runtimeOnly("io.opentelemetry:opentelemetry-extension-trace-propagators")
     runtimeOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
-    runtimeOnly("io.opentelemetry:opentelemetry-sdk-extension-aws")
+    runtimeOnly("io.opentelemetry.contrib:opentelemetry-aws-resources")
 }
 
 tasks {

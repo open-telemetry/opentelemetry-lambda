@@ -16,8 +16,9 @@ package decoupleprocessor // import "github.com/open-telemetry/opentelemetry-lam
 
 import (
 	"context"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"testing"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer/consumertest"
@@ -34,7 +35,7 @@ func TestNewFactory(t *testing.T) {
 			desc: "creates a new factory with correct type",
 			testFunc: func(t *testing.T) {
 				factory := NewFactory()
-				require.EqualValues(t, typeStr, factory.Type())
+				require.EqualValues(t, typeStr, factory.Type().String())
 			},
 		},
 		{

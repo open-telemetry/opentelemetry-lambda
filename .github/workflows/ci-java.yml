@@ -4,25 +4,37 @@ on:
   push:
     paths:
       - 'java/**'
+      - '.github/workflows/ci-java.yml'
     branches:
       - main
   pull_request:
     paths:
       - 'java/**'
+      - '.github/workflows/ci-java.yml'
     branches:
       - main
+
+permissions:
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: corretto
-          java-version: '11'
-      - uses: burrunan/gradle-cache-action@v1.19
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
         with:
-          remote-build-cache-proxy-enabled: false
-          arguments: build --stacktrace
-          build-root-directory: java
+          validate-wrappers: true
+          add-job-summary-as-pr-comment: on-failure # Valid values are 'never' (default), 'always', and 'on-failure'
+
+      - name: Execute Gradle build
+        run: |
+          cd java
+          ./gradlew build --scan --stacktrace

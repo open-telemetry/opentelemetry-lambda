@@ -33,3 +33,9 @@ variable "architecture" {
 #   type        = string
 #   description = "ARN for the SQS queue to use an event source for the Lambda"
 # }
+
+variable "runtime" {
+  type        = string
+  description = "java runtime used for sample Lambda Function"
+  default     = "java11"
+}

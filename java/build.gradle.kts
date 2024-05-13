@@ -15,7 +15,7 @@ allprojects {
 
         spotless {
             java {
-                googleJavaFormat("1.9")
+                googleJavaFormat()
             }
         }
 
