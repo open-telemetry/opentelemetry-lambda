@@ -22,6 +22,9 @@ processors:
       - key: sw.cloud.aws.resource.type
         value: "Lambda"
         action: upsert
+      - key: sw.apm.otelcol.version
+        value: "0.0.9"
+        action: upsert
 
 exporters:
   logging:
