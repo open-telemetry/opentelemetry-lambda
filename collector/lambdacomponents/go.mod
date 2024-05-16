@@ -181,7 +181,7 @@ require (
 	go.opentelemetry.io/collector/extension/auth v0.99.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.6.0 // indirect
 	go.opentelemetry.io/collector/pdata v1.6.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.99.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.100.0 // indirect
 	go.opentelemetry.io/collector/service v0.99.0 // indirect
 	go.opentelemetry.io/contrib/config v0.5.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.50.0 // indirect

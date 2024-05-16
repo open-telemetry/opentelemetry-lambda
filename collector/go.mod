@@ -207,7 +207,7 @@ require (
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.99.0 // indirect
 	go.opentelemetry.io/collector/receiver v0.99.0 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.99.0 // indirect
-	go.opentelemetry.io/collector/semconv v0.99.0 // indirect
+	go.opentelemetry.io/collector/semconv v0.100.0 // indirect
 	go.opentelemetry.io/collector/service v0.99.0 // indirect
 	go.opentelemetry.io/contrib/config v0.5.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.50.0 // indirect

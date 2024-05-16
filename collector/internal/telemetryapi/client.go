@@ -27,8 +27,11 @@ import (
 )
 
 const (
+	ApiVersion20220701             = "2022-07-01"
+	ApiVersionLatest               = ApiVersion20220701
 	SchemaVersion20220701          = "2022-07-01"
-	SchemaVersionLatest            = SchemaVersion20220701
+	SchemaVersion20221213          = "2022-12-13"
+	SchemaVersionLatest            = SchemaVersion20221213
 	lambdaAgentIdentifierHeaderKey = "Lambda-Extension-Identifier"
 )
 
@@ -42,17 +45,11 @@ func NewClient(logger *zap.Logger) *Client {
 	return &Client{
 		logger:     logger.Named("telemetryAPI.Client"),
 		httpClient: &http.Client{},
-		baseURL:    fmt.Sprintf("http://%s/%s/telemetry", os.Getenv("AWS_LAMBDA_RUNTIME_API"), SchemaVersionLatest),
+		baseURL:    fmt.Sprintf("http://%s/%s/telemetry", os.Getenv("AWS_LAMBDA_RUNTIME_API"), ApiVersionLatest),
 	}
 }
 
-func (c *Client) Subscribe(ctx context.Context, extensionID string, listenerURI string) (string, error) {
-	eventTypes := []EventType{
-		Platform,
-		// Function,
-		// Extension,
-	}
-
+func (c *Client) SubscribeEvents(ctx context.Context, eventTypes []EventType, extensionID string, listenerURI string) (string, error) {
 	bufferingConfig := BufferingCfg{
 		MaxItems:  1000,
 		MaxBytes:  256 * 1024,
@@ -105,6 +102,15 @@ func (c *Client) Subscribe(ctx context.Context, extensionID string, listenerURI 
 	c.logger.Info("Subscription success", zap.String("response", string(body)))
 
 	return string(body), nil
+}
+
+func (c *Client) Subscribe(ctx context.Context, extensionID string, listenerURI string) (string, error) {
+	eventTypes := []EventType{
+		Platform,
+		// Function,
+		// Extension,
+	}
+	return c.SubscribeEvents(ctx, eventTypes, extensionID, listenerURI)
 }
 
 func httpPutWithHeaders(ctx context.Context, client *http.Client, url string, data []byte, headers map[string]string) (*http.Response, error) {

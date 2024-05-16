@@ -10,6 +10,7 @@ receivers:
         endpoint: "localhost:4317"
       http:
         endpoint: "localhost:4318"
+  telemetryapi:
 
 processors:
   decouple:
@@ -21,6 +22,9 @@ processors:
     attributes:
       - key: sw.cloud.aws.resource.type
         value: "Lambda"
+        action: upsert
+      - key: sw.data.module
+        value: "apm"
         action: upsert
 
 exporters:
@@ -40,6 +44,10 @@ service:
       exporters: [otlp,logging]
     metrics:
       receivers: [otlp]
+      processors: [resource,resourcedetection,decouple]
+      exporters: [otlp,logging]
+    logs:
+      receivers: [telemetryapi]
       processors: [resource,resourcedetection,decouple]
       exporters: [otlp,logging]
   telemetry:
