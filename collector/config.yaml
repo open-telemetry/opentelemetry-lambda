@@ -23,6 +23,9 @@ processors:
       - key: sw.cloud.aws.resource.type
         value: "Lambda"
         action: upsert
+      - key: sw.apm.otelcol.version
+        value: "0.0.0-dev"
+        action: upsert
       - key: sw.data.module
         value: "apm"
         action: upsert

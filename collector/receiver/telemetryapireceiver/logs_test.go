@@ -71,14 +71,9 @@ func TestLogsHandler(t *testing.T) {
 			expectedLogs: 0,
 		},
 		{
-			desc:         "valid event",
+			desc:         "valid event but no time",
 			body:         `[{"time":"", "type":"", "record": {}}]`,
-			expectedLogs: 1,
-		},
-		{
-			desc:         "valid event",
-			body:         `[{"time":"", "type":"platform.initStart", "record": {}}]`,
-			expectedLogs: 1,
+			expectedLogs: 0,
 		},
 		{
 			desc: "platform.initStart",
