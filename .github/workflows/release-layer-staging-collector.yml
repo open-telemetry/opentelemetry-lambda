@@ -28,7 +28,7 @@ jobs:
       - name: set version to the default config.yaml
         run: |
           version=$(echo ${{ github.ref_name }} | awk -F'/' {'print $2'})
-          sed -i 's/0.0.0-dev/"$version"/g' collector/config.yaml
+          sed -i "s/0.0.0-dev/$version/g" collector/config.yaml
       - name: cat collector/config.yaml
         run: cat collector/config.yaml
       - name: build
