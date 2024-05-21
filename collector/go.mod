@@ -28,8 +28,8 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/collector/component v0.100.0
-	go.opentelemetry.io/collector/confmap v0.100.0
-	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.100.0
+	go.opentelemetry.io/collector/confmap v0.101.0
+	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.101.0
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.100.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.100.0
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v0.100.0
