@@ -35,6 +35,7 @@ main() {
 	cd .aws-sam/build/OTelLayer/
 	zip -qr ../../../"$layerName".zip ruby/
 	cd -
+	echo "Finished"
 }
 
 main "$@"
