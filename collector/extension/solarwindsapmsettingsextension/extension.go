@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"encoding/json"
-	"github.com/gogo/protobuf/proto"
 	"github.com/solarwindscloud/apm-proto/go/collectorpb"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -20,7 +19,6 @@ import (
 )
 
 const (
-	RawOutputFile       = "/tmp/solarwinds-apm-settings-raw"
 	JSONOutputFile      = "/tmp/solarwinds-apm-settings.json"
 	GrpcContextDeadline = time.Duration(1) * time.Second
 )
@@ -64,21 +62,6 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 				if len(response.GetWarning()) > 0 {
 					extension.logger.Warn(response.GetWarning())
 				}
-				if bytes, err := proto.Marshal(response); err != nil {
-					extension.logger.Error("Unable to marshal response to bytes " + err.Error())
-				} else {
-					// Output in raw format
-					if err := os.WriteFile(RawOutputFile, bytes, 0644); err != nil {
-						extension.logger.Error("Unable to write " + RawOutputFile + " " + err.Error())
-					} else {
-						if len(response.GetWarning()) > 0 {
-							extension.logger.Warn(RawOutputFile + " is refreshed (soft disabled)")
-						} else {
-							extension.logger.Info(RawOutputFile + " is refreshed")
-						}
-					}
-				}
-				// Output in human-readable format
 				var settings []map[string]interface{}
 				for _, item := range response.GetSettings() {
 					marshalOptions := protojson.MarshalOptions{
