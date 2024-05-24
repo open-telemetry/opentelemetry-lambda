@@ -19,9 +19,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
@@ -99,12 +102,11 @@ func TestHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			consumer := mockConsumer{}
-			r, err := newTelemetryAPIReceiver(
+			r := newTelemetryAPIReceiver(
 				&Config{},
-				&consumer,
 				receivertest.NewNopCreateSettings(),
 			)
-			require.NoError(t, err)
+			r.registerTracesConsumer(consumer)
 			req := httptest.NewRequest("POST",
 				"http://localhost:53612/someevent", strings.NewReader(tc.body))
 			rec := httptest.NewRecorder()
@@ -146,9 +148,8 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			r, err := newTelemetryAPIReceiver(
+			r := newTelemetryAPIReceiver(
 				&Config{},
-				nil,
 				receivertest.NewNopCreateSettings(),
 			)
 			require.NoError(t, err)
@@ -157,6 +158,159 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.Equal(t, tc.expected, td.SpanCount())
+			}
+		})
+	}
+}
+
+func TestCreateLogs(t *testing.T) {
+	testCases := []struct {
+		desc                      string
+		slice                     []event
+		expectedLogRecords        int
+		expectedType              string
+		expectedTimestamp         string
+		expectedBody              string
+		expectedSeverityText      string
+		expectedContainsRequestId bool
+		expectedRequestId         string
+		expectedSeverityNumber    plog.SeverityNumber
+		expectError               bool
+	}{
+		{
+			desc:               "no slice",
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "Invalid Timestamp",
+			slice: []event{
+				{
+					Time:   "invalid",
+					Type:   "function",
+					Record: "[INFO] Hello world, I am an extension!",
+				},
+			},
+			expectError: true,
+		},
+		{
+			desc: "function text",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "function",
+					Record: "[INFO] Hello world, I am an extension!",
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "function",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "[INFO] Hello world, I am an extension!",
+			expectedContainsRequestId: false,
+			expectedSeverityText:      "",
+			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
+			expectError:               false,
+		},
+		{
+			desc: "function json",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp": "2022-10-12T00:03:50.000Z",
+						"level":     "INFO",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68189",
+						"message":   "Hello world, I am a function!",
+					},
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "function",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "Hello world, I am a function!",
+			expectedContainsRequestId: true,
+			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+			expectedSeverityText:      "INFO",
+			expectedSeverityNumber:    plog.SeverityNumberInfo,
+			expectError:               false,
+		},
+		{
+			desc: "extension text",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "extension",
+					Record: "[INFO] Hello world, I am an extension!",
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "extension",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "[INFO] Hello world, I am an extension!",
+			expectedContainsRequestId: false,
+			expectedSeverityText:      "",
+			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
+			expectError:               false,
+		},
+		{
+			desc: "extension json",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "extension",
+					Record: map[string]any{
+						"timestamp": "2022-10-12T00:03:50.000Z",
+						"level":     "INFO",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68689",
+						"message":   "Hello world, I am an extension!",
+					},
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "extension",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "Hello world, I am an extension!",
+			expectedContainsRequestId: true,
+			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+			expectedSeverityText:      "INFO",
+			expectedSeverityNumber:    plog.SeverityNumberInfo,
+			expectError:               false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			r := newTelemetryAPIReceiver(
+				&Config{},
+				receivertest.NewNopCreateSettings(),
+			)
+			log, err := r.createLogs(tc.slice)
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.Equal(t, 1, log.ResourceLogs().Len())
+				resourceLog := log.ResourceLogs().At(0)
+				require.Equal(t, 1, resourceLog.ScopeLogs().Len())
+				scopeLog := resourceLog.ScopeLogs().At(0)
+				require.Equal(t, scopeName, scopeLog.Scope().Name())
+				require.Equal(t, tc.expectedLogRecords, scopeLog.LogRecords().Len())
+				if scopeLog.LogRecords().Len() > 0 {
+					logRecord := scopeLog.LogRecords().At(0)
+					attr, ok := logRecord.Attributes().Get("type")
+					require.True(t, ok)
+					require.Equal(t, tc.expectedType, attr.Str())
+					expectedTime, err := time.Parse(timeFormatLayout, tc.expectedTimestamp)
+					require.NoError(t, err)
+					require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
+					requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
+					require.Equal(t, tc.expectedContainsRequestId, ok)
+					if ok {
+						require.Equal(t, tc.expectedRequestId, requestId.Str())
+					}
+					require.Equal(t, tc.expectedSeverityText, logRecord.SeverityText())
+					require.Equal(t, tc.expectedSeverityNumber, logRecord.SeverityNumber())
+					require.Equal(t, tc.expectedBody, logRecord.Body().Str())
+				}
 			}
 		})
 	}
