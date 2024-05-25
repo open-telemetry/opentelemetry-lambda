@@ -201,8 +201,8 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 			if record, ok := el.Record.(map[string]interface{}); ok {
 				// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 				if timestamp, ok := record["timestamp"].(string); ok {
-					if observedTime, err := time.Parse(timeFormatLayout, timestamp); err == nil {
-						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(observedTime))
+					if t, err := time.Parse(timeFormatLayout, timestamp); err == nil {
+						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 					} else {
 						r.logger.Error("error parsing time", zap.Error(err))
 						return plog.Logs{}, err
