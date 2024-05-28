@@ -27,6 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
+	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
 )
 
 func TestListenOnAddress(t *testing.T) {
@@ -61,6 +62,10 @@ type mockConsumer struct {
 
 func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	c.consumed += td.SpanCount()
+	return nil
+}
+
+func (c *mockConsumer) ConsumeLogs(ctx context.Context, td plog.Logs) error {
 	return nil
 }
 
@@ -106,7 +111,7 @@ func TestHandler(t *testing.T) {
 				&Config{},
 				receivertest.NewNopCreateSettings(),
 			)
-			r.registerTracesConsumer(consumer)
+			r.registerTracesConsumer(&consumer)
 			req := httptest.NewRequest("POST",
 				"http://localhost:53612/someevent", strings.NewReader(tc.body))
 			rec := httptest.NewRecorder()
@@ -152,7 +157,6 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				&Config{},
 				receivertest.NewNopCreateSettings(),
 			)
-			require.NoError(t, err)
 			td, err := r.createPlatformInitSpan(tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
@@ -231,7 +235,7 @@ func TestCreateLogs(t *testing.T) {
 			expectedBody:              "Hello world, I am a function!",
 			expectedContainsRequestId: true,
 			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
-			expectedSeverityText:      "INFO",
+			expectedSeverityText:      "Info",
 			expectedSeverityNumber:    plog.SeverityNumberInfo,
 			expectError:               false,
 		},
@@ -273,7 +277,7 @@ func TestCreateLogs(t *testing.T) {
 			expectedBody:              "Hello world, I am an extension!",
 			expectedContainsRequestId: true,
 			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
-			expectedSeverityText:      "INFO",
+			expectedSeverityText:      "Info",
 			expectedSeverityNumber:    plog.SeverityNumberInfo,
 			expectError:               false,
 		},

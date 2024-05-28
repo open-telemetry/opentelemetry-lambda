@@ -210,7 +210,6 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				}
 				if level, ok := record["level"].(string); ok {
 					level = strings.ToUpper(level)
-					logRecord.SetSeverityText(level)
 					switch level {
 					case "TRACE":
 						logRecord.SetSeverityNumber(1)
@@ -262,6 +261,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 						logRecord.SetSeverityNumber(24)
 					default:
 					}
+					logRecord.SetSeverityText(logRecord.SeverityNumber().String())
 				}
 				if requestId, ok := record["requestId"].(string); ok {
 					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
