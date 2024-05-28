@@ -2,7 +2,7 @@
 
 | Status                   |                       |
 | ------------------------ |-----------------------|
-| Stability                | [in development]      |
+| Stability                | [alpha]               |
 | Supported pipeline types | traces, metrics, logs |
 | Distributions            | [extension]           |
 
@@ -34,6 +34,6 @@ processors:
       max_queue_size:  20
 ```
 
-[in development]: https://github.com/open-telemetry/opentelemetry-collector#development
+[alpha]: https://github.com/open-telemetry/opentelemetry-collector#development
 [extension]: https://github.com/open-telemetry/opentelemetry-lambda/collector
 [lifecycle]: https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#runtimes-extensions-api-lifecycle
