@@ -281,6 +281,30 @@ func TestCreateLogs(t *testing.T) {
 			expectedSeverityNumber:    plog.SeverityNumberInfo,
 			expectError:               false,
 		},
+		{
+			desc: "extension json anything",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "extension",
+					Record: map[string]any{
+						"timestamp": "2022-10-12T00:03:50.000Z",
+						"level":     "anything",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68689",
+						"message":   "Hello world, I am an extension!",
+					},
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "extension",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "Hello world, I am an extension!",
+			expectedContainsRequestId: true,
+			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+			expectedSeverityText:      "Unspecified",
+			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
+			expectError:               false,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
