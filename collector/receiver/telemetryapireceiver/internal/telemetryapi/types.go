@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package telemetryapi
+package telemetryapireceiver
 
 // EventType represents the type of log events in Lambda
 type EventType string

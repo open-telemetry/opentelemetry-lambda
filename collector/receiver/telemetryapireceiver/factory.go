@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
@@ -40,6 +41,7 @@ func NewFactory(extensionID string) receiver.Factory {
 			}
 		},
 		receiver.WithTraces(createTracesReceiver, stability),
+		receiver.WithMetrics(createMetricsReceiver, stability),
 		receiver.WithLogs(createLogsReceiver, stability))
 }
 
@@ -48,8 +50,23 @@ func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, r
 	if !ok {
 		return nil, errConfigNotTelemetryAPI
 	}
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		return newTelemetryAPIReceiver(cfg, params)
+	})
+	r.Unwrap().(*telemetryAPIReceiver).registerTracesConsumer(next)
+	return r, nil
+}
 
-	return newTelemetryAPIReceiver(cfg, next, params)
+func createMetricsReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Metrics) (receiver.Metrics, error) {
+	cfg, ok := rConf.(*Config)
+	if !ok {
+		return nil, errConfigNotTelemetryAPI
+	}
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		return newTelemetryAPIReceiver(cfg, params)
+	})
+	r.Unwrap().(*telemetryAPIReceiver).registerMetricsConsumer(next)
+	return r, nil
 }
 
 func createLogsReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Logs) (receiver.Logs, error) {
@@ -57,6 +74,11 @@ func createLogsReceiver(ctx context.Context, params receiver.CreateSettings, rCo
 	if !ok {
 		return nil, errConfigNotTelemetryAPI
 	}
-
-	return newTelemetryAPILogsReceiver(cfg, next, params)
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		return newTelemetryAPIReceiver(cfg, params)
+	})
+	r.Unwrap().(*telemetryAPIReceiver).registerLogsConsumer(next)
+	return r, nil
 }
+
+var receivers = sharedcomponent.NewSharedComponents()
