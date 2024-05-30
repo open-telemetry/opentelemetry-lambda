@@ -45,6 +45,6 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "aws-sdk": "2.1623.0"
+    "aws-sdk": "2.1631.0"
   }
 }
