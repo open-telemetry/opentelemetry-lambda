@@ -9,7 +9,7 @@ Requirement:
 * [Go](https://go.dev/doc/install)
 * [Docker](https://docs.docker.com/get-docker)
 
-Current ruby layer only support ruby 3.2.0
+Current ruby layer only supports ruby 3.2.0
 
 ## Building Lambda Ruby Layer With OpenTelemetry Ruby Dependencies
 
