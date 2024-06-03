@@ -93,7 +93,7 @@ In this sample-apps, we use `src/layer/otel-handler` as default `AWS_LAMBDA_EXEC
 
 In `ruby/sample-apps/template.yml`, the OTelLayer -> Properties -> ContentUri is pointing to `ruby/src/layer/`. This is for local testing purpose. If you wish to deploy (e.g. `sam deploy`), please point it to correct location or zip file.
 
- Test with Jaeger Endpoint
+### Test with Jaeger Endpoint
 
 Assume you have a lambda function with current [released layer](https://github.com/open-telemetry/opentelemetry-lambda/releases/tag/layer-ruby%2F0.1.0), and you want to test it out that send trace to jaeger endpoint, below should be your environmental variable.
 ```
