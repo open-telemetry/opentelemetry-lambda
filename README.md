@@ -18,6 +18,7 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 * ### [Java + Collector Lambda Layer](java/README.md)
 * ### [NodeJS + Collector Lambda Layer](nodejs/README.md)
 * ### [.NET + Collector Lambda Layer](dotnet/README.md)
+* ### [Ruby + Collector Lambda Layer](ruby/README.md)
 * ### [Collector Lambda Layer](collector/README.md)
 
 ## FAQ
@@ -69,17 +70,17 @@ The table below captures the state of various features and their levels of suppo
 
 | Feature                    | Node | Python | Java | .NET | Go   | Ruby |
 | -------------------------- | :--: | :----: | :--: | :--: | :--: | :--: |
-| OpenTelemetry collector    |  +   |  +     |  +   |  +   |  +   |      |
-| Custom context propagation |  +   |  -     |  -   |  -   | N/A  |      |
-| X-Ray Env Var Span Link    |  -   |  -     |  -   |  -   | N/A  |      |
-| Semantic Conventions^      |      |  +     |  +   |  +   | N/A  |      |
-| - Trace General^<sup>[1]</sup>           |  +   |        |  +   |  +   | N/A  |      |
-| - Trace Incoming^<sup>[2]</sup>          |  -   |        |  -   |  +   | N/A  |      |
-| - Trace Outgoing^<sup>[3]</sup>          |  +   |        |  -   |  +   | N/A  |      |
-| - Metrics^<sup>[4]</sup>                 |  -   |        |  -   |  -   | N/A  |      |
-| Auto instrumentation       |      |   +    |  +   |  -   | N/A  |      |
-| Flush TracerProvider       |  +   |   +    |      |  +   |  +   |      |
-| Flush MeterProvider        |  +   |   +    |      |      |      |      |
+| OpenTelemetry collector    |  +   |  +     |  +   |  +   |  +   |  +   |
+| Custom context propagation |  +   |  -     |  -   |  -   | N/A  |  +   |
+| X-Ray Env Var Span Link    |  -   |  -     |  -   |  -   | N/A  |  -   |
+| Semantic Conventions^      |      |  +     |  +   |  +   | N/A  |  +   |
+| - Trace General^<sup>[1]</sup>           |  +   |        |  +   |  +   | N/A  |   +  |
+| - Trace Incoming^<sup>[2]</sup>          |  -   |        |  -   |  +   | N/A  |   -  |
+| - Trace Outgoing^<sup>[3]</sup>          |  +   |        |  -   |  +   | N/A  |   +  |
+| - Metrics^<sup>[4]</sup>                 |  -   |        |  -   |  -   | N/A  |   -  |
+| Auto instrumentation       |      |   +    |  +   |  -   | N/A  |   +  |
+| Flush TracerProvider       |  +   |   +    |      |  +   |  +   |   +  |
+| Flush MeterProvider        |  +   |   +    |      |      |      |   -  |
 
 #### Legend
 
