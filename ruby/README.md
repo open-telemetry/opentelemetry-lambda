@@ -102,7 +102,4 @@ OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://<jaeger_endpoint:port_number>/v1/trace
 ```
 Try with `jaeger-all-in-one` at [Jaeger](https://www.jaegertracing.io/docs/1.57/getting-started/)
 
-### Reference
-[splunk-otel-lambda](https://github.com/signalfx/splunk-otel-lambda/tree/main/ruby)
-
 
