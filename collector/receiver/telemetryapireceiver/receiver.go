@@ -71,7 +71,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Platform, telemetryapi.Function}, r.extensionID, fmt.Sprintf("http://%s/", address))
+	_, err := telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Function}, r.extensionID, fmt.Sprintf("http://%s/", address))
 	if err != nil {
 		r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
 		return err
@@ -120,29 +120,29 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	// traces
-	if r.nextTraces != nil {
-		if traces, err := r.createTraces(slice); err == nil {
-			if traces.SpanCount() > 0 {
-				err := r.nextTraces.ConsumeTraces(context.Background(), traces)
-				if err != nil {
-					r.logger.Error("error receiving traces", zap.Error(err))
-				}
-			}
-		}
-	}
-
-	// metrics
-	if r.nextMetrics != nil {
-		if metrics, err := r.createMetrics(slice); err == nil {
-			if metrics.MetricCount() > 0 {
-				err := r.nextMetrics.ConsumeMetrics(context.Background(), metrics)
-				if err != nil {
-					r.logger.Error("error receiving metrics", zap.Error(err))
-				}
-			}
-		}
-	}
+	//// traces
+	//if r.nextTraces != nil {
+	//	if traces, err := r.createTraces(slice); err == nil {
+	//		if traces.SpanCount() > 0 {
+	//			err := r.nextTraces.ConsumeTraces(context.Background(), traces)
+	//			if err != nil {
+	//				r.logger.Error("error receiving traces", zap.Error(err))
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//// metrics
+	//if r.nextMetrics != nil {
+	//	if metrics, err := r.createMetrics(slice); err == nil {
+	//		if metrics.MetricCount() > 0 {
+	//			err := r.nextMetrics.ConsumeMetrics(context.Background(), metrics)
+	//			if err != nil {
+	//				r.logger.Error("error receiving metrics", zap.Error(err))
+	//			}
+	//		}
+	//	}
+	//}
 
 	// Logs
 	if r.nextLogs != nil {
@@ -205,7 +205,7 @@ func (r *telemetryAPIReceiver) createTraces(slice []telemetryapi.Event) (ptrace.
 }
 
 func (r *telemetryAPIReceiver) createMetrics(slice []telemetryapi.Event) (pmetric.Metrics, error) {
-	return pmetric.Metrics{}, nil
+	return pmetric.Metrics{}, errors.New("no metrics created")
 }
 
 func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs, error) {
@@ -216,16 +216,16 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 	scopeLog.Scope().SetName(scopeName)
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
-		logRecord := scopeLog.LogRecords().AppendEmpty()
-		logRecord.Attributes().PutStr("type", el.Type)
-		if t, err := time.Parse(timeFormatLayout, el.Time); err == nil {
-			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-		} else {
-			r.logger.Error("error parsing time", zap.Error(err))
-			return plog.Logs{}, err
-		}
 		if el.Type == string(telemetryapi.Function) || el.Type == string(telemetryapi.Extension) {
+			logRecord := scopeLog.LogRecords().AppendEmpty()
+			logRecord.Attributes().PutStr("type", el.Type)
+			if t, err := time.Parse(timeFormatLayout, el.Time); err == nil {
+				logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+				logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+			} else {
+				r.logger.Error("error parsing time", zap.Error(err))
+				return plog.Logs{}, err
+			}
 			if record, ok := el.Record.(map[string]interface{}); ok {
 				// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 				if timestamp, ok := record["timestamp"].(string); ok {
@@ -307,16 +307,17 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 					logRecord.Body().SetStr(line)
 				}
 			}
-		} else {
-			logRecord.SetSeverityNumber(9)
-			logRecord.SetSeverityText(logRecord.SeverityNumber().String())
-			if j, err := json.Marshal(el.Record); err == nil {
-				logRecord.Body().SetStr(string(j))
-			} else {
-				r.logger.Error("error stringify record", zap.Error(err))
-				return plog.Logs{}, err
-			}
 		}
+		//} else {
+		//	logRecord.SetSeverityNumber(9)
+		//	logRecord.SetSeverityText(logRecord.SeverityNumber().String())
+		//	if j, err := json.Marshal(el.Record); err == nil {
+		//		logRecord.Body().SetStr(string(j))
+		//	} else {
+		//		r.logger.Error("error stringify record", zap.Error(err))
+		//		return plog.Logs{}, err
+		//	}
+		//}
 	}
 	return log, nil
 }

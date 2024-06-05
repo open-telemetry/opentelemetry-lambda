@@ -49,10 +49,10 @@ service:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
       exporters: [otlp,logging]
-    logs:
-      receivers: [otlp,telemetryapi]
-      processors: [resource,resourcedetection,decouple]
-      exporters: [otlp,logging]
+#    logs:
+#      receivers: [otlp,telemetryapi]
+#      processors: [resource,resourcedetection,decouple]
+#      exporters: [otlp,logging]
   telemetry:
     metrics:
       address: localhost:8888
