@@ -40,6 +40,7 @@ Resources:
             RestApiId: !Ref api
             Path: /
             Method: GET
+      Timeout: 60
       Environment:
         Variables:
           AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler

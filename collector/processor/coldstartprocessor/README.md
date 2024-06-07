@@ -2,7 +2,7 @@
 
 | Status                   |                 |
 | ------------------------ |-----------------|
-| Stability                | [in development]|
+| Stability                | [alpha]         |
 | Supported pipeline types | traces          |
 | Distributions            | [extension]     |
 
@@ -28,5 +28,5 @@ processors:
     coldstart:
 ```
 
-[in development]: https://github.com/open-telemetry/opentelemetry-collector#development
+[alpha]: https://github.com/open-telemetry/opentelemetry-collector#alpha
 [extension]: https://github.com/open-telemetry/opentelemetry-lambda/collector

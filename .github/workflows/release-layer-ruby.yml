@@ -24,10 +24,10 @@ jobs:
 
       - name: Install SAM
         run: |
-          apt-get update && apt-get install wget unzip make -y
+          sudo apt-get update && sudo apt-get install wget unzip make -y
           wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
           unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-          ./sam-installation/install
+          sudo ./sam-installation/install --update
 
       - name: Build
         id: save-ruby-sdk-version
