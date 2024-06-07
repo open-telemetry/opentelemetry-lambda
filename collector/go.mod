@@ -23,7 +23,7 @@ replace cloud.google.com/go => cloud.google.com/go v0.107.0
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/google/go-cmp v0.6.0
-  github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.101.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider v0.101.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.101.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents v0.98.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
@@ -56,7 +56,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.3 // indirect
-  github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.24.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.10 // indirect
