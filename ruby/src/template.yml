@@ -12,7 +12,7 @@ Resources:
     Properties:
       LayerName: !Ref LayerName
       Description: Opentelemetry Ruby layer
-      ContentUri: ./layer
+      ContentUri: ./otel/layer
       CompatibleRuntimes:
         - ruby3.2
     Metadata:
