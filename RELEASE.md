@@ -8,6 +8,7 @@ The release process is almost entirely managed by [GitHub actions](https://githu
         `git push origin tag layer-collector/0.0.8`
 3. Wait for the [release workflow](https://github.com/open-telemetry/opentelemetry-lambda/actions/workflows/release-layer-collector.yml) to finish.
 4. Create a release in https://github.com/open-telemetry/opentelemetry-lambda/releases/new
-    * Select a the tag
-    * Click in "Generate Release Notes"
+    * Select a the newly pushed tag
+    * Select the corresponding previous release
+    * Click "Generate Release Notes"
     * Adjust the release notes. Include the ARN, list of changes and diff with previous label.
