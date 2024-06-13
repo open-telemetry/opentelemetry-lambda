@@ -37,13 +37,13 @@ import (
 // Collector runs a single otelcol as a go routine within the
 // same process as the executor.
 type Collector struct {
-	factories      otelcol.Factories
-	configProvider otelcol.ConfigProvider
-	svc            *otelcol.Collector
-	appDone        chan struct{}
-	stopped        bool
-	logger         *zap.Logger
-	version        string
+	factories otelcol.Factories
+	cfgProSet otelcol.ConfigProviderSettings
+	svc       *otelcol.Collector
+	appDone   chan struct{}
+	stopped   bool
+	logger    *zap.Logger
+	version   string
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -69,17 +69,12 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 			},
 		},
 	}
-	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)
-
-	if err != nil {
-		l.Fatal("error creating config provider", zap.Error(err))
-	}
 
 	col := &Collector{
-		factories:      factories,
-		configProvider: cfgProvider,
-		logger:         logger,
-		version:        version,
+		factories: factories,
+		cfgProSet: cfgSet,
+		logger:    logger,
+		version:   version,
 	}
 	return col
 }
@@ -91,7 +86,7 @@ func (c *Collector) Start(ctx context.Context) error {
 			Description: "Lambda Collector",
 			Version:     c.version,
 		},
-		ConfigProvider: c.configProvider,
+		ConfigProviderSettings: c.cfgProSet,
 		Factories: func() (otelcol.Factories, error) {
 			return c.factories, nil
 		},
