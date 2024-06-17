@@ -22,6 +22,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
@@ -71,6 +72,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		coldstartprocessor.NewFactory(),
 		decoupleprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
+		tailsamplingprocessor.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)
