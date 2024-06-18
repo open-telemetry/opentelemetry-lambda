@@ -107,21 +107,22 @@ Here is a list of community roles with current and previous members:
 
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
-   - [Tristan Sloughter](https://github.com/tsloughter), Splunk
+  - [Nathan Slaughter](https://github.com/nslaughter), Lightstep
 
 - Emeritus Approvers:
 
-   - [Lei Wang](https://github.com/wangzlei), AWS
-   - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), AWS
+  - [Lei Wang](https://github.com/wangzlei)
+  - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN)
+  - [Tristan Sloughter](https://github.com/tsloughter)
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
-   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
-   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
+  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
+  - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 - Emeritus Maintainers:
 
-   - [Alex Boten](https://github.com/codeboten), Lightstep
-   - [Anthony Mirabella](https://github.com/Aneurysm9), AWS
+  - [Alex Boten](https://github.com/codeboten)
+  - [Anthony Mirabella](https://github.com/Aneurysm9)
 
 Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
