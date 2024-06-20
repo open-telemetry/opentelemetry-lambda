@@ -74,6 +74,8 @@ func (c *mockConsumer) Capabilities() consumer.Capabilities {
 }
 
 func TestHandler(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc          string
 		body          string
@@ -168,6 +170,8 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 }
 
 func TestCreateLogs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc                      string
 		slice                     []event
@@ -341,5 +345,115 @@ func TestCreateLogs(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSeverityTextToNumber(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		level  string
+		number plog.SeverityNumber
+	}{
+		{
+			level:  "TRACE",
+			number: plog.SeverityNumberTrace,
+		},
+		{
+			level:  "TRACE2",
+			number: plog.SeverityNumberTrace2,
+		},
+		{
+			level:  "TRACE3",
+			number: plog.SeverityNumberTrace3,
+		},
+		{
+			level:  "TRACE4",
+			number: plog.SeverityNumberTrace4,
+		},
+		{
+			level:  "DEBUG2",
+			number: plog.SeverityNumberDebug2,
+		},
+		{
+			level:  "DEBUG3",
+			number: plog.SeverityNumberDebug3,
+		},
+		{
+			level:  "DEBUG4",
+			number: plog.SeverityNumberDebug4,
+		},
+		{
+			level:  "INFO",
+			number: plog.SeverityNumberInfo,
+		},
+		{
+			level:  "INFO2",
+			number: plog.SeverityNumberInfo2,
+		},
+		{
+			level:  "INFO3",
+			number: plog.SeverityNumberInfo3,
+		},
+		{
+			level:  "INFO4",
+			number: plog.SeverityNumberInfo4,
+		},
+		{
+			level:  "WARN",
+			number: plog.SeverityNumberWarn,
+		},
+		{
+			level:  "WARN2",
+			number: plog.SeverityNumberWarn2,
+		},
+		{
+			level:  "WARN3",
+			number: plog.SeverityNumberWarn3,
+		},
+		{
+			level:  "WARN4",
+			number: plog.SeverityNumberWarn4,
+		},
+		{
+			level:  "ERROR",
+			number: plog.SeverityNumberError,
+		},
+		{
+			level:  "ERROR2",
+			number: plog.SeverityNumberError2,
+		},
+		{
+			level:  "ERROR3",
+			number: plog.SeverityNumberError3,
+		},
+		{
+			level:  "ERROR4",
+			number: plog.SeverityNumberError4,
+		},
+		{
+			level:  "FATAL",
+			number: plog.SeverityNumberFatal,
+		},
+		{
+			level:  "FATAL2",
+			number: plog.SeverityNumberFatal2,
+		},
+		{
+			level:  "FATAL3",
+			number: plog.SeverityNumberFatal3,
+		},
+		{
+			level:  "FATAL4",
+			number: plog.SeverityNumberFatal4,
+		},
+		{
+			level:  "UNKNOWN",
+			number: plog.SeverityNumberUnspecified,
+		},
+	}
+	for _, tc := range testCases {
+		require.Equal(t, tc.number, severityTextToNumber(tc.level))
+
 	}
 }

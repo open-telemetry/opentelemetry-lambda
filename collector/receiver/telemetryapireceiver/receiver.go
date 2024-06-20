@@ -211,58 +211,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 					}
 				}
 				if level, ok := record["level"].(string); ok {
-					level = strings.ToUpper(level)
-					switch level {
-					case "TRACE":
-						logRecord.SetSeverityNumber(1)
-					case "TRACE2":
-						logRecord.SetSeverityNumber(2)
-					case "TRACE3":
-						logRecord.SetSeverityNumber(3)
-					case "TRACE4":
-						logRecord.SetSeverityNumber(4)
-					case "DEBUG":
-						logRecord.SetSeverityNumber(5)
-					case "DEBUG2":
-						logRecord.SetSeverityNumber(6)
-					case "DEBUG3":
-						logRecord.SetSeverityNumber(7)
-					case "DEBUG4":
-						logRecord.SetSeverityNumber(8)
-					case "INFO":
-						logRecord.SetSeverityNumber(9)
-					case "INFO2":
-						logRecord.SetSeverityNumber(10)
-					case "INFO3":
-						logRecord.SetSeverityNumber(11)
-					case "INFO4":
-						logRecord.SetSeverityNumber(12)
-					case "WARN":
-						logRecord.SetSeverityNumber(13)
-					case "WARN2":
-						logRecord.SetSeverityNumber(14)
-					case "WARN3":
-						logRecord.SetSeverityNumber(15)
-					case "WARN4":
-						logRecord.SetSeverityNumber(16)
-					case "ERROR":
-						logRecord.SetSeverityNumber(17)
-					case "ERROR2":
-						logRecord.SetSeverityNumber(18)
-					case "ERROR3":
-						logRecord.SetSeverityNumber(19)
-					case "ERROR4":
-						logRecord.SetSeverityNumber(20)
-					case "FATAL":
-						logRecord.SetSeverityNumber(21)
-					case "FATAL2":
-						logRecord.SetSeverityNumber(22)
-					case "FATAL3":
-						logRecord.SetSeverityNumber(23)
-					case "FATAL4":
-						logRecord.SetSeverityNumber(24)
-					default:
-					}
+					logRecord.SetSeverityNumber(severityTextToNumber(level))
 					logRecord.SetSeverityText(logRecord.SeverityNumber().String())
 				}
 				if requestId, ok := record["requestId"].(string); ok {
@@ -280,6 +229,40 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 		}
 	}
 	return log, nil
+}
+
+func severityTextToNumber(severityText string) plog.SeverityNumber {
+	mapping := map[string]plog.SeverityNumber{
+		"TRACE":  plog.SeverityNumberTrace,
+		"TRACE2": plog.SeverityNumberTrace2,
+		"TRACE3": plog.SeverityNumberTrace3,
+		"TRACE4": plog.SeverityNumberTrace4,
+		"DEBUG":  plog.SeverityNumberDebug,
+		"DEBUG2": plog.SeverityNumberDebug2,
+		"DEBUG3": plog.SeverityNumberDebug3,
+		"DEBUG4": plog.SeverityNumberDebug4,
+		"INFO":   plog.SeverityNumberInfo,
+		"INFO2":  plog.SeverityNumberInfo2,
+		"INFO3":  plog.SeverityNumberInfo3,
+		"INFO4":  plog.SeverityNumberInfo4,
+		"WARN":   plog.SeverityNumberWarn,
+		"WARN2":  plog.SeverityNumberWarn2,
+		"WARN3":  plog.SeverityNumberWarn3,
+		"WARN4":  plog.SeverityNumberWarn4,
+		"ERROR":  plog.SeverityNumberError,
+		"ERROR2": plog.SeverityNumberError2,
+		"ERROR3": plog.SeverityNumberError3,
+		"ERROR4": plog.SeverityNumberError4,
+		"FATAL":  plog.SeverityNumberFatal,
+		"FATAL2": plog.SeverityNumberFatal2,
+		"FATAL3": plog.SeverityNumberFatal3,
+		"FATAL4": plog.SeverityNumberFatal4,
+	}
+	if ans, ok := mapping[strings.ToUpper(severityText)]; ok {
+		return ans
+	} else {
+		return plog.SeverityNumberUnspecified
+	}
 }
 
 func (r *telemetryAPIReceiver) registerTracesConsumer(next consumer.Traces) {

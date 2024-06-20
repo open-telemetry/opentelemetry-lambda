@@ -140,8 +140,6 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	t.Parallel()
-
 	testCases := []struct {
 		desc        string
 		cfg         *Config
