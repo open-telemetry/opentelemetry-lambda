@@ -24,6 +24,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,7 +41,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
 
-const defaultListenerPort = "4325"
 const initialQueueSize = 5
 const timeFormatLayout = "2006-01-02T15:04:05.000Z"
 const scopeName = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
@@ -54,11 +54,13 @@ type telemetryAPIReceiver struct {
 	lastPlatformStartTime string
 	lastPlatformEndTime   string
 	extensionID           string
+	port                  int
+	types                 []telemetryapi.EventType
 	resource              pcommon.Resource
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
-	address := listenOnAddress()
+	address := listenOnAddress(r.port)
 	r.logger.Info("Listening for requests", zap.String("address", address))
 
 	mux := http.NewServeMux()
@@ -69,7 +71,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Platform, telemetryapi.Function, telemetryapi.Extension}, r.extensionID, fmt.Sprintf("http://%s/", address))
+	_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
 	if err != nil {
 		r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
 		return err
@@ -337,21 +339,36 @@ func newTelemetryAPIReceiver(
 			r.Attributes().PutStr(resourceAttribute, val)
 		}
 	}
+
+	subscribedTypes := []telemetryapi.EventType{}
+	for _, val := range cfg.Types {
+		switch val {
+		case "platform":
+			subscribedTypes = append(subscribedTypes, telemetryapi.Platform)
+		case "function":
+			subscribedTypes = append(subscribedTypes, telemetryapi.Function)
+		case "extension":
+			subscribedTypes = append(subscribedTypes, telemetryapi.Extension)
+		}
+	}
+
 	return &telemetryAPIReceiver{
 		logger:      set.Logger,
 		queue:       queue.New(initialQueueSize),
 		extensionID: cfg.extensionID,
+		port:        cfg.Port,
+		types:       subscribedTypes,
 		resource:    r,
 	}
 }
 
-func listenOnAddress() string {
+func listenOnAddress(port int) string {
 	envAwsLocal, ok := os.LookupEnv("AWS_SAM_LOCAL")
 	var addr string
 	if ok && envAwsLocal == "true" {
-		addr = ":" + defaultListenerPort
+		addr = ":" + strconv.Itoa(port)
 	} else {
-		addr = "sandbox.localdomain:" + defaultListenerPort
+		addr = "sandbox.localdomain:" + strconv.Itoa(port)
 	}
 
 	return addr

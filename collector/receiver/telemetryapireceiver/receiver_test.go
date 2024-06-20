@@ -38,7 +38,7 @@ func TestListenOnAddress(t *testing.T) {
 		{
 			desc: "listen on address without AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
-				addr := listenOnAddress()
+				addr := listenOnAddress(4325)
 				require.EqualValues(t, "sandbox.localdomain:4325", addr)
 			},
 		},
@@ -46,7 +46,7 @@ func TestListenOnAddress(t *testing.T) {
 			desc: "listen on address with AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
 				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress()
+				addr := listenOnAddress(4325)
 				require.EqualValues(t, ":4325", addr)
 			},
 		},

@@ -25,8 +25,12 @@ import (
 )
 
 const (
-	typeStr   = "telemetryapi"
-	stability = component.StabilityLevelDevelopment
+	typeStr     = "telemetryapi"
+	stability   = component.StabilityLevelDevelopment
+	defaultPort = 4325
+	platform    = "platform"
+	function    = "function"
+	extension   = "extension"
 )
 
 var errConfigNotTelemetryAPI = errors.New("config was not a Telemetry API receiver config")
@@ -38,6 +42,8 @@ func NewFactory(extensionID string) receiver.Factory {
 		func() component.Config {
 			return &Config{
 				extensionID: extensionID,
+				Port:        defaultPort,
+				Types:       []string{platform, function, extension},
 			}
 		},
 		receiver.WithTraces(createTracesReceiver, stability),

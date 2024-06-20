@@ -15,12 +15,133 @@
 package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 
 import (
+	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
+func TestLoadConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		id       component.ID
+		expected component.Config
+	}{
+		{
+			id:       component.NewID(component.MustNewType("telemetryapi")),
+			expected: NewFactory("extensionID").CreateDefaultConfig(),
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "1"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{platform, function, extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "2"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{platform, function, extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "3"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{platform},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "4"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{function},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "5"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "6"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{platform, function},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "7"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{platform, extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "8"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{function, extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "9"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "10"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{function, extension},
+			},
+		},
+		{
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "11"),
+			expected: &Config{
+				extensionID: "extensionID",
+				Port:        12345,
+				Types:       []string{function, extension},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.id.String(), func(t *testing.T) {
+			cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config.yaml"))
+			require.NoError(t, err)
+			factory := NewFactory("extensionID")
+			cfg := factory.CreateDefaultConfig()
+			sub, err := cm.Sub(tt.id.String())
+			require.NoError(t, err)
+			require.NoError(t, sub.Unmarshal(cfg))
+			require.NoError(t, component.ValidateConfig(cfg))
+			require.Equal(t, tt.expected, cfg)
+		})
+	}
+}
+
 func TestValidate(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc        string
 		cfg         *Config
@@ -30,6 +151,13 @@ func TestValidate(t *testing.T) {
 			desc:        "valid config",
 			cfg:         &Config{},
 			expectedErr: nil,
+		},
+		{
+			desc: "invalid config",
+			cfg: &Config{
+				Types: []string{"invalid"},
+			},
+			expectedErr: fmt.Errorf("unknown extension type: invalid"),
 		},
 	}
 
