@@ -2,58 +2,46 @@
 
 Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Ruby.
 
-Requirement:
-* [Ruby 3.2.0](https://www.ruby-lang.org/en/news/2022/12/25/ruby-3-2-0-released/)
+**Requirement**
+* [Ruby 3.2.0](https://www.ruby-lang.org/en/news/2022/12/25/ruby-3-2-0-released/) (only supported version)
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Go](https://go.dev/doc/install)
 * [Docker](https://docs.docker.com/get-docker)
 
+**Building Lambda Ruby Layer With OpenTelemetry Ruby Dependencies**
 
-## Building Lambda Ruby Layer With OpenTelemetry Ruby Dependencies
+1. Pull and install all the gem dependencies in to `.aws-sam` folder
 
-Build
 ```bash
 sam build -u -t template.yml
 ```
 
-Make sure the layer structure like below with your zip
-```
-ruby
-    └── gems
-        └── 3.2.0
-            ├── build_info
-            ├── doc
-            ├── extensions
-            ├── gems
-            ├── plugins
-            └── specifications
-```
-
-Zip the file for uploading to ruby lambda layer
+2. Zip all the gems file, wrapper and handler into single zip file
 
 ```bash
-cd .aws-sam/build/OTelLayer/
-zip -qr ../../../<your_layer_name>.zip ruby/
-cd -
+(cd .aws-sam/build/OTelLayer/ && zip -qr ../<your_layer_name>.zip .)
+mv .aws-sam/build/<your_layer_name>.zip .
 
-# or run following script
+# Or run the script
 zip_ruby_layer.sh -n <your_layer_name>
 ```
 
-### Why build layer this way
+**Default GEM_PATH**
 
-The default GEM_PATH for Lambda Ruby is $LAMBDA_TASK_ROOT/vendor/bundle/ruby/2.5.0:/opt/ruby/gems/2.5.0. Therefore, it's important to set the Ruby path in the format `/opt/ruby/gems/<ruby_version>`.
+The [default GEM_PATH](https://docs.aws.amazon.com/lambda/latest/dg/ruby-package.html#ruby-package-dependencies-layers) for aws lambda ruby is `/opt/ruby/gems/<ruby_vesion>` after lambda function loads this layer.
 
-Reference for build ruby lambda layer
-https://docs.aws.amazon.com/lambda/latest/dg/ruby-package.html
+**Define AWS_LAMBDA_EXEC_WRAPPER**
 
+Point `AWS_LAMBDA_EXEC_WRAPPER` to `/opt/otel-handler` to take advantage of layer wrapper that load all opentelemetry ruby components
+e.g.
+```
+AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-handler
+```
 
-### Define the AWS_LAMBDA_EXEC_WRAPPER
+#### There are two ways to define the AWS_LAMBDA_EXEC_WRAPPER that point to either binary executable or script (normally bash).
 
-There are two ways to define the AWS_LAMBDA_EXEC_WRAPPER that point to either binary executable or script (normally bash).
-
-#### Method 1: define the AWS_LAMBDA_EXEC_WRAPPER in function from template.yml
+Method 1: define the AWS_LAMBDA_EXEC_WRAPPER in function from template.yml
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
@@ -76,33 +64,11 @@ Resources:
 
 ```
 
-#### Method 2: directly update the environmental variable in lambda console: Configuration -> Environemntal variables 
+Method 2: directly update the environmental variable in lambda console: Configuration -> Environemntal variables
 
 For more information about aws lambda wrapper and wrapper layer, check [aws lambda runtime-wrapper](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper). We provide a sample wrapper file in `src/layer/otel-handler` as reference.
 
-### Tracing and export trace to collector
-
-To enable the default opentelemetry tracing, you can either initialize the opentelemetry ruby sdk in function code. To receive the trace, you can define the OTEL-related (e.g. OTEL_EXPORTER_OTLP_ENDPOINT) environmental variable and setup the opentelemetry collector accordingly.
-
-For example:
-```ruby
-require 'opentelemetry/sdk'
-require 'opentelemetry/exporter/otlp'
-require 'opentelemetry/instrumentation/all'
-OpenTelemetry::SDK.configure do |c|
-  c.service_name = '<YOUR_SERVICE_NAME>'
-  c.use_all() # enables all instrumentation!
-end
-
-def lambda_handler(event:, context:)
-  # ... your code
-end
-```
-
-Sample handler can be found here:
-1. [splunk-otel-lambda](https://github.com/signalfx/splunk-otel-lambda/tree/main/ruby)
-
-## Sample App 
+### Sample App
 
 1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.)
 2. Navigate to the path `cd ruby/sample-apps`
@@ -116,15 +82,24 @@ sam build -u -t template.yml
 4. Test with local simulation
 ```bash
 sam local start-api --skip-pull-image
-
-# curl the lambda function
-curl http://127.0.0.1:3000
-# Hello 1.3.0% 
 ```
 
-NOTE:
+5. curl the lambda function
+```bash
+curl http://127.0.0.1:3000
+# you should expect: Hello 1.4.1
+```
+In this sample-apps, we use `src/layer/otel-handler` as default `AWS_LAMBDA_EXEC_WRAPPER`; to change it, please edit in `sample-apps/template.yml`
+
 In `ruby/sample-apps/template.yml`, the OTelLayer -> Properties -> ContentUri is pointing to `ruby/src/layer/`. This is for local testing purpose. If you wish to deploy (e.g. `sam deploy`), please point it to correct location or zip file.
 
-In this sample-apps, we use `src/layer/otel-handler` as default `AWS_LAMBDA_EXEC_WRAPPER`; to change it, please edit in `sample-apps/template.yml`
+### Test with Jaeger Endpoint
+
+Assume you have a lambda function with current [released layer](https://github.com/open-telemetry/opentelemetry-lambda/releases/tag/layer-ruby%2F0.1.0), and you want to test it out that send trace to jaeger endpoint, below should be your environmental variable.
+```
+AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://<jaeger_endpoint:port_number>/v1/traces
+```
+Try with `jaeger-all-in-one` at [Jaeger](https://www.jaegertracing.io/docs/1.57/getting-started/)
 
 

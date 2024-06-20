@@ -12,7 +12,7 @@ import {
   envDetector,
   processDetector,
 } from '@opentelemetry/resources';
-import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk';
+import { AwsInstrumentation, AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
 import {
   diag,
@@ -58,6 +58,7 @@ function defaultConfigureInstrumentations() {
 
 declare global {
   // in case of downstream configuring span processors etc
+  function configureAwsInstrumentation(defaultConfig: AwsSdkInstrumentationConfig): AwsSdkInstrumentationConfig
   function configureTracerProvider(tracerProvider: NodeTracerProvider): void
   function configureTracer(defaultConfig: NodeTracerConfig): NodeTracerConfig;
   function configureSdkRegistration(
@@ -72,9 +73,11 @@ declare global {
 console.log('Registering OpenTelemetry');
 
 const instrumentations = [
-  new AwsInstrumentation({
-    suppressInternalInstrumentation: true,
-  }),
+  new AwsInstrumentation(
+    typeof configureAwsInstrumentation === 'function'
+      ? configureAwsInstrumentation({suppressInternalInstrumentation: true})
+      : {suppressInternalInstrumentation: true,},
+  ),
   new AwsLambdaInstrumentation(typeof configureLambdaInstrumentation === 'function' ? configureLambdaInstrumentation({}) : {}),
   ...(typeof configureInstrumentations === 'function' ? configureInstrumentations: defaultConfigureInstrumentations)()
 ];
