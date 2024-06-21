@@ -15,7 +15,7 @@
 package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 
 type event struct {
-	Time   string         `json:"time"`
-	Type   string         `json:"type"`
-	Record map[string]any `json:"record"`
+	Time   string `json:"time"`
+	Type   string `json:"type"`
+	Record any    `json:"record"`
 }
