@@ -4,8 +4,7 @@ BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
 BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
 LAYER_NAME:=otel-collector
-
-VERSION=$(shell cat VERSION)
+VERSION=$(shell curl -s https://raw.githubusercontent.com/open-telemetry/opentelemetry-collector-contrib/main/versions.yaml | grep 'version:' | head -1 | awk '{print $$2}')
 GIT_SHA=$(shell git rev-parse HEAD)
 GOARCH ?= amd64
 GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
@@ -38,6 +37,7 @@ build: clean
 	@echo Building otel collector extension
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
+	@$(MAKE) update-collector-version
 
 .PHONY: package
 package: build
@@ -55,6 +55,12 @@ publish-layer: package
 	@echo Publishing collector extension layer...
 	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 --query 'LayerVersionArn' --output text
 	@echo OpenTelemetry Collector layer published.
+
+.PHONY: update-collector-version 
+update-collector-version:
+	@latest_version=$(shell curl -s https://raw.githubusercontent.com/open-telemetry/opentelemetry-collector-contrib/main/versions.yaml | grep 'version:' | head -1 | awk '{print $$2}'); \
+	echo $$latest_version > VERSION; \
+	echo "Updated to OpenTelemetry Collector version from $(PRIOR_BUIlD_VERSION) $$latest_version"
 
 .PHONY: gotidy
 gotidy:
