@@ -18,3 +18,5 @@ __pycache__/*
 build.toml
 
 *.zip
+
+collector/VERSION
