@@ -71,10 +71,12 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
-	if err != nil {
-		r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
-		return err
+	if len(r.types) > 0 {
+		_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
+		if err != nil {
+			r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
+			return err
+		}
 	}
 	return nil
 }
