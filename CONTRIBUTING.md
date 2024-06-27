@@ -1,6 +1,8 @@
 # OpenTelemetry Contributor Guide
 
-Welcome to OpenTelemetry! This document is the single source of truth for how to
+Welcome to OpenTelemetry! This document provides general guidance for contributing to 
+this codebase. This is a multi-lingual codebase, so sub-directories like `collector` may
+provide additional guidance in a CONTRIBUTING.md.
 contribute to the code base. Feel free to browse the [open
 issues](https://github.com/open-telemetry/opentelemetry-lambda/issues?q=is%3Aissue+is%3Aopen)
 and file new ones, all feedback welcome!
