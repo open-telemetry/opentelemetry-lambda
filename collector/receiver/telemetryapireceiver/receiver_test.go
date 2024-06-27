@@ -448,6 +448,14 @@ func TestSeverityTextToNumber(t *testing.T) {
 			number: plog.SeverityNumberFatal4,
 		},
 		{
+			level:  "CRITICAL",
+			number: plog.SeverityNumberFatal,
+		},
+		{
+			level:  "ALL",
+			number: plog.SeverityNumberTrace,
+		},
+		{
 			level:  "UNKNOWN",
 			number: plog.SeverityNumberUnspecified,
 		},
