@@ -14,12 +14,23 @@
 
 package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 
+import (
+	"fmt"
+)
+
 // Config defines the configuration for the various elements of the receiver agent.
 type Config struct {
 	extensionID string
+	Port        int      `mapstructure:"port"`
+	Types       []string `mapstructure:"types"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
 func (cfg *Config) Validate() error {
+	for _, t := range cfg.Types {
+		if t != platform && t != function && t != extension {
+			return fmt.Errorf("unknown extension type: %s", t)
+		}
+	}
 	return nil
 }

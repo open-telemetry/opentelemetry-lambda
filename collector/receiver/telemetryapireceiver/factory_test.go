@@ -41,7 +41,7 @@ func TestNewFactory(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				factory := NewFactory("test")
 
-				var expectedCfg component.Config = &Config{extensionID: "test"}
+				var expectedCfg component.Config = &Config{extensionID: "test", Port: defaultPort, Types: []string{platform, function, extension}}
 
 				require.Equal(t, expectedCfg, factory.CreateDefaultConfig())
 			},
