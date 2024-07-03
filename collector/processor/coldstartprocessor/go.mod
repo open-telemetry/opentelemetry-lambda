@@ -1,7 +1,8 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor
 
-go 1.21
-toolchain go1.22.3
+go 1.21.0
+
+toolchain go1.22.4
 
 require (
 	github.com/cespare/xxhash v1.1.0
