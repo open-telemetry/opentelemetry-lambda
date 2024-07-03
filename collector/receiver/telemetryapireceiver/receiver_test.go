@@ -39,7 +39,7 @@ func TestListenOnAddress(t *testing.T) {
 		{
 			desc: "listen on address without AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
-				addr := listenOnAddress()
+				addr := listenOnAddress(4325)
 				require.EqualValues(t, "sandbox.localdomain:4325", addr)
 			},
 		},
@@ -47,7 +47,7 @@ func TestListenOnAddress(t *testing.T) {
 			desc: "listen on address with AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
 				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress()
+				addr := listenOnAddress(4325)
 				require.EqualValues(t, ":4325", addr)
 			},
 		},
@@ -66,11 +66,17 @@ func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) erro
 	return nil
 }
 
+func (c *mockConsumer) ConsumeLogs(ctx context.Context, td plog.Logs) error {
+	return nil
+}
+
 func (c *mockConsumer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{MutatesData: true}
 }
 
 func TestHandler(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc          string
 		body          string
@@ -98,7 +104,7 @@ func TestHandler(t *testing.T) {
 				{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {}},
 				{"time":"2006-01-02T15:04:05.000Z", "type":"platform.initRuntimeDone", "record": {}}
 			]`,
-			expectedSpans: 0,
+			expectedSpans: 1,
 		},
 	}
 	for _, tc := range testCases {
@@ -165,6 +171,8 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 }
 
 func TestCreateLogs(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		desc                      string
 		slice                     []telemetryapi.Event
@@ -279,74 +287,25 @@ func TestCreateLogs(t *testing.T) {
 			expectError:               false,
 		},
 		{
-			desc: "platform.initReport",
-			slice: []telemetryapi.Event{
-				{
-					Time: "2024-05-15T23:58:26.858Z",
-					Type: "platform.initReport",
-					Record: map[string]any{
-						"initializationType": "on-demand",
-						"metrics": map[string]any{
-							"durationMs": 1819.081,
-						},
-						"phase":  "init",
-						"status": "success",
-					},
-				},
-			},
-			expectedLogRecords:        0,
-			expectedType:              "platform.initReport",
-			expectedTimestamp:         "2024-05-15T23:58:26.858Z",
-			expectedBody:              "{\"initializationType\":\"on-demand\",\"metrics\":{\"durationMs\":1819.081},\"phase\":\"init\",\"status\":\"success\"}",
-			expectedContainsRequestId: false,
-			expectedSeverityText:      "Info",
-			expectedSeverityNumber:    plog.SeverityNumberInfo,
-			expectError:               false,
-		},
-		{
-			desc: "function json critical",
+			desc: "extension json anything",
 			slice: []telemetryapi.Event{
 				{
 					Time: "2022-10-12T00:03:50.000Z",
-					Type: "function",
+					Type: "extension",
 					Record: map[string]any{
 						"timestamp": "2022-10-12T00:03:50.000Z",
-						"level":     "CRITICAL",
-						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68189",
-						"message":   "Hello world, I am a function!",
+						"level":     "anything",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68689",
+						"message":   "Hello world, I am an extension!",
 					},
 				},
 			},
 			expectedLogRecords:        1,
-			expectedType:              "function",
+			expectedType:              "extension",
 			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am a function!",
+			expectedBody:              "Hello world, I am an extension!",
 			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
-			expectedSeverityText:      "Fatal",
-			expectedSeverityNumber:    plog.SeverityNumberFatal,
-			expectError:               false,
-		},
-		{
-			desc: "function json other",
-			slice: []telemetryapi.Event{
-				{
-					Time: "2022-10-12T00:03:50.000Z",
-					Type: "function",
-					Record: map[string]any{
-						"timestamp": "2022-10-12T00:03:50.000Z",
-						"level":     "OTHERS",
-						"requestId": "79b4f56e-95b1-4643-9700-2807f4e68189",
-						"message":   "Hello world, I am a function!",
-					},
-				},
-			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am a function!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
 			expectedSeverityText:      "Unspecified",
 			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
 			expectError:               false,
@@ -387,5 +346,123 @@ func TestCreateLogs(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSeverityTextToNumber(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		level  string
+		number plog.SeverityNumber
+	}{
+		{
+			level:  "TRACE",
+			number: plog.SeverityNumberTrace,
+		},
+		{
+			level:  "TRACE2",
+			number: plog.SeverityNumberTrace2,
+		},
+		{
+			level:  "TRACE3",
+			number: plog.SeverityNumberTrace3,
+		},
+		{
+			level:  "TRACE4",
+			number: plog.SeverityNumberTrace4,
+		},
+		{
+			level:  "DEBUG2",
+			number: plog.SeverityNumberDebug2,
+		},
+		{
+			level:  "DEBUG3",
+			number: plog.SeverityNumberDebug3,
+		},
+		{
+			level:  "DEBUG4",
+			number: plog.SeverityNumberDebug4,
+		},
+		{
+			level:  "INFO",
+			number: plog.SeverityNumberInfo,
+		},
+		{
+			level:  "INFO2",
+			number: plog.SeverityNumberInfo2,
+		},
+		{
+			level:  "INFO3",
+			number: plog.SeverityNumberInfo3,
+		},
+		{
+			level:  "INFO4",
+			number: plog.SeverityNumberInfo4,
+		},
+		{
+			level:  "WARN",
+			number: plog.SeverityNumberWarn,
+		},
+		{
+			level:  "WARN2",
+			number: plog.SeverityNumberWarn2,
+		},
+		{
+			level:  "WARN3",
+			number: plog.SeverityNumberWarn3,
+		},
+		{
+			level:  "WARN4",
+			number: plog.SeverityNumberWarn4,
+		},
+		{
+			level:  "ERROR",
+			number: plog.SeverityNumberError,
+		},
+		{
+			level:  "ERROR2",
+			number: plog.SeverityNumberError2,
+		},
+		{
+			level:  "ERROR3",
+			number: plog.SeverityNumberError3,
+		},
+		{
+			level:  "ERROR4",
+			number: plog.SeverityNumberError4,
+		},
+		{
+			level:  "FATAL",
+			number: plog.SeverityNumberFatal,
+		},
+		{
+			level:  "FATAL2",
+			number: plog.SeverityNumberFatal2,
+		},
+		{
+			level:  "FATAL3",
+			number: plog.SeverityNumberFatal3,
+		},
+		{
+			level:  "FATAL4",
+			number: plog.SeverityNumberFatal4,
+		},
+		{
+			level:  "CRITICAL",
+			number: plog.SeverityNumberFatal,
+		},
+		{
+			level:  "ALL",
+			number: plog.SeverityNumberTrace,
+		},
+		{
+			level:  "UNKNOWN",
+			number: plog.SeverityNumberUnspecified,
+		},
+	}
+	for _, tc := range testCases {
+		require.Equal(t, tc.number, severityTextToNumber(tc.level))
+
 	}
 }

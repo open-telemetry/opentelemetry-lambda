@@ -11,6 +11,7 @@ receivers:
       http:
         endpoint: "localhost:4318"
   telemetryapi:
+    types: ${SW_APM_TELEMETRY_API_SUBSCRIPTION}
 
 processors:
   decouple:
@@ -49,10 +50,10 @@ service:
       receivers: [otlp]
       processors: [resource,resourcedetection,decouple]
       exporters: [otlp,logging]
-#    logs:
-#      receivers: [otlp,telemetryapi]
-#      processors: [resource,resourcedetection,decouple]
-#      exporters: [otlp,logging]
+    logs:
+      receivers: [otlp,telemetryapi]
+      processors: [resource,resourcedetection,decouple]
+      exporters: [otlp,logging]
   telemetry:
     metrics:
       address: localhost:8888
