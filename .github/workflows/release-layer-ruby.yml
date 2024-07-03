@@ -18,38 +18,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2.0'
-
-      - name: Install SAM
-        run: |
-          apt-get update && apt-get install wget unzip make -y
-          wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-          unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-          ./sam-installation/install
-
       - name: Build
         id: save-ruby-sdk-version
         run: |
-          sam build -u -t template.yml
-          export GEM_PATH=$PWD/.aws-sam/build/OTelLayer/ruby/gems/3.2.0/
-          RUBY_SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
-          echo "RUBY_SDK_VERSION=$RUBY_SDK_VERSION" >> $GITHUB_OUTPUT
+          ./build.sh
+        shell: bash
         working-directory: ruby/src
 
-      - name: Zip the layer file
+      - name: Show directory contents
         run: |
-          echo ${{ steps.save-ruby-sdk-version.outputs.RUBY_SDK_VERSION}}
-          ./zip_ruby_layer.sh
-        working-directory: ruby/src
-        shell: bash
+          ls -al
+        working-directory: ruby/src/build
 
       - uses: actions/upload-artifact@v4
         name: Save assembled layer to build
         with:
           name: opentelemetry-ruby-layer.zip
-          path: ruby/src/opentelemetry-ruby-layer.zip
+          path: ruby/src/build/opentelemetry-ruby-layer.zip
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
@@ -77,7 +62,7 @@ jobs:
       artifact-name: opentelemetry-ruby-layer.zip
       layer-name: opentelemetry-ruby
       component-version: ${{needs.build-layer.outputs.RUBY_SDK_VERSION}}
-      runtimes: ruby3.2
-      release-group: prod
+      runtimes: ruby3.2 ruby3.3
+      release-group: dev
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit

@@ -1,5 +1,4 @@
 require 'json'
-require 'opentelemetry-sdk'
 
 def lambda_handler(event:, context:)
   if defined?(::OpenTelemetry::SDK)

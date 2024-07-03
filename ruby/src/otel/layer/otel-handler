@@ -1,0 +1,22 @@
+#!/bin/sh
+
+export ORIG_HANDLER="$_HANDLER";
+export _HANDLER="/opt/wrapper.otel_wrapper";
+
+if [ -z "${OTEL_SERVICE_NAME}" ]; then
+    export OTEL_SERVICE_NAME="$AWS_LAMBDA_FUNCTION_NAME";
+fi
+
+# disable HTTP NET by default - otherwise, lambda runtime gets instrumented yielding noise
+if [ -z "${OTEL_RUBY_INSTRUMENTATION_NET_HTTP_ENABLED}" ]; then
+    export OTEL_RUBY_INSTRUMENTATION_NET_HTTP_ENABLED=false;
+fi
+
+export LAMBDA_RESOURCE_ATTRIBUTES="cloud.region=$AWS_REGION,cloud.provider=aws,faas.name=$AWS_LAMBDA_FUNCTION_NAME,faas.version=$AWS_LAMBDA_FUNCTION_VERSION,faas.instance=$AWS_LAMBDA_LOG_STREAM_NAME";
+if [ -z "${OTEL_RESOURCE_ATTRIBUTES}" ]; then
+    export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES";
+else
+    export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES,$OTEL_RESOURCE_ATTRIBUTES";
+fi
+
+exec "$@"

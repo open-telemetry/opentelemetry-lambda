@@ -20,6 +20,7 @@ import (
 	"os"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
@@ -31,20 +32,19 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/decoupleafterbatchconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 )
 
 // Collector runs a single otelcol as a go routine within the
 // same process as the executor.
 type Collector struct {
-	factories      otelcol.Factories
-	configProvider otelcol.ConfigProvider
-	svc            *otelcol.Collector
-	appDone        chan struct{}
-	stopped        bool
-	logger         *zap.Logger
-	version        string
+	factories otelcol.Factories
+	cfgProSet otelcol.ConfigProviderSettings
+	svc       *otelcol.Collector
+	appDone   chan struct{}
+	stopped   bool
+	logger    *zap.Logger
+	version   string
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -58,34 +58,24 @@ func getConfig(logger *zap.Logger) string {
 
 func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
 	l := logger.Named("NewCollector")
-	providerSettings := confmap.ProviderSettings{Logger: l}
-	providers := []confmap.Provider{fileprovider.NewWithSettings(providerSettings), envprovider.NewWithSettings(providerSettings), yamlprovider.NewWithSettings(providerSettings), httpprovider.NewWithSettings(providerSettings), s3provider.New()}
-	mapProvider := make(map[string]confmap.Provider, len(providers))
-
-	for _, provider := range providers {
-		mapProvider[provider.Scheme()] = provider
-	}
-
-	converterSettings := confmap.ConverterSettings{}
-
 	cfgSet := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
-			URIs:       []string{getConfig(l)},
-			Providers:  mapProvider,
-			Converters: []confmap.Converter{expandconverter.New(converterSettings), disablequeuedretryconverter.New(), decoupleafterbatchconverter.New()},
+			URIs:              []string{getConfig(l)},
+			ProviderFactories: []confmap.ProviderFactory{fileprovider.NewFactory(), envprovider.NewFactory(), yamlprovider.NewFactory(), httpprovider.NewFactory(), s3provider.NewFactory(), secretsmanagerprovider.NewFactory()},
+			ConverterFactories: []confmap.ConverterFactory{
+				expandconverter.NewFactory(),
+				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
+					return disablequeuedretryconverter.New()
+				}),
+			},
 		},
-	}
-	cfgProvider, err := otelcol.NewConfigProvider(cfgSet)
-
-	if err != nil {
-		l.Fatal("error creating config provider", zap.Error(err))
 	}
 
 	col := &Collector{
-		factories:      factories,
-		configProvider: cfgProvider,
-		logger:         logger,
-		version:        version,
+		factories: factories,
+		cfgProSet: cfgSet,
+		logger:    logger,
+		version:   version,
 	}
 	return col
 }
@@ -97,7 +87,7 @@ func (c *Collector) Start(ctx context.Context) error {
 			Description: "SolarWinds Observability (SWO) distribution of Lambda Collector",
 			Version:     c.version,
 		},
-		ConfigProvider: c.configProvider,
+		ConfigProviderSettings: c.cfgProSet,
 		Factories: func() (otelcol.Factories, error) {
 			return c.factories, nil
 		},
