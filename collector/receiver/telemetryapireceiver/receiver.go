@@ -324,11 +324,15 @@ func newTelemetryAPIReceiver(
 	}
 	r := pcommon.NewResource()
 	r.Attributes().PutStr(semconv.AttributeFaaSInvokedProvider, semconv.AttributeFaaSInvokedProviderAWS)
-	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
+	if val, ok := os.LookupEnv("OTEL_SERVICE_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeServiceName, val)
-		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
+	} else if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
+		r.Attributes().PutStr(semconv.AttributeServiceName, val)
 	} else {
 		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
+	}
+	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
+		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
 	}
 
 	for env, resourceAttribute := range envResourceMap {
