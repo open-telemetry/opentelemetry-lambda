@@ -332,7 +332,7 @@ func TestCreateLogs(t *testing.T) {
 					attr, ok := logRecord.Attributes().Get("type")
 					require.True(t, ok)
 					require.Equal(t, tc.expectedType, attr.Str())
-					expectedTime, err := time.Parse(timeFormatLayout, tc.expectedTimestamp)
+					expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
 					require.NoError(t, err)
 					require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
 					requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
@@ -464,5 +464,28 @@ func TestSeverityTextToNumber(t *testing.T) {
 	for _, tc := range testCases {
 		require.Equal(t, tc.number, severityTextToNumber(tc.level))
 
+	}
+}
+
+func TestParseTimestamp(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		timestamp string
+		expected  time.Time
+	}{
+		{
+			timestamp: "2024-07-05T21:12:37Z",
+			expected:  time.Date(2024, time.July, 5, 21, 12, 37, 0, time.UTC),
+		},
+		{
+			timestamp: "2024-07-09T10:53:34.689Z",
+			expected:  time.Date(2024, time.July, 9, 10, 53, 34, 689*1000*1000, time.UTC),
+		},
+	}
+	for _, tc := range testCases {
+		parsed, err := parseTimestamp(tc.timestamp)
+		require.NoError(t, err)
+		require.Equal(t, tc.expected, parsed)
 	}
 }

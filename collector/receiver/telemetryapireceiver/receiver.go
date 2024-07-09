@@ -42,7 +42,6 @@ import (
 )
 
 const initialQueueSize = 5
-const timeFormatLayout = "2006-01-02T15:04:05.000Z"
 const scopeName = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 
 type telemetryAPIReceiver struct {
@@ -59,7 +58,7 @@ type telemetryAPIReceiver struct {
 	resource              pcommon.Resource
 }
 
-func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
+func (r *telemetryAPIReceiver) Start(ctx context.Context, _ component.Host) error {
 	address := listenOnAddress(r.port)
 	r.logger.Info("Listening for requests", zap.String("address", address))
 
@@ -81,7 +80,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 	return nil
 }
 
-func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
+func (r *telemetryAPIReceiver) Shutdown(_ context.Context) error {
 	return nil
 }
 
@@ -109,7 +108,7 @@ func newTraceID() pcommon.TraceID {
 // Logging or printing besides the error cases below is not recommended if you have subscribed to
 // receive extension logs. Otherwise, logging here will cause Telemetry API to send new logs for
 // the printed lines which may create an infinite loop.
-func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Request) {
+func (r *telemetryAPIReceiver) httpHandler(_ http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		r.logger.Error("error reading body", zap.Error(err))
@@ -205,7 +204,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
-		if t, err := time.Parse(timeFormatLayout, el.Time); err == nil {
+		if t, err := parseTimestamp(el.Time); err == nil {
 			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 		} else {
@@ -216,7 +215,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 			if record, ok := el.Record.(map[string]interface{}); ok {
 				// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 				if timestamp, ok := record["timestamp"].(string); ok {
-					if t, err := time.Parse(timeFormatLayout, timestamp); err == nil {
+					if t, err := parseTimestamp(timestamp); err == nil {
 						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 					} else {
 						r.logger.Error("error parsing time", zap.Error(err))
@@ -242,6 +241,10 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 		}
 	}
 	return log, nil
+}
+
+func parseTimestamp(timeText string) (time.Time, error) {
+	return time.Parse(time.RFC3339, timeText)
 }
 
 func severityTextToNumber(severityText string) plog.SeverityNumber {
@@ -300,12 +303,12 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	span.SetName("platform.initRuntimeDone")
 	span.SetKind(ptrace.SpanKindInternal)
 	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
-	startTime, err := time.Parse(timeFormatLayout, start)
+	startTime, err := parseTimestamp(start)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}
 	span.SetStartTimestamp(pcommon.NewTimestampFromTime(startTime))
-	endTime, err := time.Parse(timeFormatLayout, end)
+	endTime, err := parseTimestamp(end)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}
@@ -341,7 +344,7 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
-	subscribedTypes := []telemetryapi.EventType{}
+	var subscribedTypes []telemetryapi.EventType
 	for _, val := range cfg.Types {
 		switch val {
 		case "platform":
