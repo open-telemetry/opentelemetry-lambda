@@ -218,8 +218,8 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 					if t, err := parseTimestamp(timestamp); err == nil {
 						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 					} else {
-						r.logger.Error("error parsing time", zap.Error(err))
-						return plog.Logs{}, err
+						// Just print a debug message
+						r.logger.Debug("error parsing time", zap.Error(err))
 					}
 				}
 				if level, ok := record["level"].(string); ok {
