@@ -223,7 +223,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 					}
 				}
 				if level, ok := record["level"].(string); ok {
-					logRecord.SetSeverityNumber(severityTextToNumber(level))
+					logRecord.SetSeverityNumber(severityTextToNumber(strings.ToUpper(level)))
 					logRecord.SetSeverityText(logRecord.SeverityNumber().String())
 				}
 				if requestId, ok := record["requestId"].(string); ok {
@@ -275,6 +275,7 @@ func severityTextToNumber(severityText string) plog.SeverityNumber {
 		"FATAL4":   plog.SeverityNumberFatal4,
 		"CRITICAL": plog.SeverityNumberFatal,
 		"ALL":      plog.SeverityNumberTrace,
+		"WARNING":  plog.SeverityNumberWarn,
 	}
 	if ans, ok := mapping[strings.ToUpper(severityText)]; ok {
 		return ans

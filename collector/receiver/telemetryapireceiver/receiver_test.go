@@ -457,6 +457,10 @@ func TestSeverityTextToNumber(t *testing.T) {
 			number: plog.SeverityNumberTrace,
 		},
 		{
+			level:  "WARNING",
+			number: plog.SeverityNumberWarn,
+		},
+		{
 			level:  "UNKNOWN",
 			number: plog.SeverityNumberUnspecified,
 		},
