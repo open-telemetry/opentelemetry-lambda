@@ -5,6 +5,7 @@ go 1.21.0
 toolchain go1.22.2
 
 require (
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.107.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.107.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.107.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.107.0
@@ -15,6 +16,8 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.98.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.98.0
+	go.opentelemetry.io/collector/component v0.107.0
+	go.opentelemetry.io/collector/connector v0.107.0
 	go.opentelemetry.io/collector/exporter v0.107.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.107.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.107.0
@@ -62,14 +65,17 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
 	github.com/knadh/koanf/providers/confmap v0.1.0 // indirect
 	github.com/knadh/koanf/v2 v2.1.1 // indirect
+	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -109,7 +115,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/collector v0.107.0 // indirect
 	go.opentelemetry.io/collector/client v1.13.0 // indirect
-	go.opentelemetry.io/collector/component v0.107.0 // indirect
 	go.opentelemetry.io/collector/component/componentprofiles v0.107.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v0.107.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.13.0 // indirect
@@ -122,7 +127,6 @@ require (
 	go.opentelemetry.io/collector/config/configtls v1.13.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.107.0 // indirect
 	go.opentelemetry.io/collector/confmap v0.107.0 // indirect
-	go.opentelemetry.io/collector/connector v0.107.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.107.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumerprofiles v0.107.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.107.0 // indirect

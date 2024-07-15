@@ -25,6 +25,8 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 
 * **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
     > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
+  
+    > Self-built binaries of the collector have **experimental** support for a custom set of connectors/exporters/receivers/processors. For more information, see [(Experimental) Customized collector build](#experimental-customized-collector-build)
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository provides pre-built Lambda layers, their ARNs are available in the [Releases](https://github.com/open-telemetry/opentelemetry-lambda/releases). You can also build the layers manually and publish them in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
 
@@ -98,6 +100,45 @@ The following are runtimes which are no longer or not yet supported by this repo
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
 [3]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#outgoing-invocations
 [4]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-metrics.md
+
+## (Experimental) Customized collector build
+The collector can be built with a customized set of connectors/exporters/receivers/processors. This feature is **experimental** and is only supported for self-built binaries of the collector.
+
+### Build Tags
+The build-tag `lambdacomponents.custom` must always be provided to opt-in for a custom build.
+Once this build-tag is present, you need provide additional build-tags to include your desired components in the resulting binary:
+
+- `lambdacomponents.all` includes all available components
+- `lambdacomponents.connector.all` includes all available connectors
+- `lambdacomponents.exporter.all` includes all available exporters
+- `lambdacomponents.extension.all` includes all available extensions
+- `lambdacomponents.processor.all` includes all available processors
+- `lambdacomponents.receiver.all` includes all available receivers
+
+Each available component can also be included explicitly by using its specific build-tag. For a full-list of available components, have a look into the [lambdacomponents](./collector/lambdacomponents) package.
+
+As an example, the full build command including the following components:
+- All receivers
+- All processors
+- No extensions
+- Only the otlphttp exporter
+- Only the spanmetrics connector
+
+would be the following:
+```shell
+go build -tags "lambdacomponents.custom,lambdacomponents.receiver.all,lambdacomponents.processor.all,lambdacomponents.exporter.otlphttp,lambdacomponents.connector.spanmetrics"
+```
+
+### Adding additional options
+To add more options for a customized build, you can add your desired component to the [lambdacomponents](./collector/lambdacomponents) package.
+Make sure to always restrict your addition using the appropriate build-tags.
+
+For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./collector/lambdacomponents/extension) directory have to following build restriction:
+```
+//go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
+```
+
+You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](#contributing) to this project.
 
 ## Contributing
 
