@@ -78,7 +78,7 @@ The table below captures the state of various features and their levels of suppo
 | - Trace Incoming^<sup>[2]</sup>          |  -   |        |  -   |  +   | N/A  |   -  |
 | - Trace Outgoing^<sup>[3]</sup>          |  +   |        |  -   |  +   | N/A  |   +  |
 | - Metrics^<sup>[4]</sup>                 |  -   |        |  -   |  -   | N/A  |   -  |
-| Auto instrumentation       |      |   +    |  +   |  -   | N/A  |   +  |
+| Auto instrumentation       |  +   |   +    |  +   |  -   | N/A  |   +  |
 | Flush TracerProvider       |  +   |   +    |      |  +   |  +   |   +  |
 | Flush MeterProvider        |  +   |   +    |      |      |      |   -  |
 
