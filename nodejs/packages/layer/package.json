@@ -33,7 +33,7 @@
     "@opentelemetry/instrumentation": "^0.52.1",
     "@opentelemetry/instrumentation-aws-lambda": "^0.43.0",
     "@opentelemetry/instrumentation-aws-sdk": "^0.41.0",
-    "@opentelemetry/instrumentation-dns": "^0.36.1",
+    "@opentelemetry/instrumentation-dns": "^0.38.0",
     "@opentelemetry/instrumentation-express": "^0.39.0",
     "@opentelemetry/instrumentation-graphql": "^0.40.0",
     "@opentelemetry/instrumentation-grpc": "^0.51.0",
