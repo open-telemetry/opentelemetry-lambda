@@ -48,7 +48,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{platform, function, extension},
+				Types:       []string{platform},
 			},
 		},
 		{
@@ -56,7 +56,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{platform},
+				Types:       []string{function},
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{function},
+				Types:       []string{extension},
 			},
 		},
 		{
@@ -72,7 +72,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{extension},
+				Types:       []string{platform, function},
 			},
 		},
 		{
@@ -80,7 +80,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{platform, function},
+				Types:       []string{platform, extension},
 			},
 		},
 		{
@@ -88,7 +88,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{platform, extension},
+				Types:       []string{function, extension},
 			},
 		},
 		{
@@ -96,7 +96,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{function, extension},
+				Types:       []string{},
 			},
 		},
 		{
@@ -104,19 +104,11 @@ func TestLoadConfig(t *testing.T) {
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
-				Types:       []string{},
-			},
-		},
-		{
-			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "10"),
-			expected: &Config{
-				extensionID: "extensionID",
-				Port:        12345,
 				Types:       []string{function, extension},
 			},
 		},
 		{
-			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "11"),
+			id: component.NewIDWithName(component.MustNewType("telemetryapi"), "10"),
 			expected: &Config{
 				extensionID: "extensionID",
 				Port:        12345,
