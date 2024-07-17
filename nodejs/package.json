@@ -32,17 +32,17 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
-    "aws-sdk": "2.1632.0",
+    "aws-sdk": "2.1659.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "eslint": "8.57.0",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.29.1",
-    "gts": "5.3.0",
+    "gts": "5.3.1",
     "lerna": "^6.5.1",
     "lerna-changelog": "2.2.0",
-    "rimraf": "5.0.7",
-    "typescript": "5.4.5"
+    "rimraf": "6.0.1",
+    "typescript": "5.5.3"
   },
   "changelog": {
     "labels": {
