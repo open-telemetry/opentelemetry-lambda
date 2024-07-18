@@ -126,7 +126,7 @@ func (c *Collector) Start(ctx context.Context) error {
 		case otelcol.StateRunning:
 			return nil
 		default:
-			err = fmt.Errorf("unable to start, otelcol state is %d", state)
+			err = fmt.Errorf("unable to start, otelcol state is %s", state.String())
 		}
 	}
 }
