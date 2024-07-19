@@ -80,7 +80,7 @@ jobs:
       layer-name: opentelemetry-javaagent
       component-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
-      runtimes: java8 java8.al2 java11 java17
+      runtimes: java8.al2 java11 java17
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
@@ -112,7 +112,7 @@ jobs:
       layer-name: opentelemetry-javawrapper
       component-version: "--"
       # architecture:
-      runtimes: java8 java8.al2 java11 java17
+      runtimes: java8.al2 java11 java17
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
