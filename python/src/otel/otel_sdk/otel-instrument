@@ -103,7 +103,7 @@ fi
 # - Set the propagators
 
 if [[ -z "$OTEL_PROPAGATORS" ]]; then
-  export OTEL_PROPAGATORS="tracecontext,baggage,xray"
+  export OTEL_PROPAGATORS="tracecontext,baggage,xray,xray_lambda"
 fi
 
 # - Set the Resource Detectors (Resource Attributes)
