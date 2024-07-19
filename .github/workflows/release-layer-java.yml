@@ -108,7 +108,7 @@ jobs:
           - us-west-1
           - us-west-2
     with:
-      artifact-name: opentelemetry-javawrapper-layer.zip
+      artifact-name: opentelemetry-java-wrapper.zip
       layer-name: opentelemetry-javawrapper
       component-version: "--"
       # architecture:
