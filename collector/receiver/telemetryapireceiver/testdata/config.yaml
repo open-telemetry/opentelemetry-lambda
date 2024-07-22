@@ -1,0 +1,32 @@
+telemetryapi:
+telemetryapi/1:
+  port: 12345
+telemetryapi/2:
+  port: 12345
+  types: ["platform"]
+telemetryapi/3:
+  port: 12345
+  types: ["function"]
+telemetryapi/4:
+  port: 12345
+  types: ["extension"]
+telemetryapi/5:
+  port: 12345
+  types: ["platform", "function"]
+telemetryapi/6:
+  port: 12345
+  types: ["platform", "extension"]
+telemetryapi/7:
+  port: 12345
+  types: ["function", "extension"]
+telemetryapi/8:
+  port: 12345
+  types: []
+telemetryapi/9:
+  port: 12345
+  types:
+    - function
+    - extension
+telemetryapi/10:
+  port: 12345
+  types: [function, extension]
