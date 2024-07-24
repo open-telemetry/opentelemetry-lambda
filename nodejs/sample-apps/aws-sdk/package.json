@@ -36,15 +36,15 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/aws-lambda": "8.10.138",
-    "@types/node": "20.14.0",
+    "@types/aws-lambda": "8.10.141",
+    "@types/node": "20.14.10",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
-    "rimraf": "5.0.7",
+    "rimraf": "6.0.1",
     "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "typescript": "5.5.3"
   },
   "dependencies": {
-    "aws-sdk": "2.1632.0"
+    "aws-sdk": "2.1659.0"
   }
 }

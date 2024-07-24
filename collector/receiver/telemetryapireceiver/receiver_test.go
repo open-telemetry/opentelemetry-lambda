@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver/internal/telemetryapi"
+	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"

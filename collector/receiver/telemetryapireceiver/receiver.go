@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/golang-collections/go-datastructures/queue"
-	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver/internal/telemetryapi"
+	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -73,9 +73,11 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, _ component.Host) erro
 	if len(r.types) > 0 {
 		_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
 		if err != nil {
-			r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
+			r.logger.Error("Cannot register Telemetry API client", zap.Error(err))
 			return err
 		}
+	} else {
+		r.logger.Info("types list is empty. Nothing subscribed")
 	}
 	return nil
 }

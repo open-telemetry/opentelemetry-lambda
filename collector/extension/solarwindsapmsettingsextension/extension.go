@@ -3,6 +3,7 @@ package solarwindsapmsettingsextension
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/binary"
 	"encoding/json"
 	"github.com/solarwindscloud/apm-proto/go/collectorpb"
@@ -19,8 +20,8 @@ import (
 )
 
 const (
-	JSONOutputFile      = "/tmp/solarwinds-apm-settings.json"
-	GrpcContextDeadline = time.Duration(1) * time.Second
+	jsonOutputFile      = "/tmp/solarwinds-apm-settings.json"
+	grpcContextDeadline = 1 * time.Second
 )
 
 type solarwindsapmSettingsExtension struct {
@@ -44,7 +45,7 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 	if hostname, err := os.Hostname(); err != nil {
 		extension.logger.Error("Unable to call os.Hostname() " + err.Error())
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), GrpcContextDeadline)
+		ctx, cancel := context.WithTimeout(context.Background(), grpcContextDeadline)
 		defer cancel()
 
 		request := &collectorpb.SettingsRequest{
@@ -143,13 +144,13 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 				if content, err := json.Marshal(settings); err != nil {
 					extension.logger.Warn("Error to marshal setting JSON[] byte from settings " + err.Error())
 				} else {
-					if err := os.WriteFile(JSONOutputFile, content, 0644); err != nil {
-						extension.logger.Error("Unable to write " + JSONOutputFile + " " + err.Error())
+					if err := os.WriteFile(jsonOutputFile, content, 0644); err != nil {
+						extension.logger.Error("Unable to write " + jsonOutputFile + " " + err.Error())
 					} else {
 						if len(response.GetWarning()) > 0 {
-							extension.logger.Warn(JSONOutputFile + " is refreshed (soft disabled)")
+							extension.logger.Warn(jsonOutputFile + " is refreshed (soft disabled)")
 						} else {
-							extension.logger.Info(JSONOutputFile + " is refreshed")
+							extension.logger.Info(jsonOutputFile + " is refreshed")
 						}
 						extension.logger.Info(string(content))
 					}
@@ -169,16 +170,24 @@ func refresh(extension *solarwindsapmSettingsExtension) {
 	}
 }
 
-func (extension *solarwindsapmSettingsExtension) Start(ctx context.Context, _ component.Host) error {
+func (extension *solarwindsapmSettingsExtension) Start(_ context.Context, _ component.Host) error {
 	extension.logger.Info("Starting up solarwinds apm settings extension")
-	ctx = context.Background()
+	ctx := context.Background()
 	ctx, extension.cancel = context.WithCancel(ctx)
-	var err error
-	extension.conn, err = grpc.Dial(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	systemCertPool, err := x509.SystemCertPool()
 	if err != nil {
+		extension.logger.Error("Getting system cert pool failed: ", zap.Error(err))
 		return err
 	}
-	extension.logger.Info("grpc.Dail to " + extension.config.Endpoint)
+	extension.logger.Info("Got system cert pool")
+	subjects := systemCertPool.Subjects()
+	extension.logger.Info("Loaded system certificates", zap.Int("numberOfCertificates", len(subjects)))
+	extension.conn, err = grpc.NewClient(extension.config.Endpoint, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: systemCertPool})))
+	if err != nil {
+		extension.logger.Error("grpc.NewClient creation failed: ", zap.Error(err))
+		return err
+	}
+	extension.logger.Info("Created a grpc.NewClient", zap.String("endpoint", extension.config.Endpoint))
 	extension.client = collectorpb.NewTraceCollectorClient(extension.conn)
 
 	// initial refresh
