@@ -44,6 +44,18 @@ func (c *MockCollector) Stop() error {
 func TestRun(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
+		require.NoError(t, err)
+		_, err = io.ReadAll(r.Body)
+		require.NoError(t, err, "failed to read request body: %v", err)
+	}))
+	defer server.Close()
+	u, err := url.Parse(server.URL)
+	require.NoError(t, err)
+
 	// test with an error
 	lm := manager{
 		collector:       &MockCollector{err: fmt.Errorf("test start error")},
@@ -55,14 +67,16 @@ func TestRun(t *testing.T) {
 	lm = manager{
 		collector:       &MockCollector{},
 		logger:          logger,
-		extensionClient: extensionapi.NewClient(logger, ""),
+		listener:        telemetryapi.NewListener(logger),
+		extensionClient: extensionapi.NewClient(logger, u.Host),
 	}
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
 	lm = manager{
 		collector:       &MockCollector{},
 		logger:          logger,
-		extensionClient: extensionapi.NewClient(logger, ""),
+		listener:        telemetryapi.NewListener(logger),
+		extensionClient: extensionapi.NewClient(logger, u.Host),
 	}
 	lm.wg.Add(1)
 	go func() {
@@ -130,6 +144,7 @@ func TestProcessEvents(t *testing.T) {
 				listener:        telemetryapi.NewListener(logger),
 				extensionClient: extensionapi.NewClient(logger, u.Host),
 			}
+			lm.wg.Add(1)
 			if tc.err != nil {
 				err = lm.processEvents(ctx)
 				require.Error(t, err)
