@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/golang-collections/go-datastructures/queue"
-	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
+	telemetryapi "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver/internal/telemetryapi"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"

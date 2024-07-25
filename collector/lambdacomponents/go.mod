@@ -128,7 +128,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.104.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.104.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.104.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector v0.98.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
@@ -172,6 +171,11 @@ require (
 	go.opentelemetry.io/collector/config/configtls v1.12.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.105.0 // indirect
 	go.opentelemetry.io/collector/confmap v0.105.0 // indirect
+	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.105.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/envprovider v0.105.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.105.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/httpprovider v0.105.0 // indirect
+	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.105.0 // indirect
 	go.opentelemetry.io/collector/connector v0.105.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.105.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.105.0 // indirect
