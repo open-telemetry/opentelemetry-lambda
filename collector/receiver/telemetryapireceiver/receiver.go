@@ -211,13 +211,24 @@ func (r *telemetryAPIReceiver) createTraces(slice []telemetryapi.Event) (ptrace.
 }
 
 func (r *telemetryAPIReceiver) createMetrics(slice []telemetryapi.Event) (pmetric.Metrics, error) {
+	metrics := pmetric.NewMetrics()
+	resourceMetric := metrics.ResourceMetrics().AppendEmpty()
+	r.resource.CopyTo(resourceMetric.Resource())
+	scopeMetric := resourceMetric.ScopeMetrics().AppendEmpty()
+	scopeMetric.Scope().SetName(scopeName)
+	for _, el := range slice {
+		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
+		switch el.Type {
+
+		}
+	}
 
 	return pmetric.Metrics{}, errors.New("no metrics created")
 }
 
 func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs, error) {
-	log := plog.NewLogs()
-	resourceLog := log.ResourceLogs().AppendEmpty()
+	logs := plog.NewLogs()
+	resourceLog := logs.ResourceLogs().AppendEmpty()
 	r.resource.CopyTo(resourceLog.Resource())
 	scopeLog := resourceLog.ScopeLogs().AppendEmpty()
 	scopeLog.Scope().SetName(scopeName)
@@ -261,7 +272,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs
 			}
 		}
 	}
-	return log, nil
+	return logs, nil
 }
 
 func parseTimestamp(timeText string) (time.Time, error) {

@@ -24,6 +24,25 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformInitReport is used to report of function initialization.
+	PlatformInitReport EventType = Platform + ".initReport"
+	// PlatformStart is used when function invocation started.
+	PlatformStart EventType = Platform + ".start"
+	// PlatformRuntimeDone is used when the runtime finished processing an event with either success or failure.
+	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
+	// PlatformReport is used to report of function invocation.
+	PlatformReport EventType = Platform + ".report"
+	// PlatformRestoreStart is used when runtime restore started.
+	PlatformRestoreStart EventType = Platform + ".restoreStart"
+	// PlatformRestoreRuntimeDone is used when runtime restore completed.
+	PlatformRestoreRuntimeDone EventType = Platform + ".restoreRuntimeDone"
+	// PlatformRestoreReport is used to report of runtime restore.
+	PlatformRestoreReport EventType = Platform + ".restoreReport"
+	// PlatformTelemetrySubscription is used when the extension subscribed to the Telemetry API.
+	PlatformTelemetrySubscription EventType = Platform + ".telemetrySubscription"
+	// PlatformLogsDropped is used when lambda dropped log entries.
+	PlatformLogsDropped EventType = Platform + ".logsDropped"
+
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
 	// Extension is used is to receive log events emitted by the extension
