@@ -58,6 +58,10 @@ type telemetryAPIReceiver struct {
 	port                  int
 	types                 []telemetryapi.EventType
 	resource              pcommon.Resource
+	coldStartCounter      int64
+	errorsCounter         int64
+	invocationsCounter    int64
+	timeoutsCounter       int64
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, _ component.Host) error {
@@ -219,6 +223,39 @@ func (r *telemetryAPIReceiver) createMetrics(slice []telemetryapi.Event) (pmetri
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		switch el.Type {
+		case string(telemetryapi.PlatformInitReport):
+			r.coldStartCounter++
+			metrics := scopeMetric.Metrics().AppendEmpty()
+			metrics.SetName(semconv.AttributeFaaSColdstart)
+			dp := metrics.SetEmptySum().DataPoints().AppendEmpty()
+			dp.SetIntValue(r.coldStartCounter)
+			dp.Attributes().PutStr(semconv.AttributeFaaSTrigger, semconv.AttributeFaaSTriggerOther)
+			metrics.Metadata().PutStr("type", el.Type)
+		case string(telemetryapi.PlatformReport):
+			r.invocationsCounter++
+			metrics := scopeMetric.Metrics().AppendEmpty()
+			metrics.SetName("faas.invocations")
+			dp := metrics.SetEmptySum().DataPoints().AppendEmpty()
+			dp.SetIntValue(r.invocationsCounter)
+			dp.Attributes().PutStr(semconv.AttributeFaaSTrigger, semconv.AttributeFaaSTriggerOther)
+			metrics.Metadata().PutStr("type", el.Type)
+
+			// Function invocation started.
+			// case "platform.start":
+			// The runtime finished processing an event with either success or failure.
+			// case "platform.runtimeDone":
+			// A report of function invocation.
+			// case "platform.report":
+			// Runtime restore started (reserved for future use)
+			// case "platform.restoreStart":
+			// Runtime restore completed (reserved for future use)
+			// case "platform.restoreRuntimeDone":
+			// Report of runtime restore (reserved for future use)
+			// case "platform.restoreReport":
+			// The extension subscribed to the Telemetry API.
+			// case "platform.telemetrySubscription":
+			// Lambda dropped log entries.
+			// case "platform.logsDropped":
 
 		}
 	}
@@ -394,12 +431,16 @@ func newTelemetryAPIReceiver(
 	}
 
 	return &telemetryAPIReceiver{
-		logger:      set.Logger,
-		queue:       queue.New(initialQueueSize),
-		extensionID: cfg.extensionID,
-		port:        cfg.Port,
-		types:       subscribedTypes,
-		resource:    r,
+		logger:             set.Logger,
+		queue:              queue.New(initialQueueSize),
+		extensionID:        cfg.extensionID,
+		port:               cfg.Port,
+		types:              subscribedTypes,
+		resource:           r,
+		coldStartCounter:   0,
+		errorsCounter:      0,
+		invocationsCounter: 0,
+		timeoutsCounter:    0,
 	}
 }
 
