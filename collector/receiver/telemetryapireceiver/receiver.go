@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"io"
 	"math/rand"
 	"net/http"
@@ -49,6 +50,7 @@ type telemetryAPIReceiver struct {
 	logger                *zap.Logger
 	queue                 *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
 	nextTraces            consumer.Traces
+	nextMetrics           consumer.Metrics
 	nextLogs              consumer.Logs
 	lastPlatformStartTime string
 	lastPlatformEndTime   string
@@ -135,6 +137,18 @@ func (r *telemetryAPIReceiver) httpHandler(_ http.ResponseWriter, req *http.Requ
 		}
 	}
 
+	// metrics
+	if r.nextMetrics != nil {
+		if metrics, err := r.createMetrics(slice); err == nil {
+			if metrics.DataPointCount() > 0 {
+				err := r.nextMetrics.ConsumeMetrics(context.Background(), metrics)
+				if err != nil {
+					r.logger.Error("error receiving metrics", zap.Error(err))
+				}
+			}
+		}
+	}
+
 	// logs
 	if r.nextLogs != nil {
 		if logs, err := r.createLogs(slice); err == nil {
@@ -194,6 +208,11 @@ func (r *telemetryAPIReceiver) createTraces(slice []telemetryapi.Event) (ptrace.
 	}
 
 	return ptrace.Traces{}, errors.New("no traces created")
+}
+
+func (r *telemetryAPIReceiver) createMetrics(slice []telemetryapi.Event) (pmetric.Metrics, error) {
+
+	return pmetric.Metrics{}, errors.New("no metrics created")
 }
 
 func (r *telemetryAPIReceiver) createLogs(slice []telemetryapi.Event) (plog.Logs, error) {
@@ -288,6 +307,10 @@ func severityTextToNumber(severityText string) plog.SeverityNumber {
 
 func (r *telemetryAPIReceiver) registerTracesConsumer(next consumer.Traces) {
 	r.nextTraces = next
+}
+
+func (r *telemetryAPIReceiver) registerMetricsConsumer(next consumer.Metrics) {
+	r.nextMetrics = next
 }
 
 func (r *telemetryAPIReceiver) registerLogsConsumer(next consumer.Logs) {

@@ -73,6 +73,60 @@ func TestNewFactory(t *testing.T) {
 				require.ErrorIs(t, err, errConfigNotTelemetryAPI)
 			},
 		},
+		{
+			desc: "creates a new factory and CreateMetricsReceiver returns no error",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				cfg := factory.CreateDefaultConfig()
+				_, err := factory.CreateMetricsReceiver(
+					context.Background(),
+					receivertest.NewNopCreateSettings(),
+					cfg,
+					consumertest.NewNop(),
+				)
+				require.NoError(t, err)
+			},
+		},
+		{
+			desc: "creates a new factory and CreateMetricsReceiver returns error with incorrect config",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				_, err := factory.CreateMetricsReceiver(
+					context.Background(),
+					receivertest.NewNopCreateSettings(),
+					nil,
+					consumertest.NewNop(),
+				)
+				require.ErrorIs(t, err, errConfigNotTelemetryAPI)
+			},
+		},
+		{
+			desc: "creates a new factory and CreateLogsReceiver returns no error",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				cfg := factory.CreateDefaultConfig()
+				_, err := factory.CreateLogsReceiver(
+					context.Background(),
+					receivertest.NewNopCreateSettings(),
+					cfg,
+					consumertest.NewNop(),
+				)
+				require.NoError(t, err)
+			},
+		},
+		{
+			desc: "creates a new factory and CreateLogsReceiver returns error with incorrect config",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				_, err := factory.CreateLogsReceiver(
+					context.Background(),
+					receivertest.NewNopCreateSettings(),
+					nil,
+					consumertest.NewNop(),
+				)
+				require.ErrorIs(t, err, errConfigNotTelemetryAPI)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
