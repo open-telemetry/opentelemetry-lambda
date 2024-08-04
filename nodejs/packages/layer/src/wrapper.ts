@@ -23,6 +23,7 @@ import { getEnv } from '@opentelemetry/core';
 import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { MeterProvider, MeterProviderOptions } from '@opentelemetry/sdk-metrics';
+import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
@@ -120,6 +121,10 @@ async function initializeProvider() {
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {
     sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
+  }
+  // auto-configure propagator if not provided
+  if (!sdkRegistrationConfig.propagator) {
+    sdkRegistrationConfig.propagator = getPropagator();
   }
   tracerProvider.register(sdkRegistrationConfig);
 
