@@ -22,7 +22,8 @@ import {
 import { getEnv } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { MeterProvider, MeterProviderOptions, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
 import {
   LoggerProvider,
   SimpleLogRecordProcessor,
@@ -149,12 +150,15 @@ async function initializeProvider() {
     configureMeterProvider(meterProvider)
   }
 
+  const logExporter = new OTLPLogExporter();
   let loggerConfig: LoggerProviderConfig = {
     resource,
   }
   const loggerProvider = new LoggerProvider(loggerConfig);
   if (typeof configureLoggerProvider === 'function') {
     configureLoggerProvider(loggerProvider)
+  } else {
+    loggerProvider.addLogRecordProcessor(new SimpleLogRecordProcessor(logExporter));
   }
 
   // logging for debug
