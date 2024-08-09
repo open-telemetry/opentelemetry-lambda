@@ -30,6 +30,7 @@ import {
   ConsoleLogRecordExporter,
   LoggerProviderConfig,
 } from '@opentelemetry/sdk-logs';
+import { logs } from '@opentelemetry/api-logs';
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
@@ -159,6 +160,7 @@ async function initializeProvider() {
     configureLoggerProvider(loggerProvider)
   } else {
     loggerProvider.addLogRecordProcessor(new SimpleLogRecordProcessor(logExporter));
+    logs.setGlobalLoggerProvider(loggerProvider);
   }
 
   // logging for debug

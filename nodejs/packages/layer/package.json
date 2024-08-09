@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.52.1",
     "@opentelemetry/exporter-logs-otlp-proto": "^0.52.1",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.52.1",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.52.1",
