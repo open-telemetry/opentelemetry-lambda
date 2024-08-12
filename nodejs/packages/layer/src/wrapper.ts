@@ -24,6 +24,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { MeterProvider, MeterProviderOptions, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
+import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import {
   LoggerProvider,
   SimpleLogRecordProcessor,
@@ -129,6 +130,10 @@ async function initializeProvider() {
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {
     sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
+  }
+  // auto-configure propagator if not provided
+  if (!sdkRegistrationConfig.propagator) {
+    sdkRegistrationConfig.propagator = getPropagator();
   }
   tracerProvider.register(sdkRegistrationConfig);
 
