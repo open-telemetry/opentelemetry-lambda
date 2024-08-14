@@ -42,7 +42,7 @@ func NewFactory(extensionID string) receiver.Factory {
 		receiver.WithTraces(createTracesReceiver, stability))
 }
 
-func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
+func createTracesReceiver(ctx context.Context, params receiver.Settings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
 	cfg, ok := rConf.(*Config)
 	if !ok {
 		return nil, errConfigNotTelemetryAPI

@@ -191,7 +191,7 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 func newTelemetryAPIReceiver(
 	cfg *Config,
 	next consumer.Traces,
-	set receiver.CreateSettings,
+	set receiver.Settings,
 ) (*telemetryAPIReceiver, error) {
 	envResourceMap := map[string]string{
 		"AWS_LAMBDA_FUNCTION_MEMORY_SIZE": semconv.AttributeFaaSMaxMemory,

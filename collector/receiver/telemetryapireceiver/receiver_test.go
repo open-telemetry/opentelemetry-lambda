@@ -102,7 +102,7 @@ func TestHandler(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
 				&consumer,
-				receivertest.NewNopCreateSettings(),
+				receivertest.NewNopSettings(),
 			)
 			require.NoError(t, err)
 			req := httptest.NewRequest("POST",
@@ -149,7 +149,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
 				nil,
-				receivertest.NewNopCreateSettings(),
+				receivertest.NewNopSettings(),
 			)
 			require.NoError(t, err)
 			td, err := r.createPlatformInitSpan(tc.start, tc.end)

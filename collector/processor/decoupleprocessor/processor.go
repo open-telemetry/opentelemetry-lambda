@@ -17,12 +17,13 @@ package decoupleprocessor // import "github.com/open-telemetry/opentelemetry-lam
 import (
 	"context"
 	"errors"
+	"sync"
+
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	"sync"
 
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -120,7 +121,7 @@ func (p *decoupleProcessor) EnvironmentShutdown() {
 func newDecoupleProcessor(
 	cfg *Config,
 	consumer decoupleConsumer,
-	set processor.CreateSettings,
+	set processor.Settings,
 ) (*decoupleProcessor, error) {
 	dp := &decoupleProcessor{
 		consumer: consumer,
@@ -149,7 +150,7 @@ func (tc *decoupleTraceConsumer) consume(ctx context.Context, data any) error {
 
 func newDecoupleTracesProcessor(cfg *Config,
 	next consumer.Traces,
-	set processor.CreateSettings,
+	set processor.Settings,
 ) (*decoupleProcessor, error) {
 	return newDecoupleProcessor(cfg, &decoupleTraceConsumer{nextConsumer: next}, set)
 }
@@ -168,7 +169,7 @@ func (tc *decoupleMetricsConsumer) consume(ctx context.Context, data any) error 
 
 func newDecoupleMetricsProcessor(cfg *Config,
 	next consumer.Metrics,
-	set processor.CreateSettings,
+	set processor.Settings,
 ) (*decoupleProcessor, error) {
 	return newDecoupleProcessor(cfg, &decoupleMetricsConsumer{nextConsumer: next}, set)
 }
@@ -187,7 +188,7 @@ func (tc *decoupleLogsConsumer) consume(ctx context.Context, data any) error {
 
 func newDecoupleLogsProcessor(cfg *Config,
 	next consumer.Logs,
-	set processor.CreateSettings,
+	set processor.Settings,
 ) (*decoupleProcessor, error) {
 	return newDecoupleProcessor(cfg, &decoupleLogsConsumer{nextConsumer: next}, set)
 }
