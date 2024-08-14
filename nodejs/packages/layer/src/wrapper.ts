@@ -13,17 +13,25 @@ import {
   processDetector,
 } from '@opentelemetry/resources';
 import { AwsInstrumentation, AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
-import { AwsLambdaInstrumentation } from '@opentelemetry/instrumentation-aws-lambda';
+import { AwsLambdaInstrumentation, AwsLambdaInstrumentationConfig} from '@opentelemetry/instrumentation-aws-lambda';
 import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
 } from "@opentelemetry/api";
 import { getEnv } from '@opentelemetry/core';
-import { AwsLambdaInstrumentationConfig } from '@opentelemetry/instrumentation-aws-lambda';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
-import { MeterProvider, MeterProviderOptions } from '@opentelemetry/sdk-metrics';
+import { MeterProvider, MeterProviderOptions, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
 import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
+import {
+  LoggerProvider,
+  SimpleLogRecordProcessor,
+  ConsoleLogRecordExporter,
+  LoggerProviderConfig,
+} from '@opentelemetry/sdk-logs';
+import { logs } from '@opentelemetry/api-logs';
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
@@ -69,6 +77,7 @@ declare global {
   function configureMeterProvider(meterProvider: MeterProvider): void
   function configureLambdaInstrumentation(config: AwsLambdaInstrumentationConfig): AwsLambdaInstrumentationConfig
   function configureInstrumentations(): Instrumentation[]
+  function configureLoggerProvider(loggerProvider: LoggerProvider): void
 }
 
 console.log('Registering OpenTelemetry');
@@ -129,8 +138,14 @@ async function initializeProvider() {
   tracerProvider.register(sdkRegistrationConfig);
 
   // Configure default meter provider (doesn't export metrics)
+  const metricExporter = new OTLPMetricExporter();
   let meterConfig: MeterProviderOptions = {
     resource,
+    readers: [
+      new PeriodicExportingMetricReader({
+        exporter: metricExporter,
+      })
+    ],
   }
   if (typeof configureMeter === 'function') {
     meterConfig = configureMeter(meterConfig);
@@ -141,11 +156,31 @@ async function initializeProvider() {
     configureMeterProvider(meterProvider)
   }
 
+  const logExporter = new OTLPLogExporter();
+  let loggerConfig: LoggerProviderConfig = {
+    resource,
+  }
+  const loggerProvider = new LoggerProvider(loggerConfig);
+  if (typeof configureLoggerProvider === 'function') {
+    configureLoggerProvider(loggerProvider)
+  } else {
+    loggerProvider.addLogRecordProcessor(new SimpleLogRecordProcessor(logExporter));
+    logs.setGlobalLoggerProvider(loggerProvider);
+  }
+
+  // logging for debug
+  if (logLevel === DiagLogLevel.DEBUG) {
+    loggerProvider.addLogRecordProcessor(
+      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
+    );
+  }
+
   // Re-register instrumentation with initialized provider. Patched code will see the update.
   registerInstrumentations({
     instrumentations,
     tracerProvider,
-    meterProvider
+    meterProvider,
+    loggerProvider,
   });
 }
 initializeProvider();
