@@ -24,9 +24,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          validate-wrappers: true
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Execute Gradle build
         run: |
