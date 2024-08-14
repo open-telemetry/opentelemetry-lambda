@@ -30,9 +30,9 @@
   "author": "OpenTelemetry Authors",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.7.0",
-    "@typescript-eslint/parser": "^7.7.0",
-    "aws-sdk": "2.1659.0",
+    "@typescript-eslint/eslint-plugin": "^8.1.0",
+    "@typescript-eslint/parser": "^8.1.0",
+    "aws-sdk": "2.1675.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "eslint": "8.57.0",
@@ -42,7 +42,7 @@
     "lerna": "^6.5.1",
     "lerna-changelog": "2.2.0",
     "rimraf": "6.0.1",
-    "typescript": "5.5.3"
+    "typescript": "5.5.4"
   },
   "changelog": {
     "labels": {
