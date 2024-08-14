@@ -103,7 +103,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 func newColdstartProcessor(
 	cfg *Config,
 	next consumer.Traces,
-	set processor.CreateSettings,
+	set processor.Settings,
 ) (*coldstartProcessor, error) {
 	return &coldstartProcessor{
 		nextConsumer: next,
