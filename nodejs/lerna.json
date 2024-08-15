@@ -1,10 +1,4 @@
 {
-  "lerna": "3.13.4",
-  "npmClient": "npm",
-  "packages": [
-    "packages/*",
-    "sample-apps/*"
-  ],
   "version": "0.0.0",
   "changelog": {
     "repo": "open-telemetry/opentelemetry-lambda",

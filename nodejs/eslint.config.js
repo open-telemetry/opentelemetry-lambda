@@ -26,7 +26,7 @@ module.exports = {
     "@typescript-eslint/no-inferrable-types": ["error", { ignoreProperties: true }],
     "arrow-parens": ["error", "as-needed"],
     "prettier/prettier": ["error", { "singleQuote": true, "arrowParens": "avoid" }],
-    "node/no-deprecated-api": ["warn"]
+    "@typescript-eslint/no-require-imports": "off",
   },
   overrides: [
     {
