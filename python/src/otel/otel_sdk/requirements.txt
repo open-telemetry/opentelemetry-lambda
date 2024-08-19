@@ -1,4 +1,4 @@
-opentelemetry-sdk==1.25.0
-opentelemetry-exporter-otlp-proto-http==1.25.0
-opentelemetry-distro==0.46b0
-opentelemetry-instrumentation-aws-lambda==0.46b0
+opentelemetry-sdk==1.26.0
+opentelemetry-exporter-otlp-proto-http==1.26.0
+opentelemetry-distro==0.47b0
+opentelemetry-instrumentation-aws-lambda==0.47b0
