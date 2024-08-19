@@ -8,7 +8,8 @@ import AWS from 'aws-sdk';
 
 const s3 = new AWS.S3();
 
-exports.handler = async (event: APIGatewayProxyEvent, context: Context) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+exports.handler = async (_event: APIGatewayProxyEvent, _context: Context) => {
   console.info('Serving lambda request.');
 
   const result = await s3.listBuckets().promise();
