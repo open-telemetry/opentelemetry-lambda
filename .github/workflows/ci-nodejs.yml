@@ -30,3 +30,7 @@ jobs:
             ${{ runner.os }}-node-
       - run: npm install
         working-directory: nodejs
+      - run: npm run lint
+        working-directory: nodejs
+      - run: npm test
+        working-directory: nodejs
