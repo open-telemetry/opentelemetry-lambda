@@ -1,4 +1,4 @@
-# TODO: move this dependency to requirements.txt when this dependency gets updated to 0.48b0
-# This has to be done because 0.47b0 is pinning a specific version of opentelemetry-propagator-aws-xray
-# causing dependency resolution conflicts.
+# TODO: move these dependencies to requirements.txt when they stopped relying on a pinned version of
+# opentelemetry-propagator-aws-xray
 opentelemetry-instrumentation-aws-lambda==0.47b0
+opentelemetry-instrumentation-botocore==0.47b0

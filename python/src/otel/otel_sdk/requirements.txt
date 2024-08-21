@@ -12,7 +12,6 @@ opentelemetry-instrumentation-asgi==0.47b0
 opentelemetry-instrumentation-asyncpg==0.47b0
 opentelemetry-instrumentation-boto==0.47b0
 opentelemetry-instrumentation-boto3sqs==0.47b0
-opentelemetry-instrumentation-botocore==0.47b0
 opentelemetry-instrumentation-celery==0.47b0
 opentelemetry-instrumentation-dbapi==0.47b0
 opentelemetry-instrumentation-django==0.47b0
