@@ -42,7 +42,6 @@ import (
 )
 
 const initialQueueSize = 5
-const timeFormatLayout = "2006-01-02T15:04:05.000Z"
 const scopeName = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 
 type telemetryAPIReceiver struct {
@@ -194,7 +193,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
-		if t, err := time.Parse(timeFormatLayout, el.Time); err == nil {
+		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
 			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 		} else {
@@ -205,7 +204,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 			if record, ok := el.Record.(map[string]interface{}); ok {
 				// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 				if timestamp, ok := record["timestamp"].(string); ok {
-					if t, err := time.Parse(timeFormatLayout, timestamp); err == nil {
+					if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
 						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 					} else {
 						r.logger.Error("error parsing time", zap.Error(err))
@@ -290,12 +289,12 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(start, end string) (ptrace
 	span.SetName("platform.initRuntimeDone")
 	span.SetKind(ptrace.SpanKindInternal)
 	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
-	startTime, err := time.Parse(timeFormatLayout, start)
+	startTime, err := time.Parse(time.RFC3339, start)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}
 	span.SetStartTimestamp(pcommon.NewTimestampFromTime(startTime))
-	endTime, err := time.Parse(timeFormatLayout, end)
+	endTime, err := time.Parse(time.RFC3339, end)
 	if err != nil {
 		return ptrace.Traces{}, err
 	}

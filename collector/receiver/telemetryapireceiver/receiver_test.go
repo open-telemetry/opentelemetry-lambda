@@ -334,7 +334,7 @@ func TestCreateLogs(t *testing.T) {
 					attr, ok := logRecord.Attributes().Get("type")
 					require.True(t, ok)
 					require.Equal(t, tc.expectedType, attr.Str())
-					expectedTime, err := time.Parse(timeFormatLayout, tc.expectedTimestamp)
+					expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
 					require.NoError(t, err)
 					require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
 					requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
