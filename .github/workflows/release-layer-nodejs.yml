@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: |
           npm install
-          npm run compile
+          npm run build
         working-directory: nodejs
 
       - name: Save Node SDK Version
