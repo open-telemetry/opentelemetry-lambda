@@ -27,12 +27,12 @@ receivers:
     telemetryapi/1:
       port: 4326
     telemetryapi/2:
-      port: 4326
+      port: 4327
       types:
         - platform
         - function
     telemetryapi/3:
-      port: 4326
+      port: 4328
       types: ["platform", "function"]
 ```
 
