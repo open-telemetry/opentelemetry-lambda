@@ -10,7 +10,7 @@
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
-    "postcompile": "copyfiles 'package*.json' build/workspace/nodejs && npm install --production --ignore-scripts --prefix build/workspace/nodejs && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*' build/workspace && cd build/workspace && bestzip ../layer.zip *",
+    "postcompile": "copyfiles 'package*.json' build/workspace/nodejs && npm install --production --ignore-scripts --prefix build/workspace/nodejs && rm build/workspace/nodejs/package.json build/workspace/nodejs/package-lock.json && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*' build/workspace && cd build/workspace && bestzip ../layer.zip *",
     "test": "mocha"
   },
   "keywords": [
