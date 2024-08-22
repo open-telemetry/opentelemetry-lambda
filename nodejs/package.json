@@ -10,8 +10,7 @@
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "scripts": {
-    "precompile": "tsc --version",
-    "compile": "lerna run compile",
+    "build": "lerna run build",
     "test": "lerna run test",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix"

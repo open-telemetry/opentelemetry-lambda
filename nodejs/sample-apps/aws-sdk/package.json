@@ -10,8 +10,7 @@
     "clean": "rimraf build/*",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts",
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
-    "precompile": "tsc --version",
-    "prepare": "npm run compile",
+    "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
     "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
   },
