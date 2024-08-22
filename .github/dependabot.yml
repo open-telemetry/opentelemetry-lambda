@@ -78,7 +78,7 @@ updates:
 
   - package-ecosystem: "bundler"
     directories:
-      - "/ruby/src/layer"
+      - "/ruby/src/otel/layer"
       - "/ruby/sample-apps/function"
     schedule:
       interval: "weekly"
