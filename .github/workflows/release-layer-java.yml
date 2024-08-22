@@ -42,7 +42,7 @@ jobs:
         name: Save javawrapper layer to build
         with:
           name: opentelemetry-javawrapper-layer.zip
-          path: java/layer-wrapper/build/distributions/opentelemetry-java-wrapper.zip
+          path: java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
 
       - name: Save Javaagent Version
         id: save-javaagent-version
