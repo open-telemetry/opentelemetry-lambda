@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       artifact-name:
-        description: 'This should correspond to a actions/upload-artifact name earlier in the build.'
+        description: 'This should correspond to a actions/upload-artifact name earlier in the build. The file name and the name of the artifact containing it must be equal.'
         required: true
         type: string
       layer-name:
