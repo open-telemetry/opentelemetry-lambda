@@ -346,7 +346,7 @@ func newTelemetryAPIReceiver(
 		port:        cfg.Port,
 		types:       subscribedTypes,
 		resource:    r,
-	}
+	}, nil
 }
 
 func listenOnAddress(port int) string {

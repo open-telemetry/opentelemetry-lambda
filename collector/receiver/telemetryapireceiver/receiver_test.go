@@ -109,10 +109,11 @@ func TestHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			consumer := mockConsumer{}
-			r := newTelemetryAPIReceiver(
+			r, err := newTelemetryAPIReceiver(
 				&Config{},
 				receivertest.NewNopSettings(),
 			)
+			require.NoError(t, err)
 			r.registerTracesConsumer(&consumer)
 			req := httptest.NewRequest("POST",
 				"http://localhost:53612/someevent", strings.NewReader(tc.body))
@@ -155,10 +156,11 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			r := newTelemetryAPIReceiver(
+			r, err := newTelemetryAPIReceiver(
 				&Config{},
 				receivertest.NewNopSettings(),
 			)
+			require.NoError(t, err)
 			td, err := r.createPlatformInitSpan(tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
@@ -312,10 +314,11 @@ func TestCreateLogs(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			r := newTelemetryAPIReceiver(
+			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				receivertest.NewNopCreateSettings(),
+				receivertest.NewNopSettings(),
 			)
+			require.NoError(t, err)
 			log, err := r.createLogs(tc.slice)
 			if tc.expectError {
 				require.Error(t, err)
