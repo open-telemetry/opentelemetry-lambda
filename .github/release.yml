@@ -19,6 +19,10 @@ changelog:
       labels:
         - java
 
+    - title: Ruby
+      labels:
+        - ruby
+
     - title: Other Dependencies
       labels:
         - dependencies

@@ -25,6 +25,7 @@ jobs:
       - name: Build
         run: |
           npm install
+          npm run compile
         working-directory: nodejs
 
       - name: Save Node SDK Version
@@ -49,7 +50,7 @@ jobs:
     needs: build-layer
     strategy:
       matrix:
-        aws_region: 
+        aws_region:
           - ap-northeast-1
           - ap-northeast-2
           - ap-south-1

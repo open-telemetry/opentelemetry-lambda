@@ -1,0 +1,1 @@
+opentelemetry-instrumentation-aws-lambda==0.47b0
