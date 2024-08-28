@@ -354,117 +354,41 @@ func TestCreateLogs(t *testing.T) {
 func TestSeverityTextToNumber(t *testing.T) {
 	t.Parallel()
 
-	testCases := []struct {
-		level  string
-		number plog.SeverityNumber
-	}{
-		{
-			level:  "TRACE",
-			number: plog.SeverityNumberTrace,
-		},
-		{
-			level:  "TRACE2",
-			number: plog.SeverityNumberTrace2,
-		},
-		{
-			level:  "TRACE3",
-			number: plog.SeverityNumberTrace3,
-		},
-		{
-			level:  "TRACE4",
-			number: plog.SeverityNumberTrace4,
-		},
-		{
-			level:  "DEBUG2",
-			number: plog.SeverityNumberDebug2,
-		},
-		{
-			level:  "DEBUG3",
-			number: plog.SeverityNumberDebug3,
-		},
-		{
-			level:  "DEBUG4",
-			number: plog.SeverityNumberDebug4,
-		},
-		{
-			level:  "INFO",
-			number: plog.SeverityNumberInfo,
-		},
-		{
-			level:  "INFO2",
-			number: plog.SeverityNumberInfo2,
-		},
-		{
-			level:  "INFO3",
-			number: plog.SeverityNumberInfo3,
-		},
-		{
-			level:  "INFO4",
-			number: plog.SeverityNumberInfo4,
-		},
-		{
-			level:  "WARN",
-			number: plog.SeverityNumberWarn,
-		},
-		{
-			level:  "WARN2",
-			number: plog.SeverityNumberWarn2,
-		},
-		{
-			level:  "WARN3",
-			number: plog.SeverityNumberWarn3,
-		},
-		{
-			level:  "WARN4",
-			number: plog.SeverityNumberWarn4,
-		},
-		{
-			level:  "ERROR",
-			number: plog.SeverityNumberError,
-		},
-		{
-			level:  "ERROR2",
-			number: plog.SeverityNumberError2,
-		},
-		{
-			level:  "ERROR3",
-			number: plog.SeverityNumberError3,
-		},
-		{
-			level:  "ERROR4",
-			number: plog.SeverityNumberError4,
-		},
-		{
-			level:  "FATAL",
-			number: plog.SeverityNumberFatal,
-		},
-		{
-			level:  "FATAL2",
-			number: plog.SeverityNumberFatal2,
-		},
-		{
-			level:  "FATAL3",
-			number: plog.SeverityNumberFatal3,
-		},
-		{
-			level:  "FATAL4",
-			number: plog.SeverityNumberFatal4,
-		},
-		{
-			level:  "CRITICAL",
-			number: plog.SeverityNumberFatal,
-		},
-		{
-			level:  "ALL",
-			number: plog.SeverityNumberTrace,
-		},
-		{
-			level:  "UNKNOWN",
-			number: plog.SeverityNumberUnspecified,
-		},
+	goldenMapping := map[string]plog.SeverityNumber{
+		"TRACE":    plog.SeverityNumberTrace,
+		"TRACE2":   plog.SeverityNumberTrace2,
+		"TRACE3":   plog.SeverityNumberTrace3,
+		"TRACE4":   plog.SeverityNumberTrace4,
+		"DEBUG":    plog.SeverityNumberDebug,
+		"DEBUG2":   plog.SeverityNumberDebug2,
+		"DEBUG3":   plog.SeverityNumberDebug3,
+		"DEBUG4":   plog.SeverityNumberDebug4,
+		"INFO":     plog.SeverityNumberInfo,
+		"INFO2":    plog.SeverityNumberInfo2,
+		"INFO3":    plog.SeverityNumberInfo3,
+		"INFO4":    plog.SeverityNumberInfo4,
+		"WARN":     plog.SeverityNumberWarn,
+		"WARN2":    plog.SeverityNumberWarn2,
+		"WARN3":    plog.SeverityNumberWarn3,
+		"WARN4":    plog.SeverityNumberWarn4,
+		"ERROR":    plog.SeverityNumberError,
+		"ERROR2":   plog.SeverityNumberError2,
+		"ERROR3":   plog.SeverityNumberError3,
+		"ERROR4":   plog.SeverityNumberError4,
+		"FATAL":    plog.SeverityNumberFatal,
+		"FATAL2":   plog.SeverityNumberFatal2,
+		"FATAL3":   plog.SeverityNumberFatal3,
+		"FATAL4":   plog.SeverityNumberFatal4,
+		"CRITICAL": plog.SeverityNumberFatal,
+		"ALL":      plog.SeverityNumberTrace,
+		"WARNING":  plog.SeverityNumberWarn,
 	}
-	for _, tc := range testCases {
-		require.Equal(t, tc.number, severityTextToNumber(tc.level))
+	for level, number := range goldenMapping {
+		require.Equal(t, number, severityTextToNumber(level))
+	}
 
+	others := []string{"", "UNKNOWN", "other", "anything"}
+	for _, level := range others {
+		require.Equal(t, plog.SeverityNumberUnspecified, severityTextToNumber(level))
 	}
 }
