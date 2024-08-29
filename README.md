@@ -108,6 +108,7 @@ Here is a list of community roles with current and previous members:
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
   - [Nathan Slaughter](https://github.com/nslaughter), Lightstep
+  - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
 
 - Emeritus Approvers:
 
