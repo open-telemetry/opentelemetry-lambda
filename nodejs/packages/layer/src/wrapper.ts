@@ -26,7 +26,12 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
-import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
+import {
+  diag,
+  DiagConsoleLogger,
+  DiagLogLevel,
+  metrics,
+} from '@opentelemetry/api';
 import { getEnv } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
@@ -200,6 +205,8 @@ async function initializeProvider() {
   const meterProvider = new MeterProvider(meterConfig);
   if (typeof configureMeterProvider === 'function') {
     configureMeterProvider(meterProvider);
+  } else {
+    metrics.setGlobalMeterProvider(meterProvider);
   }
 
   const logExporter = new OTLPLogExporter();
