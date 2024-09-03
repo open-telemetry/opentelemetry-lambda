@@ -133,7 +133,7 @@ go build -tags "lambdacomponents.custom,lambdacomponents.receiver.all,lambdacomp
 To add more options for a customized build, you can add your desired component to the [lambdacomponents](./collector/lambdacomponents) package.
 Make sure to always restrict your addition using the appropriate build-tags.
 
-For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./collector/lambdacomponents/extension) directory have to following build restriction:
+For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./collector/lambdacomponents/extension) directory have the following build restriction:
 ```
 //go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
 ```
