@@ -24,6 +24,7 @@ module "hello-lambda-function" {
     OTEL_METRICS_EXPORTER       = "logging"
     OTEL_LOG_LEVEL              = "DEBUG"
     OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318/"
+    OTEL_TRACES_SAMPLER         = "always_on"
   }
 
   tracing_mode = var.tracing_mode
