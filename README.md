@@ -8,9 +8,9 @@
 
 ## OpenTelemetry Lambda Layers
 
-The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambdas. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/).
+The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambda functions. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/).
 
-Some layers include the corresponding OTel language SDK for the Lambda. This allows Lambdas to use OpenTelemetry to send traces and metrics to any configured backend.
+Some layers include the corresponding OTel language SDK for the Lambda. This allows Lambda functions to use OpenTelemetry to send traces and metrics to any configured backend.
 
 ## Extension Layer Language Support
 
@@ -42,7 +42,7 @@ The layer includes the OpenTelemetry Collector as a Lambda extension.
 
 ### Custom context propagation carrier extraction
 
-Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in lambda through configuration, this feature allows this through Lambda instrumentation configuration.
+Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in Lambda through configuration, this feature allows this through Lambda instrumentation configuration.
 
 ### X-Ray Env Var Span Link
 
