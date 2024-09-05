@@ -29,7 +29,7 @@ Once this build-tag is present, you need provide additional build-tags to includ
 
 Each available component can also be included explicitly by using its specific build-tag. For a full-list of available components, have a look into the [lambdacomponents](./collector/lambdacomponents) package.
 
-As an example, the full build command including the following components:
+As an example, the full command to publish OpenTelemetry Collector Lambda layer in your AWS account and get its ARN including the following components:
 - All receivers
 - All processors
 - No extensions
@@ -38,7 +38,7 @@ As an example, the full build command including the following components:
 
 would be the following:
 ```shell
-go build -tags "lambdacomponents.custom,lambdacomponents.receiver.all,lambdacomponents.processor.all,lambdacomponents.exporter.otlphttp,lambdacomponents.connector.spanmetrics"
+cd collector && BUILDTAGS="lambdacomponents.custom,lambdacomponents.receiver.all,lambdacomponents.processor.all,lambdacomponents.exporter.otlphttp,lambdacomponents.connector.spanmetrics" make publish-layer
 ```
 
 ### Adding additional options
