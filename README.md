@@ -127,3 +127,4 @@ Here is a list of community roles with current and previous members:
   - [Anthony Mirabella](https://github.com/Aneurysm9)
 
 Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
+
