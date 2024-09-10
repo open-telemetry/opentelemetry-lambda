@@ -1,18 +1,6 @@
 name: "Continuous Build (Collector)"
 
-on:
-  push:
-    paths:
-      - 'collector/**'
-      - '.github/workflows/ci-collector.yml'
-    branches:
-      - main
-  pull_request:
-    paths:
-      - 'collector/**'
-      - '.github/workflows/ci-collector.yml'
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
   test:
