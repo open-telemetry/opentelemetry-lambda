@@ -16,6 +16,7 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.98.0
 	go.opentelemetry.io/collector/exporter v0.107.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.107.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.107.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.107.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.107.0
@@ -125,7 +126,6 @@ require (
 	go.opentelemetry.io/collector/connector v0.107.0 // indirect
 	go.opentelemetry.io/collector/consumer v0.107.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumerprofiles v0.107.0 // indirect
-	go.opentelemetry.io/collector/exporter/debugexporter v0.107.0 // indirect
 	go.opentelemetry.io/collector/extension/auth v0.107.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.13.0 // indirect
 	go.opentelemetry.io/collector/internal/globalgates v0.107.0 // indirect
