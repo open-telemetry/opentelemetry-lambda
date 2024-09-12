@@ -33,7 +33,7 @@ Alternatively, to configure the OpenTelemetry Lambda Extension via CloudFormatio
 
 ## Configuration
 
-By default, OpenTelemetry Collector Lambda layer exports telemetry data to AWS backends. To customize the collector configuration, add a `collector.yaml` to your function and specify its location via the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` environment file.
+By default, OpenTelemetry Collector Lambda layer exports telemetry data to AWS backends. To customize the collector configuration, add a `collector.yaml` to your function and specify its location via the `OPENTELEMETRY_COLLECTOR_CONFIG_URI` environment file.
 
 Here is a sample configuration file:
 
@@ -56,10 +56,10 @@ service:
       exporters: [logging, otlp]
 ```
 
-Once the file has been deployed with a Lambda, configuring the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` will tell the OpenTelemetry extension where to find the collector configuration:
+Once the file has been deployed with a Lambda, configuring the `OPENTELEMETRY_COLLECTOR_CONFIG_URI` will tell the OpenTelemetry extension where to find the collector configuration:
 
 ```
-aws lambda update-function-configuration --function-name Function --environment Variables={OPENTELEMETRY_COLLECTOR_CONFIG_FILE=/var/task/collector.yaml}
+aws lambda update-function-configuration --function-name Function --environment Variables={OPENTELEMETRY_COLLECTOR_CONFIG_URI=/var/task/collector.yaml}
 ```
 
 You can configure environment variables via CloudFormation template as well:
@@ -71,11 +71,11 @@ You can configure environment variables via CloudFormation template as well:
       ...
       Environment:
         Variables:
-          OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector.yaml
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
 ```
 
 In addition to local files, the OpenTelemetry Collector Lambda layer may be configured through HTTP or S3 URIs
-provided in the `OPENTELEMETRY_COLLECTOR_CONFIG_FILE` environment variable.  For instance, to load configuration
+provided in the `OPENTELEMETRY_COLLECTOR_CONFIG_URI` environment variable.  For instance, to load configuration
 from an S3 object using a CloudFormation template:
 
 ```yaml
@@ -85,7 +85,7 @@ from an S3 object using a CloudFormation template:
       ...
       Environment:
         Variables:
-          OPENTELEMETRY_COLLECTOR_CONFIG_FILE: s3://<bucket_name>.s3.<region>.amazonaws.com/collector_config.yaml
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: s3://<bucket_name>.s3.<region>.amazonaws.com/collector_config.yaml
 ```
 
 Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.
