@@ -50,7 +50,7 @@ type Collector struct {
 func getConfig(logger *zap.Logger) string {
 	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_URI")
 	if ex {
-		logger.Info("Using config URI from environment variable", zap.String("uri", newVal))
+		logger.Info("Using config URI from environment variable", zap.String("uri", val))
 		return val
 	}
 
