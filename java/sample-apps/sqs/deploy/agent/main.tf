@@ -28,7 +28,7 @@ module "hello-lambda-function" {
     {
       AWS_LAMBDA_EXEC_WRAPPER             = "/opt/otel-handler",
       OTEL_METRICS_EXPORTER               = "otlp",
-      OPENTELEMETRY_COLLECTOR_CONFIG_FILE = "/opt/config.yaml"
+      OPENTELEMETRY_COLLECTOR_CONFIG_URI = "/opt/config.yaml"
   })
 
   tracing_mode = var.tracing_mode
