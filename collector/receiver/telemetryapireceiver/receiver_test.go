@@ -311,6 +311,138 @@ func TestCreateLogs(t *testing.T) {
 			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
 			expectError:               false,
 		},
+		{
+			desc: "platform.initStart anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.initStart",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.initRuntimeDone anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.initRuntimeDone",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.initReport anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.initReport",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.start anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.start",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.runtimeDone anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.runtimeDone",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.report",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.restoreStart anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.restoreStart",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.restoreRuntimeDone anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.restoreRuntimeDone",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.restoreReport anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.restoreStart",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.telemetrySubscription anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.telemetrySubscription",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.logsDropped anything",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.logsDropped",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
