@@ -48,12 +48,25 @@ type Collector struct {
 }
 
 func getConfig(logger *zap.Logger) string {
-	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
-	if !ex {
-		return "/opt/collector-config/config.yaml"
+	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_URI")
+	if ex {
+		logger.Info("Using config URI from environment variable", zap.String("uri", val))
+		return val
 	}
-	logger.Info("Using config URI from environment", zap.String("uri", val))
-	return val
+
+	// The name of the environment variable was changed
+	// This is the old name, kept for backwards compatibility
+	oldVal, oldEx := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
+	if oldEx {
+		logger.Info("Using config URI from deprecated environment variable", zap.String("uri", oldVal))
+		logger.Warn("The OPENTELEMETRY_COLLECTOR_CONFIG_FILE environment variable is deprecated. Please use OPENTELEMETRY_COLLECTOR_CONFIG_URI instead.")
+		return oldVal
+	}
+
+	// If neither environment variable is set, use the default
+	defaultVal := "/opt/collector-config/config.yaml"
+	logger.Info("Using default config URI", zap.String("uri", defaultVal))
+	return defaultVal
 }
 
 func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
