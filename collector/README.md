@@ -13,6 +13,45 @@ Be sure to:
 * Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * Config [AWS credential](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 
+## (Experimental) Customized collector build
+The collector can be built with a customized set of connectors/exporters/receivers/processors. This feature is **experimental** and is only supported for self-built binaries of the collector.
+
+### Build Tags
+The build-tag `lambdacomponents.custom` must always be provided to opt-in for a custom build.
+Once this build-tag is present, you need provide additional build-tags to include your desired components in the resulting binary:
+
+- `lambdacomponents.all` includes all available components
+- `lambdacomponents.connector.all` includes all available connectors
+- `lambdacomponents.exporter.all` includes all available exporters
+- `lambdacomponents.extension.all` includes all available extensions
+- `lambdacomponents.processor.all` includes all available processors
+- `lambdacomponents.receiver.all` includes all available receivers
+
+Each available component can also be included explicitly by using its specific build-tag. For a full-list of available components, have a look into the [lambdacomponents](./collector/lambdacomponents) package.
+
+As an example, the full command to publish OpenTelemetry Collector Lambda layer in your AWS account and get its ARN including the following components:
+- All receivers
+- All processors
+- No extensions
+- Only the otlphttp exporter
+- Only the spanmetrics connector
+
+would be the following:
+```shell
+cd collector && BUILDTAGS="lambdacomponents.custom,lambdacomponents.receiver.all,lambdacomponents.processor.all,lambdacomponents.exporter.otlphttp,lambdacomponents.connector.spanmetrics" make publish-layer
+```
+
+### Adding additional options
+To add more options for a customized build, you can add your desired component to the [lambdacomponents](./collector/lambdacomponents) package.
+Make sure to always restrict your addition using the appropriate build-tags.
+
+For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./collector/lambdacomponents/extension) directory have the following build restriction:
+```
+//go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
+```
+
+You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](#contributing) to this project.
+
 ## Installing
 To install the OpenTelemetry Collector Lambda layer to an existing Lambda function using the `aws` CLI:
 
