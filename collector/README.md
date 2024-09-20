@@ -83,8 +83,8 @@ receivers:
       grpc:
 
 exporters:
-  logging:
-    loglevel: debug
+  debug:
+    verbosity: detailed
   otlp:
     endpoint: { backend endpoint }
 
@@ -92,7 +92,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [logging, otlp]
+      exporters: [debug, otlp]
 ```
 
 Once the file has been deployed with a Lambda, configuring the `OPENTELEMETRY_COLLECTOR_CONFIG_URI` will tell the OpenTelemetry extension where to find the collector configuration:
