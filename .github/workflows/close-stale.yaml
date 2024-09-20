@@ -22,3 +22,5 @@ jobs:
 
           days-before-stale: 365
           days-before-close: 30
+
+          operations-per-run: 500
