@@ -4,7 +4,7 @@ BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
 BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
 LAYER_NAME:=otel-collector
-OTELCOL_VERSION="UNSET" # run recipe set-otelcol-version to get this
+OTELCOL_VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
 GOARCH ?= amd64
 GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",)
