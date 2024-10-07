@@ -59,7 +59,7 @@
     "@opentelemetry/sdk-trace-node": "^1.25.1"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.8",
     "@types/sinon": "^17.0.3",
     "mocha": "^10.7.3",
     "sinon": "^19.0.2",

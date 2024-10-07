@@ -36,7 +36,7 @@
   ],
   "devDependencies": {
     "@types/aws-lambda": "8.10.145",
-    "@types/node": "22.6.1",
+    "@types/node": "22.7.4",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "rimraf": "6.0.1",
