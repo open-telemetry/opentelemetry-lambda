@@ -1,0 +1,87 @@
+name: "Release Python Lambda Layer"
+
+on:
+  # (Using tag push instead of release to allow filtering by tag prefix.)
+  push:
+    tags:
+      - layer-python/**
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-layer:
+    runs-on: ubuntu-latest
+    outputs:
+      PYTHON_OPENTELEMETRY_SDK_VERSION: ${{ steps.save-python-opentelemetry-sdk-version.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Save PYTHON_OPENTELEMETRY_SDK_VERSION
+        id: save-python-opentelemetry-sdk-version
+        run: |
+          cd python/src
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$(cat otel/otel_sdk/requirements.txt | grep opentelemetry-sdk | sed 's/.*==\([^ ]*\).*/\1/')" >> $GITHUB_ENV
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$PYTHON_OPENTELEMETRY_SDK_VERSION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Display PYTHON_OPENTELEMETRY_SDK_VERSION
+        run: |
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=${{ env.PYTHON_OPENTELEMETRY_SDK_VERSION }}"
+        shell: bash
+
+      - name: Build
+        run: |
+          cd python/src
+          ./build.sh
+        shell: bash
+
+      - name: Show directory contents
+        run: |
+          ls -al
+        working-directory: python/src/build
+
+      - uses: actions/upload-artifact@v4
+        name: Save assembled layer to build
+        with:
+          name: opentelemetry-python-layer.zip
+          path: python/src/build/opentelemetry-python-layer.zip
+
+      - name: Add Binary to Release
+        run: |
+            gh release upload ${{github.ref_name}} python/src/build/opentelemetry-python-layer.zip
+
+  publish-layer:
+    uses: ./.github/workflows/layer-publish.yml
+    needs: build-layer
+    strategy:
+      matrix:
+        aws_region: 
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+    with:
+      artifact-name: opentelemetry-python-layer.zip
+      layer-name: opentelemetry-python
+      component-version: ${{needs.build-layer.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
+      release-group: prod
+      aws_region: ${{ matrix.aws_region }}
+    secrets: inherit

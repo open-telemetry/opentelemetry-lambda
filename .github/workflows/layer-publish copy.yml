@@ -1,0 +1,116 @@
+name: Publish Lambda Layer
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: 'This should correspond to a actions/upload-artifact name earlier in the build. The file name and the name of the artifact containing it must be equal.'
+        required: true
+        type: string
+      layer-name:
+        description: 'Layer name not including other parts like arch or version.'
+        required: true
+        type: string
+      component-version:
+        description: 'Version of the component included in this release. Not the same as the layer/tagged version.'
+        required: true
+        type: string
+      architecture:
+        description: '(optional) amd64 or arm64'
+        required: false
+        type: string
+      runtimes:
+        description: '(optional) a space delimited list of compatible runtimes (from https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html)'
+        required: false
+        type: string
+      release-group:
+        description: 'Release to dev or prod? "prod" yields empty value. (Default: dev)'
+        required: true
+        default: dev
+        type: string
+      aws_region:
+        description: 'Publish to which AWS region?'
+        required: true
+        type: string
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish_layer:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Construct Layer Name
+        shell: bash
+        run: |
+          LAYER_NAME=${{ inputs.layer-name }}
+          
+          if [[ -n "${{ inputs.architecture }}" ]]; then
+            LAYER_NAME=$LAYER_NAME-${{ inputs.architecture }}
+            ARCH=$(echo "${{ inputs.architecture }}" | sed -r 's/amd64/x86_64/g')
+          else
+            ARCH="x86_64 arm64"
+          fi
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+          
+          if [[ -n "${{ inputs.runtimes }}" ]]; then
+            RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
+          fi
+          echo "RUNTIMES=$RUNTIMES" >> $GITHUB_ENV
+          
+          if [[ "${{ inputs.release-group }}" != "prod" ]]; then
+            LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
+          fi
+          
+          LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
+          LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
+          
+          LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
+          echo "LAYER_NAME=$LAYER_NAME" >> $GITHUB_ENV
+          
+          echo GITHUB_ENV:
+          cat $GITHUB_ENV
+
+      - name: Download built layer
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
+          role-duration-seconds: 1200
+          aws-region: ${{ inputs.aws_region }}
+          mask-aws-account-id: false
+
+      - name: Publish Lambda Layer
+        run: |
+          LAYER_ARN=$(
+            aws lambda publish-layer-version \
+              --layer-name $LAYER_NAME \
+              --license-info "Apache 2.0" \
+              --compatible-architectures $ARCH $RUNTIMES \
+              --zip-file fileb://${{ inputs.artifact-name }} \
+              --query 'LayerVersionArn' \
+              --output text
+          )
+          echo "::notice ::$LAYER_ARN component-version=${{ inputs.component-version }}"
+        # echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make Layer Public
+        run: |
+          LAYER_VERSION=$(
+            aws lambda list-layer-versions \
+              --layer-name $LAYER_NAME \
+              --query 'max_by(LayerVersions, &Version).Version'
+          )
+          aws lambda add-layer-version-permission \
+            --layer-name $LAYER_NAME \
+            --version-number $LAYER_VERSION \
+            --principal "*" \
+            --statement-id publish \
+            --action lambda:GetLayerVersion
