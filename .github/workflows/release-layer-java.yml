@@ -47,6 +47,8 @@ jobs:
       - name: Add Binary to Release
         run: |
           gh release upload ${{github.ref_name}} java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save Javaagent Version
         id: save-javaagent-version

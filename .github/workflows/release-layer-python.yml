@@ -55,6 +55,8 @@ jobs:
       - name: Add Binary to Release
         run: |
             gh release upload ${{github.ref_name}} python/src/build/opentelemetry-python-layer.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml

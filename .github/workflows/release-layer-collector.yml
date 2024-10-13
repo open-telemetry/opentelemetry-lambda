@@ -34,6 +34,8 @@ jobs:
       - name: Add Binary to Release
         run: |
           gh release upload ${{github.ref_name}} ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save Collector Version
         if: ${{ matrix.architecture == 'amd64' }}
         id: save-collector-version

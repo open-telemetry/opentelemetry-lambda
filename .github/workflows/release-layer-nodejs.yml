@@ -48,6 +48,8 @@ jobs:
       - name: Add Binary to Release
         run: |
           gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
