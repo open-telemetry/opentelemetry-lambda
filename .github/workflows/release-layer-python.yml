@@ -8,7 +8,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   build-layer:
@@ -51,6 +51,10 @@ jobs:
         with:
           name: opentelemetry-python-layer.zip
           path: python/src/build/opentelemetry-python-layer.zip
+
+      - name: Add Binary to Release
+        run: |
+            gh release upload ${{github.ref_name}} python/src/build/opentelemetry-python-layer.zip
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml

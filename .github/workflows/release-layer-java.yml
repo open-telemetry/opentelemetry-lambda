@@ -8,7 +8,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   build-layer:
@@ -43,6 +43,10 @@ jobs:
         with:
           name: opentelemetry-javawrapper-layer.zip
           path: java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+
+      - name: Add Binary to Release
+        run: |
+          gh release upload ${{github.ref_name}} java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
 
       - name: Save Javaagent Version
         id: save-javaagent-version

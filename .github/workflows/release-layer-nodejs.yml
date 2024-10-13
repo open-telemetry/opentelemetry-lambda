@@ -8,7 +8,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   build-layer:
@@ -44,6 +44,10 @@ jobs:
         with:
           name: opentelemetry-nodejs-layer.zip
           path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+          
+      - name: Add Binary to Release
+        run: |
+          gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
