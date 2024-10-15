@@ -11,6 +11,13 @@ permissions:
   contents: write
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        run: gh release create ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
     runs-on: ubuntu-latest
     outputs:
@@ -47,7 +54,6 @@ jobs:
           
       - name: Add Binary to Release
         run: |
-          gh release create ${{github.ref_name}}
           gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
