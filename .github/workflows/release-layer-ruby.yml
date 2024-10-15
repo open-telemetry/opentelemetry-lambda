@@ -46,7 +46,8 @@ jobs:
       
       - name: Add Binary to Release
         run: |
-            gh release upload ${{github.ref_name}} ruby/src/build/opentelemetry-ruby-layer.zip
+          gh release create ${{github.ref_name}}
+          gh release upload ${{github.ref_name}} ruby/src/build/opentelemetry-ruby-layer.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
