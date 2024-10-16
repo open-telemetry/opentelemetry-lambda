@@ -1,0 +1,28 @@
+{
+    "ignorePatterns": [
+        {
+            "pattern": "http(s)?://\\d+\\.\\d+\\.\\d+\\.\\d+"
+        },
+        {
+            "pattern": "http(s)?://localhost"
+        },
+        {
+            "pattern": "http(s)?://example.com"
+        },
+        {
+            "pattern": "https://docs.aws.amazon.com"
+        },
+        {
+            "pattern": "https://console.aws.amazon.com"
+        }
+    ],
+    "aliveStatusCodes": [429, 200],
+    "httpHeaders": [
+        {
+            "urls": ["https://docs.aws.amazon.com", "https://docs.github.com/"],
+            "headers": {
+                "Accept-Encoding": "zstd, br, gzip, deflate"
+            }
+        }
+    ]
+}
