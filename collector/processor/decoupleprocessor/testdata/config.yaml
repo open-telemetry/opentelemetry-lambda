@@ -1,4 +1,0 @@
-decouple:
-  max_queue_size: 100
-
-decouple/empty:

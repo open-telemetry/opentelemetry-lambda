@@ -1,22 +1,38 @@
+# Binary and compressed files
 bin/*
 extension.zip
-
-build
-.gradle
-.idea
-
-.terraform*
-terraform.*
-
-.vscode/
-
-.DS_Store
-
-.tox
-__pycache__/*
-.pyc
-build.toml
-
 *.zip
 
+# Build and IDE-specific directories
+build/
+.gradle/
+.idea/
+.vscode/
+
+# Terraform files and directories
+.terraform/
+.terraform.lock.hcl
+terraform.*
+
+# macOS and system-specific files
+.DS_Store
+
+# Python build and cache files
+.tox/
+__pycache__/
+*.pyc
+build.toml
+
+# Node.js dependencies and log files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Windows-specific files
+Thumbs.db
+
+# Vim/Swap files
+*.swp
+
+# Collector-specific files
 collector/VERSION
