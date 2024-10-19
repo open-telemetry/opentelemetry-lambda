@@ -8,11 +8,20 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Release
+        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
     runs-on: ubuntu-latest
+    needs: create-release
     outputs:
       RUBY_SDK_VERSION: ${{ steps.save-ruby-sdk-version.outputs.RUBY_SDK_VERSION}}
     steps:
@@ -43,6 +52,12 @@ jobs:
         with:
           name: opentelemetry-ruby-layer.zip
           path: ruby/src/build/opentelemetry-ruby-layer.zip
+      
+      - name: Add Binary to Release
+        run: |
+          gh release upload ${{github.ref_name}} ruby/src/build/opentelemetry-ruby-layer.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-layer:
     uses: ./.github/workflows/layer-publish.yml
