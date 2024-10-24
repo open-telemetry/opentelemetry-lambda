@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/api-logs": "^0.53.0",
+    "@opentelemetry/api-logs": "^0.54.0",
     "@opentelemetry/exporter-logs-otlp-proto": "^0.53.0",
     "@opentelemetry/auto-configuration-propagators": "^0.3.0",
     "@opentelemetry/core": "^1.26.0",
@@ -59,7 +59,7 @@
     "@opentelemetry/sdk-trace-node": "^1.26.0"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.9",
     "@types/sinon": "^17.0.3",
     "mocha": "^10.7.3",
     "sinon": "^19.0.2",
