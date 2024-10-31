@@ -1,4 +1,4 @@
-ARG runtime=python3.11
+ARG runtime=python3.12
 
 FROM public.ecr.aws/sam/build-${runtime}
 
