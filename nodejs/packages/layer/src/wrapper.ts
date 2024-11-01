@@ -238,4 +238,5 @@ async function initializeProvider() {
     loggerProvider,
   });
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 initializeProvider();
