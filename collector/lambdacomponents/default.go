@@ -27,7 +27,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
-	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension"
@@ -56,7 +55,6 @@ func Components(extensionID string) (otelcol.Factories, error) {
 
 	exporters, err := exporter.MakeFactoryMap(
 		debugexporter.NewFactory(),
-		loggingexporter.NewFactory(),
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
 		prometheusremotewriteexporter.NewFactory(),
