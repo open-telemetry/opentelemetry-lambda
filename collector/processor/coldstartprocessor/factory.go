@@ -56,7 +56,7 @@ func createTracesProcessor(ctx context.Context, params processor.Settings, rConf
 	if err != nil {
 		return nil, err
 	}
-	return processorhelper.NewTracesProcessor(
+	return processorhelper.NewTraces(
 		ctx,
 		params,
 		cfg,

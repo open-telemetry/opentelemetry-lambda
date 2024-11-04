@@ -51,7 +51,7 @@ func TestNewFactory(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				factory := NewFactory("test")
 				cfg := factory.CreateDefaultConfig()
-				_, err := factory.CreateTracesReceiver(
+				_, err := factory.CreateTraces(
 					context.Background(),
 					receivertest.NewNopSettings(),
 					cfg,
@@ -64,7 +64,7 @@ func TestNewFactory(t *testing.T) {
 			desc: "creates a new factory and CreateTracesReceiver returns error with incorrect config",
 			testFunc: func(t *testing.T) {
 				factory := NewFactory("test")
-				_, err := factory.CreateTracesReceiver(
+				_, err := factory.CreateTraces(
 					context.Background(),
 					receivertest.NewNopSettings(),
 					nil,
