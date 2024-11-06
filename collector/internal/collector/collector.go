@@ -23,7 +23,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
 	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/confmap/provider/httpprovider"
@@ -76,7 +75,6 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 			URIs:              []string{getConfig(l)},
 			ProviderFactories: []confmap.ProviderFactory{fileprovider.NewFactory(), envprovider.NewFactory(), yamlprovider.NewFactory(), httpprovider.NewFactory(), s3provider.NewFactory(), secretsmanagerprovider.NewFactory()},
 			ConverterFactories: []confmap.ConverterFactory{
-				expandconverter.NewFactory(),
 				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
 					return disablequeuedretryconverter.New()
 				}),
