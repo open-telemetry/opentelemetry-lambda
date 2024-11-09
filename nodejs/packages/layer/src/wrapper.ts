@@ -27,10 +27,13 @@ import {
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
 import {
+  context,
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
   metrics,
+  propagation,
+  trace,
 } from '@opentelemetry/api';
 import { getEnv } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
@@ -51,8 +54,8 @@ import {
 import { logs } from '@opentelemetry/api-logs';
 
 function defaultConfigureInstrumentations() {
-  // Use require statements for instrumentation to avoid having to have transitive dependencies on all the typescript
-  // definitions.
+  // Use require statements for instrumentation
+  // to avoid having to have transitive dependencies on all the typescript definitions.
   const { DnsInstrumentation } = require('@opentelemetry/instrumentation-dns');
   const {
     ExpressInstrumentation,
@@ -102,7 +105,7 @@ function defaultConfigureInstrumentations() {
 }
 
 declare global {
-  // in case of downstream configuring span processors etc
+  // In case of downstream configuring span processors etc
   function configureAwsInstrumentation(
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
@@ -123,34 +126,25 @@ declare global {
   function configureInstrumentations(): Instrumentation[];
 }
 
-console.log('Registering OpenTelemetry');
+function createInstrumentations() {
+  return [
+    new AwsInstrumentation(
+      typeof configureAwsInstrumentation === 'function'
+        ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
+        : { suppressInternalInstrumentation: true },
+    ),
+    new AwsLambdaInstrumentation(
+      typeof configureLambdaInstrumentation === 'function'
+        ? configureLambdaInstrumentation({})
+        : {},
+    ),
+    ...(typeof configureInstrumentations === 'function'
+      ? configureInstrumentations
+      : defaultConfigureInstrumentations)(),
+  ];
+}
 
-const instrumentations = [
-  new AwsInstrumentation(
-    typeof configureAwsInstrumentation === 'function'
-      ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
-      : { suppressInternalInstrumentation: true },
-  ),
-  new AwsLambdaInstrumentation(
-    typeof configureLambdaInstrumentation === 'function'
-      ? configureLambdaInstrumentation({})
-      : {},
-  ),
-  ...(typeof configureInstrumentations === 'function'
-    ? configureInstrumentations
-    : defaultConfigureInstrumentations)(),
-];
-
-// configure lambda logging
-const logLevel = getEnv().OTEL_LOG_LEVEL;
-diag.setLogger(new DiagConsoleLogger(), logLevel);
-
-// Register instrumentations synchronously to ensure code is patched even before provider is ready.
-registerInstrumentations({
-  instrumentations,
-});
-
-async function initializeProvider() {
+function initializeProvider() {
   const resource = detectResourcesSync({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
@@ -166,12 +160,12 @@ async function initializeProvider() {
   if (typeof configureTracerProvider === 'function') {
     configureTracerProvider(tracerProvider);
   } else {
-    // defaults
+    // Defaults
     tracerProvider.addSpanProcessor(
       new BatchSpanProcessor(new OTLPTraceExporter()),
     );
   }
-  // logging for debug
+  // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
     tracerProvider.addSpanProcessor(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
@@ -182,7 +176,7 @@ async function initializeProvider() {
   if (typeof configureSdkRegistration === 'function') {
     sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
   }
-  // auto-configure propagator if not provided
+  // Auto-configure propagator if not provided
   if (!sdkRegistrationConfig.propagator) {
     sdkRegistrationConfig.propagator = getPropagator();
   }
@@ -223,20 +217,58 @@ async function initializeProvider() {
     logs.setGlobalLoggerProvider(loggerProvider);
   }
 
-  // logging for debug
+  // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
     loggerProvider.addLogRecordProcessor(
       new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
     );
   }
 
+  // Create instrumentations if they have not been created before
+  // to prevent additional coldstart overhead
+  // caused by creations and initializations of instrumentations.
+  if (!instrumentations || !instrumentations.length) {
+    instrumentations = createInstrumentations();
+  }
+
   // Re-register instrumentation with initialized provider. Patched code will see the update.
-  registerInstrumentations({
+  disableInstrumentations = registerInstrumentations({
     instrumentations,
     tracerProvider,
     meterProvider,
     loggerProvider,
   });
 }
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-initializeProvider();
+
+export function wrap() {
+  initializeProvider();
+}
+
+export function unwrap() {
+  if (disableInstrumentations) {
+    disableInstrumentations();
+    disableInstrumentations = () => {};
+  }
+  instrumentations = [];
+  context.disable();
+  propagation.disable();
+  trace.disable();
+  metrics.disable();
+  logs.disable();
+}
+
+console.log('Registering OpenTelemetry');
+
+// Configure lambda logging
+const logLevel = getEnv().OTEL_LOG_LEVEL;
+diag.setLogger(new DiagConsoleLogger(), logLevel);
+
+let instrumentations = createInstrumentations();
+let disableInstrumentations: () => void;
+
+// Register instrumentations synchronously to ensure code is patched even before provider is ready.
+disableInstrumentations = registerInstrumentations({
+  instrumentations,
+});
+
+wrap();

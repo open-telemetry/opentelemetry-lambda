@@ -39,6 +39,9 @@ function _hasPackageJsonTypeModule(file) {
 function _resolveHandlerFileName() {
   const taskRoot = process.env.LAMBDA_TASK_ROOT;
   const handlerDef = process.env._HANDLER;
+  if (!taskRoot || !handlerDef) {
+    return null;
+  }
   const handler = path.basename(handlerDef);
   const moduleRoot = handlerDef.substr(0, handlerDef.length - handler.length);
   const [module, _] = handler.split('.', 2);
@@ -46,13 +49,30 @@ function _resolveHandlerFileName() {
 }
 
 function _isHandlerAnESModule() {
-  const handlerFileName = _resolveHandlerFileName();
-  if (fs.existsSync(handlerFileName + '.mjs')) {
-    return true;
-  } else if (fs.existsSync(handlerFileName + '.cjs')) {
+  try {
+    const handlerFileName = _resolveHandlerFileName();
+    if (!handlerFileName) {
+      return false;
+    }
+    if (fs.existsSync(handlerFileName + '.mjs')) {
+      return true;
+    } else if (fs.existsSync(handlerFileName + '.cjs')) {
+      return false;
+    } else {
+      return _hasPackageJsonTypeModule(handlerFileName);
+    }
+  } catch (e) {
+    console.error('Unknown error occurred while checking whether handler is an ES module', e);
     return false;
-  } else {
-    return _hasPackageJsonTypeModule(handlerFileName);
+  }
+}
+
+let registered = false;
+
+export function registerLoader() {
+  if (!registered) {
+    register('import-in-the-middle/hook.mjs', import.meta.url);
+    registered = true;
   }
 }
 
@@ -67,5 +87,5 @@ if (_isHandlerAnESModule()) {
   to prevent redundant "import-in-the-middle" hook initialization overhead during coldstart
   of the CommonJS based user handlers.
    */
-  register('import-in-the-middle/hook.mjs', import.meta.url);
+  registerLoader();
 }
