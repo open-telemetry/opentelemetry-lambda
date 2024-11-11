@@ -285,8 +285,6 @@ go.opentelemetry.io/collector/config/internal v0.112.0 h1:kB28u5IrrJIsKKHFltBSAr
 go.opentelemetry.io/collector/config/internal v0.112.0/go.mod h1:yC7E4h1Uj0SubxcFImh6OvBHFTjMh99+A5PuyIgDWqc=
 go.opentelemetry.io/collector/confmap v1.18.0 h1:UEOeJY8RW8lZ1O4lzHSGqolS7uzkpXQi5fa8SidKqQg=
 go.opentelemetry.io/collector/confmap v1.18.0/go.mod h1:GgNu1ElPGmLn9govqIfjaopvdspw4PJ9KeDtWC4E2Q4=
-go.opentelemetry.io/collector/confmap/converter/expandconverter v0.112.0 h1:OsoXXLq+esPFSLZm+ar/0XjR5p7Am4WTSXIth9Wpa38=
-go.opentelemetry.io/collector/confmap/converter/expandconverter v0.112.0/go.mod h1:BQdUghbxnpSYai6VBm6SsedndXVC9vlGM2N1Fc/0rnk=
 go.opentelemetry.io/collector/confmap/provider/envprovider v1.18.0 h1:ZWEsXeCbNUP4GXRvlkVXBpqIH9rNtnk1knZDORo/7zA=
 go.opentelemetry.io/collector/confmap/provider/envprovider v1.18.0/go.mod h1:76mYXizxjo8rcRsvyTuNtPykVuqmZWGcV6lGs7+++J8=
 go.opentelemetry.io/collector/confmap/provider/fileprovider v1.18.0 h1:eTDRt5w/bTaTWOY/satyprh/7V0zkwLKvm6NQuJ/L+8=
