@@ -52,7 +52,7 @@
     "@opentelemetry/instrumentation-mongodb": "^0.48.0",
     "@opentelemetry/instrumentation-mysql": "^0.42.0",
     "@opentelemetry/instrumentation-net": "^0.40.0",
-    "@opentelemetry/instrumentation-pg": "^0.47.0",
+    "@opentelemetry/instrumentation-pg": "^0.47.1",
     "@opentelemetry/instrumentation-redis": "^0.43.0",
     "@opentelemetry/propagator-aws-xray": "^1.26.0",
     "@opentelemetry/resource-detector-aws": "^1.7.0",
