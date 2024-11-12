@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.113.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.113.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.112.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.113.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.113.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.113.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.113.0
@@ -116,7 +116,7 @@ require (
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	github.com/tg123/go-htpasswd v1.2.2 // indirect
+	github.com/tg123/go-htpasswd v1.2.3 // indirect
 	github.com/tidwall/gjson v1.10.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
