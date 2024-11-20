@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "build"
+    "outDir": "build_backup"
   },
   "include": [
     "src/**/*.ts",
