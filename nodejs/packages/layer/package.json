@@ -9,13 +9,13 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts",
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
-    "copy-esm-files": "copyfiles 'src/**/*.mjs' build && copyfiles 'test/**/*.mjs' build",
+    "copy-esm-files": "copyfiles -f 'src/**/*.mjs' build/workspace && copyfiles 'test/**/*.mjs' build",
     "pretest": "npm run compile",
     "test:cjs": "mocha 'test/**/*.spec.ts' --exclude 'test/**/*.spec.mjs' --timeout 10000",
     "test:esm": "mocha 'test/**/*.spec.mjs' --exclude 'test/**/*.spec.ts' --timeout 10000",
     "test": "npm run test:cjs && npm run test:esm",
-    "compile": "esbuild --bundle --target=es2022 --platform=node --format=cjs --sourcemap --minify src/wrapper.ts --outfile=build/workspace/wrapper.js --external:@aws-sdk/*",
-    "postcompile": "npm run copy-esm-files && copyfiles -f 'scripts/*' build/workspace && cd build/workspace && bestzip ../layer.zip *"
+    "compile": "esbuild --bundle --target=es2022 --platform=node --format=cjs --sourcemap --minify src/wrapper.ts --outfile=build/src/wrapper.js --external:@aws-sdk/*",
+    "postcompile": "npm run copy-esm-files && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*.js' build/workspace && cd build/workspace && bestzip ../layer.zip *"
   },
   "keywords": [
     "opentelemetry",
