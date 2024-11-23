@@ -102,11 +102,12 @@ jobs:
         java-version: '11'
       if: ${{ matrix.target.language == 'java' }}
 
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
     - name: build Java
-      uses: gradle/gradle-build-action@v3
-      with:
-        arguments: build --no-build-cache
-        build-root-directory: ${{ matrix.target.directory }}
+      run: ./gradlew build --no-build-cache
+      working-directory: ${{ matrix.target.directory }}
       if: ${{ matrix.target.language == 'java' }}
 
     - name: setup dotnet
