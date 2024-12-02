@@ -4,10 +4,10 @@ BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
 BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
 LAYER_NAME:=otel-collector
-OTELCOL_VERSION="UNSET" # run recipe set-otelcol-version to get this
+OTELCOL_VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
 GOARCH ?= amd64
-GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
+GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",)
 BUILD_INFO_IMPORT_PATH=main
 
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(OTELCOL_VERSION) \
@@ -47,12 +47,12 @@ package: build
 
 .PHONY: publish
 publish:
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 python3.12 --query 'LayerVersionArn' --output text
 
 .PHONY: publish-layer
 publish-layer: package
 	@echo Publishing collector extension layer...
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs14.x nodejs16.x nodejs18.x java11 python3.8 python3.9 python3.10 python3.11 python3.12 --query 'LayerVersionArn' --output text
 	@echo OpenTelemetry Collector layer published.
 
 .PHONY: set-otelcol-version

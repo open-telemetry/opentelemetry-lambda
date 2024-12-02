@@ -18,14 +18,19 @@ import (
 	"context"
 	"errors"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver/internal/sharedcomponent"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 )
 
 const (
-	typeStr   = "telemetryapi"
-	stability = component.StabilityLevelDevelopment
+	typeStr     = "telemetryapi"
+	stability   = component.StabilityLevelDevelopment
+	defaultPort = 4325
+	platform    = "platform"
+	function    = "function"
+	extension   = "extension"
 )
 
 var errConfigNotTelemetryAPI = errors.New("config was not a Telemetry API receiver config")
@@ -37,16 +42,38 @@ func NewFactory(extensionID string) receiver.Factory {
 		func() component.Config {
 			return &Config{
 				extensionID: extensionID,
+				Port:        defaultPort,
+				Types:       []string{platform, function, extension},
 			}
 		},
-		receiver.WithTraces(createTracesReceiver, stability))
+		receiver.WithTraces(createTracesReceiver, stability),
+		receiver.WithLogs(createLogsReceiver, stability))
 }
 
-func createTracesReceiver(ctx context.Context, params receiver.CreateSettings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
+func createTracesReceiver(ctx context.Context, params receiver.Settings, rConf component.Config, next consumer.Traces) (receiver.Traces, error) {
 	cfg, ok := rConf.(*Config)
 	if !ok {
 		return nil, errConfigNotTelemetryAPI
 	}
-
-	return newTelemetryAPIReceiver(cfg, next, params)
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		t, _ := newTelemetryAPIReceiver(cfg, params)
+		return t
+	})
+	r.Unwrap().(*telemetryAPIReceiver).registerTracesConsumer(next)
+	return r, nil
 }
+
+func createLogsReceiver(ctx context.Context, params receiver.Settings, rConf component.Config, next consumer.Logs) (receiver.Logs, error) {
+	cfg, ok := rConf.(*Config)
+	if !ok {
+		return nil, errConfigNotTelemetryAPI
+	}
+	r := receivers.GetOrAdd(cfg, func() component.Component {
+		t, _ := newTelemetryAPIReceiver(cfg, params)
+		return t
+	})
+	r.Unwrap().(*telemetryAPIReceiver).registerLogsConsumer(next)
+	return r, nil
+}
+
+var receivers = sharedcomponent.NewSharedComponents()

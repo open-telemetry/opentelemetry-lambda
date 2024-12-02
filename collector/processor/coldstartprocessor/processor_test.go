@@ -131,7 +131,7 @@ func TestProcessor(t *testing.T) {
 			c, err := newColdstartProcessor(
 				nil,
 				nil,
-				processortest.NewNopCreateSettings(),
+				processortest.NewNopSettings(),
 			)
 			require.NoError(t, err)
 			td, err := c.processTraces(context.Background(), tc.input)
@@ -148,7 +148,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 	c, err := newColdstartProcessor(
 		nil,
 		nil,
-		processortest.NewNopCreateSettings(),
+		processortest.NewNopSettings(),
 	)
 	require.NoError(t, err)
 	expected := ptrace.NewTraces()
@@ -180,7 +180,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 	c, err = newColdstartProcessor(
 		nil,
 		nil,
-		processortest.NewNopCreateSettings(),
+		processortest.NewNopSettings(),
 	)
 	require.NoError(t, err)
 	input = ptrace.NewTraces()

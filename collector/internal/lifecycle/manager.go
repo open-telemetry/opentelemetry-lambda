@@ -75,7 +75,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 	}
 
 	telemetryClient := telemetryapi.NewClient(logger)
-	_, err = telemetryClient.Subscribe(ctx, res.ExtensionID, addr)
+	_, err = telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Platform}, res.ExtensionID, addr)
 	if err != nil {
 		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
 	}
@@ -85,12 +85,6 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		extensionClient: extensionClient,
 		listener:        listener,
 	}
-
-	go func() {
-		if err := lm.processEvents(ctx); err != nil {
-			lm.logger.Warn("Failed to process events", zap.Error(err))
-		}
-	}()
 
 	factories, _ := lambdacomponents.Components(res.ExtensionID)
 	lm.collector = collector.NewCollector(logger, factories, version)
@@ -107,12 +101,17 @@ func (lm *manager) Run(ctx context.Context) error {
 		return err
 	}
 
+	lm.wg.Add(1)
+	go func() {
+		if err := lm.processEvents(ctx); err != nil {
+			lm.logger.Warn("Failed to process events", zap.Error(err))
+		}
+	}()
 	lm.wg.Wait()
 	return nil
 }
 
 func (lm *manager) processEvents(ctx context.Context) error {
-	lm.wg.Add(1)
 	defer lm.wg.Done()
 
 	for {

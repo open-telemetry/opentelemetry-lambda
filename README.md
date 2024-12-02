@@ -8,9 +8,9 @@
 
 ## OpenTelemetry Lambda Layers
 
-The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambdas. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/).
+The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambda functions. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/).
 
-Some layers include the corresponding OTel language SDK for the Lambda. This allows Lambdas to use OpenTelemetry to send traces and metrics to any configured backend.
+Some layers include the corresponding OTel language SDK for the Lambda. This allows Lambda functions to use OpenTelemetry to send traces and metrics to any configured backend.
 
 ## Extension Layer Language Support
 
@@ -25,6 +25,8 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 
 * **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
     > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
+  
+    > Self-built binaries of the collector have **experimental** support for a custom set of connectors/exporters/receivers/processors. For more information, see [(Experimental) Customized collector build](./collector/README.md#experimental-customized-collector-build)
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository provides pre-built Lambda layers, their ARNs are available in the [Releases](https://github.com/open-telemetry/opentelemetry-lambda/releases). You can also build the layers manually and publish them in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
 
@@ -42,7 +44,7 @@ The layer includes the OpenTelemetry Collector as a Lambda extension.
 
 ### Custom context propagation carrier extraction
 
-Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in lambda through configuration, this feature allows this through Lambda instrumentation configuration.
+Context can be propagated through various mechanisms (e.g. http headers (APIGW), message attributes (SQS), ...). In some cases, it may be required to pass a custom context propagation extractor in Lambda through configuration, this feature allows this through Lambda instrumentation configuration.
 
 ### X-Ray Env Var Span Link
 
@@ -118,6 +120,7 @@ Here is a list of community roles with current and previous members:
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
   - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
+  - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
 - Emeritus Maintainers:

@@ -43,9 +43,9 @@ func TestNewFactory(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				factory := NewFactory()
 				cfg := factory.CreateDefaultConfig()
-				_, err := factory.CreateTracesProcessor(
+				_, err := factory.CreateTraces(
 					context.Background(),
-					processortest.NewNopCreateSettings(),
+					processortest.NewNopSettings(),
 					cfg,
 					consumertest.NewNop(),
 				)
@@ -56,9 +56,9 @@ func TestNewFactory(t *testing.T) {
 			desc: "creates a new factory and CreateTracesProcessor returns error with incorrect config",
 			testFunc: func(t *testing.T) {
 				factory := NewFactory()
-				_, err := factory.CreateTracesProcessor(
+				_, err := factory.CreateTraces(
 					context.Background(),
-					processortest.NewNopCreateSettings(),
+					processortest.NewNopSettings(),
 					nil,
 					consumertest.NewNop(),
 				)

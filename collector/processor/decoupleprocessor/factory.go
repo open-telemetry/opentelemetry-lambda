@@ -50,7 +50,7 @@ func createDefaultConfig() component.Config {
 	}
 }
 
-func createTracesProcessor(ctx context.Context, params processor.CreateSettings, rConf component.Config, next consumer.Traces) (processor.Traces, error) {
+func createTracesProcessor(ctx context.Context, params processor.Settings, rConf component.Config, next consumer.Traces) (processor.Traces, error) {
 	cfg, ok := rConf.(*Config)
 	if !ok {
 		return nil, errConfigNotDecouple
@@ -60,7 +60,7 @@ func createTracesProcessor(ctx context.Context, params processor.CreateSettings,
 	if err != nil {
 		return nil, err
 	}
-	return processorhelper.NewTracesProcessor(
+	return processorhelper.NewTraces(
 		ctx,
 		params,
 		cfg,
@@ -71,7 +71,7 @@ func createTracesProcessor(ctx context.Context, params processor.CreateSettings,
 	)
 }
 
-func createMetricsProcessor(ctx context.Context, params processor.CreateSettings, rConf component.Config, next consumer.Metrics) (processor.Metrics, error) {
+func createMetricsProcessor(ctx context.Context, params processor.Settings, rConf component.Config, next consumer.Metrics) (processor.Metrics, error) {
 	cfg, ok := rConf.(*Config)
 	if !ok {
 		return nil, errConfigNotDecouple
@@ -81,7 +81,7 @@ func createMetricsProcessor(ctx context.Context, params processor.CreateSettings
 		return nil, err
 	}
 
-	return processorhelper.NewMetricsProcessor(
+	return processorhelper.NewMetrics(
 		ctx,
 		params,
 		cfg,
@@ -92,7 +92,7 @@ func createMetricsProcessor(ctx context.Context, params processor.CreateSettings
 	)
 }
 
-func createLogsProcessor(ctx context.Context, params processor.CreateSettings, rConf component.Config, next consumer.Logs) (processor.Logs, error) {
+func createLogsProcessor(ctx context.Context, params processor.Settings, rConf component.Config, next consumer.Logs) (processor.Logs, error) {
 	cfg, ok := rConf.(*Config)
 	if !ok {
 		return nil, errConfigNotDecouple
@@ -102,7 +102,7 @@ func createLogsProcessor(ctx context.Context, params processor.CreateSettings, r
 		return nil, err
 	}
 
-	return processorhelper.NewLogsProcessor(
+	return processorhelper.NewLogs(
 		ctx,
 		params,
 		cfg,

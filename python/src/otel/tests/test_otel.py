@@ -21,10 +21,10 @@ import fileinput
 import os
 import subprocess
 import sys
-from importlib import import_module
+from importlib import import_module, reload
 from shutil import which
 from unittest import mock
-
+from opentelemetry import propagate
 from opentelemetry.environment_variables import OTEL_PROPAGATORS
 from opentelemetry.instrumentation.aws_lambda import (
     _HANDLER,
@@ -209,9 +209,13 @@ class TestAwsLambdaInstrumentor(TestBase):
                 **os.environ,
                 # Using Active tracing
                 _X_AMZN_TRACE_ID: MOCK_XRAY_TRACE_CONTEXT_SAMPLED,
+                OTEL_PROPAGATORS: "xray-lambda"
             },
         )
         test_env_patch.start()
+
+        # try to load propagators based on the OTEL_PROPAGATORS env var
+        reload(propagate)
 
         mock_execute_lambda()
 
@@ -265,6 +269,9 @@ class TestAwsLambdaInstrumentor(TestBase):
             },
         )
         test_env_patch.start()
+
+        # try to load propagators based on the OTEL_PROPAGATORS env var
+        reload(propagate)
 
         mock_execute_lambda(
             {

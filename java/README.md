@@ -4,7 +4,8 @@ Layers for running Java applications on AWS Lambda with OpenTelemetry.
 
 ## Prerequisites
 
-- Supports Lambda functions using Java 8, 11, and 17 (Corretto) runtime only.
+- Supports Lambda functions using Java 8 (java8.al2) and later
+- The deprecated runtime Java 8 (java8) is not supported as it does not support [exec wrappers](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-modify.html#runtime-wrapper).
 
 ## Provided layers
 

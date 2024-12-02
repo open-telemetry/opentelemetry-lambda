@@ -1,5 +1,7 @@
-import type { AwsSdkInstrumentationConfig } from "@opentelemetry/instrumentation-aws-sdk";
-import { stub } from "sinon";
+import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
+import { stub } from 'sinon';
+
+import { wrap, unwrap } from '../src/wrapper';
 
 declare global {
   function configureAwsInstrumentation(
@@ -7,17 +9,25 @@ declare global {
   ): AwsSdkInstrumentationConfig;
 }
 
-const assert = require("assert");
+const assert = require('assert');
 
-describe("wrapper", () => {
-  describe("configureAwsInstrumentation", () => {
-    it("is used if defined", () => {
+describe('wrapper', () => {
+  beforeEach(() => {
+    unwrap();
+  });
+
+  afterEach(() => {
+    unwrap();
+  });
+
+  describe('configureAwsInstrumentation', () => {
+    it('is used if defined', () => {
       const configureAwsInstrumentationStub = stub().returns({
         suppressInternalInstrumentation: true,
       });
       global.configureAwsInstrumentation = configureAwsInstrumentationStub;
-      require("../src/wrapper");
+      wrap();
       assert(configureAwsInstrumentationStub.calledOnce);
-    }).timeout(10000);
+    });
   });
 });
