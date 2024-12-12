@@ -73,3 +73,19 @@ jobs:
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
+
+  update-release:
+    runs-on: ubuntu-latest
+    needs: publish-layer
+    steps:
+      - name: Append Layer ARNs to Release Body
+        run: |
+          ARCHITECTURE=${{ matrix.architecture }}
+          COLLECTOR_VERSION=${{ needs.build-layer.outputs.COLLECTOR_VERSION }}
+          MESSAGE="Layer ARN:\narn:aws:lambda:<region>:486140753397:layer:logzio-opentelemetry-collector-$ARCHITECTURE-$COLLECTOR_VERSION:1"
+
+          gh release view ${{ github.ref_name }} --json body -q .body > release_body.md
+          echo -e "\n$MESSAGE" >> release_body.md
+          gh release edit ${{ github.ref_name }} --notes-file release_body.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
