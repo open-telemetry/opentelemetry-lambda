@@ -64,7 +64,7 @@ jobs:
             LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
           fi
 
-          LAYER_VERSION=$(cat collector/VERSION)
+          LAYER_VERSION=$(cat VERSION)
           LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
 
           LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
