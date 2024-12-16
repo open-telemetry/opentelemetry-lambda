@@ -4,23 +4,23 @@ on:
   workflow_call:
     inputs:
       artifact-name:
-        description: 'This should correspond to a actions/upload-artifact name earlier in the build. The file name and the name of the artifact containing it must be equal.'
+        description: "This should correspond to a actions/upload-artifact name earlier in the build. The file name and the name of the artifact containing it must be equal."
         required: true
         type: string
       layer-name:
-        description: 'Layer name not including other parts like arch or version.'
+        description: "Layer name not including other parts like arch or version."
         required: true
         type: string
       component-version:
-        description: 'Version of the component included in this release. Not the same as the layer/tagged version.'
+        description: "Version of the component included in this release. Not the same as the layer/tagged version."
         required: true
         type: string
       architecture:
-        description: '(optional) amd64 or arm64'
+        description: "(optional) amd64 or arm64"
         required: false
         type: string
       runtimes:
-        description: '(optional) a space delimited list of compatible runtimes (from https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html)'
+        description: "(optional) a space delimited list of compatible runtimes (from https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html)"
         required: false
         type: string
       release-group:
@@ -29,7 +29,7 @@ on:
         default: dev
         type: string
       aws_region:
-        description: 'Publish to which AWS region?'
+        description: "Publish to which AWS region?"
         required: true
         type: string
       role-arn:
@@ -49,14 +49,12 @@ jobs:
     permissions:
       id-token: write # required for AWS OIDC authentication
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Construct Layer Name
         shell: bash
         run: |
           LAYER_NAME=${{ inputs.layer-name }}
-          
+
           if [[ -n "${{ inputs.architecture }}" ]]; then
             LAYER_NAME=$LAYER_NAME-${{ inputs.architecture }}
             ARCH=$(echo "${{ inputs.architecture }}" | sed -r 's/amd64/x86_64/g')
@@ -64,7 +62,7 @@ jobs:
             ARCH="x86_64 arm64"
           fi
           echo "ARCH=$ARCH" >> $GITHUB_ENV
-          
+
           if [[ -n "${{ inputs.runtimes }}" ]]; then
             COMPATIBLE_RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
           fi
@@ -85,7 +83,7 @@ jobs:
             LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
           fi
           echo "LAYER_NAME=$LAYER_NAME" >> $GITHUB_ENV
-          
+
           echo GITHUB_ENV:
           cat $GITHUB_ENV
 
