@@ -40,7 +40,6 @@ permissions:
 jobs:
   publish_layer:
     runs-on: ubuntu-latest
-
     steps:
       - name: Construct Layer Name
         shell: bash
