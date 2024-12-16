@@ -65,9 +65,12 @@ jobs:
           fi
 
           CLEAN_VERSION=$(echo "${{ inputs.component-version }}" | sed -r 's/\./_/g')
+          echo "::notice $CLEAN_VERSION"
 
           LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
           echo "LAYER_NAME=$LAYER_NAME" >> $GITHUB_ENV
+
+          echo "::notice $LAYER_NAME"
 
           echo GITHUB_ENV:
           cat $GITHUB_ENV
