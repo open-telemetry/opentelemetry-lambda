@@ -85,7 +85,7 @@ jobs:
         run: |
           COLLECTOR_VERSION=${{ needs.build-layer.outputs.COLLECTOR_VERSION }}
 
-          MESSAGE="### Lambda Layers for OpenTelemetry Collector (v${COLLECTOR_VERSION})\n\n"
+          MESSAGE="### Lambda Layers for OpenTelemetry Collector (${COLLECTOR_VERSION})\n\n"
           MESSAGE+="The following Lambda layers are available for this release. Use the appropriate ARN for your Lambda architecture:\n\n"
           MESSAGE+="#### 🖥️ **amd64 (x86_64)**\n"
           MESSAGE+="\`\`\`\n"
