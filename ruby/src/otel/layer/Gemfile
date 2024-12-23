@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'opentelemetry-sdk', '~> 1.5.0'
+gem 'opentelemetry-sdk', '~> 1.6.0'
 gem 'opentelemetry-exporter-otlp', '~> 0.29.0'
 gem 'opentelemetry-instrumentation-aws_lambda', '~> 0.1.0'
