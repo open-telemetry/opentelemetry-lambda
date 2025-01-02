@@ -5,7 +5,7 @@ module "hello-lambda-function" {
   architectures = compact([var.architecture])
   function_name = var.name
   handler       = "index.handler"
-  runtime       = "nodejs16.x"
+  runtime       = var.runtime
 
   create_package         = false
   local_existing_package = "${path.module}/../../build/function.zip"
@@ -51,4 +51,3 @@ module "api-gateway" {
   function_invoke_arn = module.hello-lambda-function.lambda_function_invoke_arn
   enable_xray_tracing = var.tracing_mode == "Active"
 }
-
