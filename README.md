@@ -19,6 +19,7 @@ Some layers include the corresponding OTel language SDK for the Lambda. This all
 * ### [NodeJS + Collector Lambda Layer](nodejs/README.md)
 * ### [.NET + Collector Lambda Layer](dotnet/README.md)
 * ### [Ruby + Collector Lambda Layer](ruby/README.md)
+* ### [Go + Collector Lambda Layer](go/README.md)
 * ### [Collector Lambda Layer](collector/README.md)
 
 ## FAQ
