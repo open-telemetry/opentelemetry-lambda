@@ -92,14 +92,14 @@ declare global {
 }
 
 function getActiveInstumentations(): Set<string> {
-  let emabledInstrumentations: string[] = defaultInstrumentationList;
+  let enabledInstrumentations: string[] = defaultInstrumentationList;
   if (process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS) {
-    emabledInstrumentations =
+    enabledInstrumentations =
       process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS.split(',').map(i =>
         i.trim(),
       );
   }
-  const instrumentationSet = new Set<string>(emabledInstrumentations);
+  const instrumentationSet = new Set<string>(enabledInstrumentations);
   if (process.env.OTEL_NODE_DISABLED_INSTRUMENTATIONS) {
     const disableInstrumentations =
       process.env.OTEL_NODE_DISABLED_INSTRUMENTATIONS.split(',').map(i =>
