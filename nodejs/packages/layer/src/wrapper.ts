@@ -1,32 +1,4 @@
 import {
-  NodeTracerConfig,
-  NodeTracerProvider,
-} from '@opentelemetry/sdk-trace-node';
-import {
-  BatchSpanProcessor,
-  ConsoleSpanExporter,
-  SDKRegistrationConfig,
-  SimpleSpanProcessor,
-} from '@opentelemetry/sdk-trace-base';
-import {
-  Instrumentation,
-  registerInstrumentations,
-} from '@opentelemetry/instrumentation';
-import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
-import {
-  detectResourcesSync,
-  envDetector,
-  processDetector,
-} from '@opentelemetry/resources';
-import {
-  AwsInstrumentation,
-  AwsSdkInstrumentationConfig,
-} from '@opentelemetry/instrumentation-aws-sdk';
-import {
-  AwsLambdaInstrumentation,
-  AwsLambdaInstrumentationConfig,
-} from '@opentelemetry/instrumentation-aws-lambda';
-import {
   context,
   diag,
   DiagConsoleLogger,
@@ -35,23 +7,51 @@ import {
   propagation,
   trace,
 } from '@opentelemetry/api';
+import { logs } from '@opentelemetry/api-logs';
 import { getEnv } from '@opentelemetry/core';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import {
+  BatchSpanProcessor,
+  ConsoleSpanExporter,
+  SDKRegistrationConfig,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
+import {
+  NodeTracerConfig,
+  NodeTracerProvider,
+} from '@opentelemetry/sdk-trace-node';
 import {
   MeterProvider,
   MeterProviderOptions,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
-import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import {
   LoggerProvider,
   SimpleLogRecordProcessor,
   ConsoleLogRecordExporter,
   LoggerProviderConfig,
 } from '@opentelemetry/sdk-logs';
-import { logs } from '@opentelemetry/api-logs';
+import {
+  detectResourcesSync,
+  envDetector,
+  processDetector,
+} from '@opentelemetry/resources';
+import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
+import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import {
+  Instrumentation,
+  registerInstrumentations,
+} from '@opentelemetry/instrumentation';
+import {
+  AwsInstrumentation,
+  AwsSdkInstrumentationConfig,
+} from '@opentelemetry/instrumentation-aws-sdk';
+import {
+  AwsLambdaInstrumentation,
+  AwsLambdaInstrumentationConfig,
+} from '@opentelemetry/instrumentation-aws-lambda';
 
 function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation
