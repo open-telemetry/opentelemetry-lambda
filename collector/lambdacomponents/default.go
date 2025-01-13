@@ -17,16 +17,20 @@
 package lambdacomponents
 
 import (
+	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/logzioexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
+	"go.opentelemetry.io/collector/connector"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -73,6 +77,8 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		coldstartprocessor.NewFactory(),
 		decoupleprocessor.NewFactory(),
 		batchprocessor.NewFactory(),
+		tailsamplingprocessor.NewFactory(),
+		metricstransformprocessor.NewFactory(),
 	)
 	if err != nil {
 		errs = append(errs, err)
@@ -86,11 +92,16 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		errs = append(errs, err)
 	}
 
+	connectors, err := connector.MakeFactoryMap(
+		spanmetricsconnector.NewFactory(),
+	)
+
 	factories := otelcol.Factories{
 		Receivers:  receivers,
 		Exporters:  exporters,
 		Processors: processors,
 		Extensions: extensions,
+		Connectors: connectors,
 	}
 
 	return factories, multierr.Combine(errs...)
