@@ -180,7 +180,7 @@ func (e *Client) doRequest(req *http.Request, out interface{}) (*http.Response, 
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return nil, fmt.Errorf("request failed with status %s", resp.Status)
 	}
 	defer resp.Body.Close()
