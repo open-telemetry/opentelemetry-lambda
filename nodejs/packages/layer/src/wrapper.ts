@@ -53,56 +53,21 @@ import {
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
 
-function defaultConfigureInstrumentations() {
-  // Use require statements for instrumentation
-  // to avoid having to have transitive dependencies on all the typescript definitions.
-  const { DnsInstrumentation } = require('@opentelemetry/instrumentation-dns');
-  const {
-    ExpressInstrumentation,
-  } = require('@opentelemetry/instrumentation-express');
-  const {
-    GraphQLInstrumentation,
-  } = require('@opentelemetry/instrumentation-graphql');
-  const {
-    GrpcInstrumentation,
-  } = require('@opentelemetry/instrumentation-grpc');
-  const {
-    HapiInstrumentation,
-  } = require('@opentelemetry/instrumentation-hapi');
-  const {
-    HttpInstrumentation,
-  } = require('@opentelemetry/instrumentation-http');
-  const {
-    IORedisInstrumentation,
-  } = require('@opentelemetry/instrumentation-ioredis');
-  const { KoaInstrumentation } = require('@opentelemetry/instrumentation-koa');
-  const {
-    MongoDBInstrumentation,
-  } = require('@opentelemetry/instrumentation-mongodb');
-  const {
-    MySQLInstrumentation,
-  } = require('@opentelemetry/instrumentation-mysql');
-  const { NetInstrumentation } = require('@opentelemetry/instrumentation-net');
-  const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
-  const {
-    RedisInstrumentation,
-  } = require('@opentelemetry/instrumentation-redis');
-  return [
-    new DnsInstrumentation(),
-    new ExpressInstrumentation(),
-    new GraphQLInstrumentation(),
-    new GrpcInstrumentation(),
-    new HapiInstrumentation(),
-    new HttpInstrumentation(),
-    new IORedisInstrumentation(),
-    new KoaInstrumentation(),
-    new MongoDBInstrumentation(),
-    new MySQLInstrumentation(),
-    new NetInstrumentation(),
-    new PgInstrumentation(),
-    new RedisInstrumentation(),
-  ];
-}
+const defaultInstrumentationList = [
+  'dns',
+  'express',
+  'graphql',
+  'grpc',
+  'hapi',
+  'http',
+  'ioredis',
+  'koa',
+  'mongodb',
+  'mysql',
+  'net',
+  'pg',
+  'redis',
+];
 
 declare global {
   // In case of downstream configuring span processors etc
@@ -124,6 +89,109 @@ declare global {
     config: AwsLambdaInstrumentationConfig,
   ): AwsLambdaInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
+}
+
+function getActiveInstumentations(): Set<string> {
+  let enabledInstrumentations: string[] = defaultInstrumentationList;
+  if (process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS) {
+    enabledInstrumentations =
+      process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS.split(',').map(i =>
+        i.trim(),
+      );
+  }
+  const instrumentationSet = new Set<string>(enabledInstrumentations);
+  if (process.env.OTEL_NODE_DISABLED_INSTRUMENTATIONS) {
+    const disableInstrumentations =
+      process.env.OTEL_NODE_DISABLED_INSTRUMENTATIONS.split(',').map(i =>
+        i.trim(),
+      );
+    disableInstrumentations.forEach(di => instrumentationSet.delete(di));
+  }
+  return instrumentationSet;
+}
+
+function defaultConfigureInstrumentations() {
+  const instrumentations = [];
+  const activeInstrumentations = getActiveInstumentations();
+  // Use require statements for instrumentation
+  // to avoid having to have transitive dependencies on all the typescript definitions.
+  if (activeInstrumentations.has('dns')) {
+    const {
+      DnsInstrumentation,
+    } = require('@opentelemetry/instrumentation-dns');
+    instrumentations.push(new DnsInstrumentation());
+  }
+  if (activeInstrumentations.has('express')) {
+    const {
+      ExpressInstrumentation,
+    } = require('@opentelemetry/instrumentation-express');
+    instrumentations.push(new ExpressInstrumentation());
+  }
+  if (activeInstrumentations.has('graphql')) {
+    const {
+      GraphQLInstrumentation,
+    } = require('@opentelemetry/instrumentation-graphql');
+    instrumentations.push(new GraphQLInstrumentation());
+  }
+  if (activeInstrumentations.has('grpc')) {
+    const {
+      GrpcInstrumentation,
+    } = require('@opentelemetry/instrumentation-grpc');
+    instrumentations.push(new GrpcInstrumentation());
+  }
+  if (activeInstrumentations.has('hapi')) {
+    const {
+      HapiInstrumentation,
+    } = require('@opentelemetry/instrumentation-hapi');
+    instrumentations.push(new HapiInstrumentation());
+  }
+  if (activeInstrumentations.has('http')) {
+    const {
+      HttpInstrumentation,
+    } = require('@opentelemetry/instrumentation-http');
+    instrumentations.push(new HttpInstrumentation());
+  }
+  if (activeInstrumentations.has('ioredis')) {
+    const {
+      IORedisInstrumentation,
+    } = require('@opentelemetry/instrumentation-ioredis');
+    instrumentations.push(new IORedisInstrumentation());
+  }
+  if (activeInstrumentations.has('koa')) {
+    const {
+      KoaInstrumentation,
+    } = require('@opentelemetry/instrumentation-koa');
+    instrumentations.push(new KoaInstrumentation());
+  }
+  if (activeInstrumentations.has('mongodb')) {
+    const {
+      MongoDBInstrumentation,
+    } = require('@opentelemetry/instrumentation-mongodb');
+    instrumentations.push(new MongoDBInstrumentation());
+  }
+  if (activeInstrumentations.has('mysql')) {
+    const {
+      MySQLInstrumentation,
+    } = require('@opentelemetry/instrumentation-mysql');
+    instrumentations.push(new MySQLInstrumentation());
+  }
+  if (activeInstrumentations.has('net')) {
+    const {
+      NetInstrumentation,
+    } = require('@opentelemetry/instrumentation-net');
+    instrumentations.push(new NetInstrumentation());
+  }
+  if (activeInstrumentations.has('pg')) {
+    const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
+    instrumentations.push(new PgInstrumentation());
+  }
+  if (activeInstrumentations.has('redis')) {
+    const {
+      RedisInstrumentation,
+    } = require('@opentelemetry/instrumentation-redis');
+    instrumentations.push(new RedisInstrumentation());
+  }
+  return instrumentations;
 }
 
 function createInstrumentations() {
