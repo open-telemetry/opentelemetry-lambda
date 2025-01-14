@@ -110,3 +110,11 @@ jobs:
             --principal "*" \
             --statement-id publish \
             --action lambda:GetLayerVersion
+          echo "${LAYER_VERSION}" > layer-version.txt
+
+      - name: Upload Layer Version artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ inputs.architecture == 'amd64' && inputs.aws_region == 'us-east-1' }}
+        with:
+          name: layer-version
+          path: layer-version.txt
