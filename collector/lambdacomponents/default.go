@@ -36,6 +36,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
@@ -98,6 +99,14 @@ func Components(extensionID string) (otelcol.Factories, error) {
 	connectors, err := connector.MakeFactoryMap(
 		spanmetricsconnector.NewFactory(),
 	)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	err = featuregate.GlobalRegistry().Set("connector.spanmetrics.legacyMetricNames", true)
+	if err != nil {
+		errs = append(errs, err)
+	}
 
 	factories := otelcol.Factories{
 		Receivers:  receivers,
