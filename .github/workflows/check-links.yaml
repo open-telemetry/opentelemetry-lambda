@@ -22,7 +22,7 @@ jobs:
       - name: Get changed files
         id: changes
         run: |
-          echo "md=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | xargs)" >> $GITHUB_OUTPUT
+          echo "md=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | grep -v README.md | xargs)" >> $GITHUB_OUTPUT
 
   check-links:
     runs-on: ubuntu-latest

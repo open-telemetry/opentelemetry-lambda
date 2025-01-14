@@ -180,6 +180,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.113
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/filter v0.113.0/go.mod h1:sYIh0S63ztcL2q9gEKhvviDQ5caH1sFE1oeFRDQOQ6A=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.113.0 h1:V9CRl77lPG2xFPpnRf1QLiePo7FZngt+vw6M2KLdRMU=
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.113.0/go.mod h1:zL+Msnlb1TEObHQ2RNnPKbVr3GhSdyI2ZqGtiSxg2/E=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.113.0 h1:5YU2trp7n56EyDS9dEyY1UxyaW6wxB4KiyKoyjDYooo=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.113.0/go.mod h1:EBtBK1lE/HMUz51cafBLlJAXZ/2ZDRCV4C+rT04fMYM=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.113.0 h1:e2WOkaj5AWPaKTU4l+GEXGrEUbrAhQPQ7zLUdnXLGX8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.113.0/go.mod h1:x+DR/o7xddbdhpQP2QKBJkPUdrj2tl/uR1OJ/sqlrWc=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.113.0 h1:GERkhEtH3Uk8CMBzFoBmMD7fBfcrtIM9hopbQqzdvNs=
@@ -200,12 +202,16 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributespr
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.113.0/go.mod h1:U0wBuG6Jz+DBzcPNCmRVZaZTXqaKC+RYo4eJiSKJwwk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.113.0 h1:+eYxV9vp6u8fKM+9acEJYGUa3SD1vJF776c/haougNQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.113.0/go.mod h1:xSVeb2A5wmIuJ9Vak9UwPCP/yN1SDd+pBKfYHROW6YE=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.113.0 h1:MN9P2YH7SUTLxQqGEmLsTKJ77qCSXBxHFE3seJxjH14=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/metricstransformprocessor v0.113.0/go.mod h1:2WUdA+8uuoNLofhsNDHLyejeVpVzAvyHMVw3jWpvOGE=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.113.0 h1:zDScLkNf/llyiH1cjpVv5PhJAT5AcHIXCB35zW5jsbM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.113.0/go.mod h1:S+GR7FZJYtFBnbjgD737QImuvm8d4+PBccpI0Xrda4E=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.113.0 h1:Syf4U5GrSl2fOGXBAChHrdSvMRBhi7BFiDwKbFkNo/8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.113.0/go.mod h1:Q9shex5tQOoK4FeVx0NvYkwu18hCPFlRnwqqQzLfbpo=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.113.0 h1:fvasZ3NNW+O5pVnDTF4+WuscMLQQRbUROhK7McVjRD8=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.113.0/go.mod h1:AESjWVG6+DrQKX1xFnChVKlNiSHi8gwX4k7kAQJfnSo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.113.0 h1:vgYhhliqQ6WUy5b1BE0ILJQKTweaLDPI5l/bUIunqLo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.113.0/go.mod h1:UG/8zqyqbdN0HHkiWC7GZW4wFL4GIyRtsshc1RY8bGo=
 github.com/pierrec/lz4/v4 v4.1.21 h1:yOVMLb6qSIDP67pl/5F7RepeKYu/VmTyEXvuMI5d9mQ=
 github.com/pierrec/lz4/v4 v4.1.21/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
