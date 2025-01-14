@@ -87,7 +87,7 @@ jobs:
           - us-west-2
     with:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
-      layer-name: opentelemetry-collector
+      layer-name: logzio-opentelemetry-collector
       component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
       architecture: ${{ matrix.architecture }}
       release-group: prod
