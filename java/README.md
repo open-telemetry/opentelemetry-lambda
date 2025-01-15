@@ -75,7 +75,7 @@ To build the wrapper layer, run
 ./gradlew :layer-wrapper:build
 ```
 
-The layer zip file will be present at `./layer-wrapper/build/distributions/opentelemetry-java-wrapper.zip`.
+The layer zip file will be present at `./layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip`.
 
 ## Sample applications
 
