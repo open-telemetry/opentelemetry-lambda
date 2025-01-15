@@ -16,15 +16,13 @@ import {
   W3CTraceContextPropagator,
 } from '@opentelemetry/core';
 import {
+  BasicTracerProvider,
   BatchSpanProcessor,
   ConsoleSpanExporter,
   SDKRegistrationConfig,
   SimpleSpanProcessor,
+  TracerConfig,
 } from '@opentelemetry/sdk-trace-base';
-import {
-  NodeTracerConfig,
-  NodeTracerProvider,
-} from '@opentelemetry/sdk-trace-node';
 import {
   MeterProvider,
   MeterProviderOptions,
@@ -60,6 +58,8 @@ import {
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
+import { LambdaTracerProvider } from './LambdaTracerProvider';
+
 const defaultInstrumentationList = [
   'dns',
   'express',
@@ -88,8 +88,8 @@ declare global {
   function configureAwsInstrumentation(
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
-  function configureTracerProvider(tracerProvider: NodeTracerProvider): void;
-  function configureTracer(defaultConfig: NodeTracerConfig): NodeTracerConfig;
+  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
+  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
   function configureSdkRegistration(
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
@@ -269,14 +269,14 @@ function initializeProvider() {
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  let config: NodeTracerConfig = {
+  let config: TracerConfig = {
     resource,
   };
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
   }
 
-  const tracerProvider = new NodeTracerProvider(config);
+  const tracerProvider = new LambdaTracerProvider(config);
   if (typeof configureTracerProvider === 'function') {
     configureTracerProvider(tracerProvider);
   } else {
