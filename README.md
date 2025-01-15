@@ -23,10 +23,11 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 * ### [Python Lambda Layer](python/README.md)
 * ### [Java Lambda Layer](java/README.md)
 * ### [NodeJS Lambda Layer](nodejs/README.md)
-* ### [.NET Lambda Layer](dotnet/README.md)
 * ### [Ruby Lambda Layer](ruby/README.md)
-* ### [Go Lambda Layer](go/README.md)
 
+## Additional language tooling not currently supported
+* ### [Go Lambda Library](go/README.md)
+* ### [.NET Lambda Layer](dotnet/README.md)
 
 ## FAQ
 

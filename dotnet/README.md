@@ -1,6 +1,6 @@
 # OpenTelemetry Lambda .NET
 
-Nuget package and layer for running .NET applications on AWS Lambda with OpenTelemetry.
+Nuget package for running .NET applications on AWS Lambda with OpenTelemetry.
 
 ## Provided SDK
 
