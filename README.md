@@ -8,19 +8,26 @@
 
 ## OpenTelemetry Lambda Layers
 
-The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambda functions. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/).
+The OpenTelemetry Lambda Layers provide the OpenTelemetry (OTel) code to export telemetry asynchronously from AWS Lambda functions. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Lambda Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). This allows Lambda functions to use OpenTelemetry to send traces and metrics to any configured backend.
 
-Some layers include the corresponding OTel language SDK for the Lambda. This allows Lambda functions to use OpenTelemetry to send traces and metrics to any configured backend.
+There are 2 types of lambda layers
+1. Collector Layer - Embeds a stripped down version of the OpenTelemetry Collector
+2. Language Specific Layer - Includes language specific nuances to allow lambda functions to automatically consume context from upstream callers, create spans, and automatically instrument the AWS SDK
+
+These 2 layers are meant to be used in conjunction to instrument your lambda functions. The reason that the collector is not embedded in specific language layers is to give users flexibility
+
+## Collector Layer
+* ### [Collector Lambda Layer](collector/README.md)
 
 ## Extension Layer Language Support
+* ### [Python Lambda Layer](python/README.md)
+* ### [Java Lambda Layer](java/README.md)
+* ### [NodeJS Lambda Layer](nodejs/README.md)
+* ### [Ruby Lambda Layer](ruby/README.md)
 
-* ### [Python + Collector Lambda Layer](python/README.md)
-* ### [Java + Collector Lambda Layer](java/README.md)
-* ### [NodeJS + Collector Lambda Layer](nodejs/README.md)
-* ### [.NET + Collector Lambda Layer](dotnet/README.md)
-* ### [Ruby + Collector Lambda Layer](ruby/README.md)
-* ### [Go + Collector Lambda Layer](go/README.md)
-* ### [Collector Lambda Layer](collector/README.md)
+## Additional language tooling not currently supported
+* ### [Go Lambda Library](go/README.md)
+* ### [.NET Lambda Layer](dotnet/README.md)
 
 ## FAQ
 
