@@ -1,0 +1,27 @@
+name: "Manual Build (Collector)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [ amd64, arm64 ]
+    outputs:
+      COLLECTOR_VERSION: ${{ steps.save-collector-version.outputs.COLLECTOR_VERSION }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.21.9'
+      - name: Build Collector
+        run: make -C collector package GOARCH=${{ matrix.architecture }}
+      - name: Upload Collector Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
