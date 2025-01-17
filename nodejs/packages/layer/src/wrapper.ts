@@ -5,20 +5,24 @@ import {
   DiagLogLevel,
   metrics,
   propagation,
+  TextMapPropagator,
   trace,
 } from '@opentelemetry/api';
 import { logs } from '@opentelemetry/api-logs';
-import { getEnv } from '@opentelemetry/core';
 import {
+  CompositePropagator,
+  getEnv,
+  W3CBaggagePropagator,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
+import {
+  BasicTracerProvider,
   BatchSpanProcessor,
   ConsoleSpanExporter,
   SDKRegistrationConfig,
   SimpleSpanProcessor,
+  TracerConfig,
 } from '@opentelemetry/sdk-trace-base';
-import {
-  NodeTracerConfig,
-  NodeTracerProvider,
-} from '@opentelemetry/sdk-trace-node';
 import {
   MeterProvider,
   MeterProviderOptions,
@@ -36,7 +40,6 @@ import {
   processDetector,
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
-import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
@@ -52,6 +55,10 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
+import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
+import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
+
+import { LambdaTracerProvider } from './LambdaTracerProvider';
 
 const defaultInstrumentationList = [
   'dns',
@@ -69,13 +76,20 @@ const defaultInstrumentationList = [
   'redis',
 ];
 
+const propagatorMap = new Map<string, () => TextMapPropagator>([
+  ['tracecontext', () => new W3CTraceContextPropagator()],
+  ['baggage', () => new W3CBaggagePropagator()],
+  ['xray', () => new AWSXRayPropagator()],
+  ['xray-lambda', () => new AWSXRayLambdaPropagator()],
+]);
+
 declare global {
   // In case of downstream configuring span processors etc
   function configureAwsInstrumentation(
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
-  function configureTracerProvider(tracerProvider: NodeTracerProvider): void;
-  function configureTracer(defaultConfig: NodeTracerConfig): NodeTracerConfig;
+  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
+  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
   function configureSdkRegistration(
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
@@ -212,19 +226,57 @@ function createInstrumentations() {
   ];
 }
 
+function getPropagator(): TextMapPropagator {
+  if (
+    process.env.OTEL_PROPAGATORS == null ||
+    process.env.OTEL_PROPAGATORS.trim() === ''
+  ) {
+    return new CompositePropagator({
+      propagators: [
+        new W3CTraceContextPropagator(),
+        new W3CBaggagePropagator(),
+      ],
+    });
+  }
+  const propagatorsFromEnv = Array.from(
+    new Set(
+      process.env.OTEL_PROPAGATORS?.split(',').map(value =>
+        value.toLowerCase().trim(),
+      ),
+    ),
+  );
+  const propagators = propagatorsFromEnv.flatMap(propagatorName => {
+    if (propagatorName === 'none') {
+      diag.info(
+        'Not selecting any propagator for value "none" specified in the environment variable OTEL_PROPAGATORS',
+      );
+      return [];
+    }
+    const propagatorFactoryFunction = propagatorMap.get(propagatorName);
+    if (propagatorFactoryFunction == null) {
+      diag.warn(
+        `Invalid propagator "${propagatorName}" specified in the environment variable OTEL_PROPAGATORS`,
+      );
+      return [];
+    }
+    return propagatorFactoryFunction();
+  });
+  return new CompositePropagator({ propagators });
+}
+
 function initializeProvider() {
   const resource = detectResourcesSync({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  let config: NodeTracerConfig = {
+  let config: TracerConfig = {
     resource,
   };
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
   }
 
-  const tracerProvider = new NodeTracerProvider(config);
+  const tracerProvider = new LambdaTracerProvider(config);
   if (typeof configureTracerProvider === 'function') {
     configureTracerProvider(tracerProvider);
   } else {
