@@ -20,6 +20,8 @@ github.com/aws/aws-sdk-go-v2/credentials v1.17.47 h1:48bA+3/fCdi2yAwVt+3COvmatZ6
 github.com/aws/aws-sdk-go-v2/credentials v1.17.47/go.mod h1:+KdckOejLW3Ks3b0E3b5rHsr2f9yuORBum0WPnE5o5w=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.21 h1:AmoU1pziydclFT/xRV+xXE/Vb8fttJCLRPv8oAkprc0=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.21/go.mod h1:AjUdLYe4Tgs6kpH4Bv7uMZo7pottoyHMn4eTcIcneaY=
+github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.43 h1:iLdpkYZ4cXIQMO7ud+cqMWR1xK5ESbt1rvN77tRi1BY=
+github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.43/go.mod h1:OgbsKPAswXDd5kxnR4vZov69p3oYjbvUyIRBAAV0y9o=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.25 h1:s/fF4+yDQDoElYhfIVvSNyeCydfbuTKzhxSXDXCPasU=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.25/go.mod h1:IgPfDv5jqFIzQSNbUEMoitNooSMXjRSDkhXv8jiROvU=
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.25 h1:ZntTCl5EsYnhN/IygQEUugpdwbhdkom9uHcbCftiGgA=
@@ -164,6 +166,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secre
 github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.116.0/go.mod h1:o5vVMl/Bl1hLCPz8qZZLjmUaYlLbGL6xpXV5zEHe2gI=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.116.0 h1:XFLkYR1xXwxapNuS0IrahYoHaaJxTyt5Kt3tHNCwHsc=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.116.0/go.mod h1:1kppUKh6r44eoCCuNTTCz3o2HIZXAhDvBxSFvDs0kwo=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.116.0 h1:E/Lou5O/hhP2ti0wZ8eyXCqEPepaqmOPf5G2INXxSCU=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.116.0/go.mod h1:MlQ89zsPv9LVqXVllrp9ukc9S7sqC+446jbAYg7JUQY=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.116.0 h1:kDPTGIKqGR52zV0vvGtJUi/dLgGO9lPCAJY+oUkO8gU=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.116.0/go.mod h1:9DGVPNNo9jsJkwNG2PFlXM/NPd/rx9KG5nOmjva9CyA=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.116.0 h1:hL41C0+5mDDJ/ZcvAaMx7HuPR8DSXh619aXZRlwL5S8=
@@ -202,6 +206,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceproc
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.116.0/go.mod h1:H1T/KD5SwsI/dQlavg0Bo+6gXuRYyxo0qdmCdLVbT0w=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.116.0 h1:gWROitbdyfTt2HJYZQOJse5ii2nO5qvc3hhDzST8d48=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.116.0/go.mod h1:E+vLogB2REjq4+4yGqEer0eCSbSDMBNEvvx3BfFQgE0=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.116.0 h1:a48/8x5VSZSSBkdifVC0mSgNtdJ0M0GcRtX98VVd4nk=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.116.0/go.mod h1:5MKetAGO0XkoZSqdoZhfxSoFq3hn7zmEYF4Yjf+i+CI=
 github.com/pierrec/lz4/v4 v4.1.21 h1:yOVMLb6qSIDP67pl/5F7RepeKYu/VmTyEXvuMI5d9mQ=
 github.com/pierrec/lz4/v4 v4.1.21/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
@@ -246,6 +252,8 @@ github.com/tidwall/tinylru v1.1.0 h1:XY6IUfzVTU9rpwdhKUF6nQdChgCdGjkMfLzbWyiau6I
 github.com/tidwall/tinylru v1.1.0/go.mod h1:3+bX+TJ2baOLMWTnlyNWHh4QMnFyARg2TLTQ6OFbzw8=
 github.com/tidwall/wal v1.1.8 h1:2qDSGdAdjaY3PEvHRva+9UFqgk+ef7cOiW1Qn5JH1y0=
 github.com/tidwall/wal v1.1.8/go.mod h1:r6lR1j27W9EPalgHiB7zLJDYu3mzW5BQP5KrzBpYY/E=
+github.com/tilinna/clock v1.1.0 h1:6IQQQCo6KoBxVudv6gwtY8o4eDfhHo8ojA5dP0MfhSs=
+github.com/tilinna/clock v1.1.0/go.mod h1:ZsP7BcY7sEEz7ktc0IVy8Us6boDrK8VradlKRUGfOao=
 github.com/tklauser/go-sysconf v0.3.12 h1:0QaGUFOdQaIVdPgfITYzaTegZvdCjmYO52cSFAEVmqU=
 github.com/tklauser/go-sysconf v0.3.12/go.mod h1:Ho14jnntGE1fpdOqQEEaiKRpvIavV0hSfmBq8nJbHYI=
 github.com/tklauser/numcpus v0.6.1 h1:ng9scYS7az0Bk4OZLvrNXNSAO2Pxr1XXRAPyjhIx+Fk=
