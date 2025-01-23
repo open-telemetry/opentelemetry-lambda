@@ -102,7 +102,9 @@ jobs:
       layer-name: opentelemetry-javaagent
       component-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
-      runtimes: java8.al2 java11 java17
+      # If you add a java runtime here, please make sure that the collector/Makefile publish and publish-layer targets
+      # get updated as well
+      runtimes: java8.al2 java11 java17 java21
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit

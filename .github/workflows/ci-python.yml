@@ -26,6 +26,8 @@ jobs:
 
     strategy:
       matrix:
+        # If you add a python version here, please make sure that the collector/Makefile publish and publish-layer targets
+        # get updated as well
         python: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
