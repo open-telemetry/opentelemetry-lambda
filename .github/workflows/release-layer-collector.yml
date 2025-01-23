@@ -1,10 +1,9 @@
 name: "Release Collector Lambda layer"
 
 on:
-  # (Using tag push instead of release to allow filtering by tag prefix.)
   push:
-    tags:
-      - layer-collector/**
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -13,10 +12,38 @@ permissions:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      NEW_TAG: ${{ steps.increment_tag.outputs.NEW_TAG }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          fetch-depth: 0
+      - name: Get the last tag
+        id: get_last_tag
+        run: |
+          cd ${{ github.workspace }}
+          pwd
+          last_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "::set-output name=last_tag::$last_tag"
+      # The following 10 lines of code were human modified suggestions given by GitHub Copilot 
+      - name: Increment tag version
+        id: increment_tag
+        run: |          
+          last_tag=${{ steps.get_last_tag.outputs.last_tag }}
+          prefix=$(echo $last_tag | cut -d'/' -f1)
+          major_minor=$(echo $last_tag | cut -d'/' -f2 | cut -d'.' -f1,2)
+          patch=$(echo $last_tag | cut -d'.' -f3)
+          x=$(echo $major_minor | cut -d'.' -f2)  
+          new_x=$((x + 1))
+          new_tag="$prefix/0.$new_x.0"
+          git tag $new_tag
+          git push origin $new_tag
+          echo "::set-output name=new_tag::$new_tag"
+          echo "NEW_TAG=$new_tag" >> $GITHUB_OUTPUT
+          NEW_TAG=$new_tag
       - name: Create Release
-        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        run: gh release create ${{ steps.increment_tag.outputs.new_tag }} --title ${{ steps.increment_tag.outputs.new_tag }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
@@ -42,7 +69,7 @@ jobs:
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       - name: Add Binary to Release
         run: |
-          gh release upload ${{github.ref_name}} ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          gh release upload ${{ needs.create-release.outputs.NEW_TAG }} ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save Collector Version
@@ -54,36 +81,37 @@ jobs:
           COLLECTOR_VERSION=$( ${{ github.workspace }}/collector/build/extensions/collector -v)
           echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> $GITHUB_OUTPUT
 
-  publish-layer:
-    uses: ./.github/workflows/layer-publish.yml
-    needs: build-layer
-    strategy:
-      matrix:
-        architecture:
-          - amd64
-          - arm64
-        aws_region:
-          - ap-northeast-1
-          - ap-northeast-2
-          - ap-south-1
-          - ap-southeast-1
-          - ap-southeast-2
-          - ca-central-1
-          - eu-central-1
-          - eu-north-1
-          - eu-west-1
-          - eu-west-2
-          - eu-west-3
-          - sa-east-1
-          - us-east-1
-          - us-east-2
-          - us-west-1
-          - us-west-2
-    with:
-      artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
-      layer-name: opentelemetry-collector
-      component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
-      architecture: ${{ matrix.architecture }}
-      release-group: prod
-      aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+  # Commented out since we don't publish the layer to AWS now 
+  # publish-layer:
+  #   uses: ./.github/workflows/layer-publish.yml
+  #   needs: build-layer
+  #   strategy:
+  #     matrix:
+  #       architecture:
+  #         - amd64
+  #         - arm64
+  #       aws_region:
+  #         - ap-northeast-1
+  #         - ap-northeast-2
+  #         - ap-south-1
+  #         - ap-southeast-1
+  #         - ap-southeast-2
+  #         - ca-central-1
+  #         - eu-central-1
+  #         - eu-north-1
+  #         - eu-west-1
+  #         - eu-west-2
+  #         - eu-west-3
+  #         - sa-east-1
+  #         - us-east-1
+  #         - us-east-2
+  #         - us-west-1
+  #         - us-west-2
+  #   with:
+  #     artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+  #     layer-name: opentelemetry-collector
+  #     component-version: ${{needs.build-layer.outputs.COLLECTOR_VERSION}}
+  #     architecture: ${{ matrix.architecture }}
+  #     release-group: prod
+  #     aws_region: ${{ matrix.aws_region }}
+  #   secrets: inherit
