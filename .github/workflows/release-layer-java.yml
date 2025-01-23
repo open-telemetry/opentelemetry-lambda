@@ -104,7 +104,7 @@ jobs:
       # architecture:
       # If you add a java runtime here, please make sure that the collector/Makefile publish and publish-layer targets
       # get updated as well
-      runtimes: java8.al2 java11 java17
+      runtimes: java8.al2 java11 java17 java21
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
