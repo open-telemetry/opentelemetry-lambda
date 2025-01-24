@@ -59,6 +59,19 @@ For any other library, such as OkHttp, you will need to include the correspondin
 from the [instrumentation project](https://github.com/open-telemetry/opentelemetry-java-instrumentation) and
 modify your code to initialize it in your function.
 
+### Configuring Context Propagators
+
+#### If you intend on emitting your traces to AWS X-ray (or have enabled Xray Active Tracing)
+Please use the following environment variable for your lambda:
+`OTEL_PROPAGATORS=tracecontext,baggage,xray-lambda`
+
+#### If you intend on emitting your traces to AWS X-ray
+Please use the following environment variable for your lambda:
+`OTEL_PROPAGATORS=tracecontext,baggage,xray`
+
+
+For more information please read: https://opentelemetry.io/docs/specs/semconv/faas/aws-lambda
+
 ## Building
 
 To build the Java Agent layer, run
