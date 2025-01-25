@@ -55,19 +55,6 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
-import { DnsInstrumentation } from '@opentelemetry/instrumentation-dns';
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-import { GraphQLInstrumentation } from '@opentelemetry/instrumentation-graphql';
-import { GrpcInstrumentation } from '@opentelemetry/instrumentation-grpc';
-import { HapiInstrumentation } from '@opentelemetry/instrumentation-hapi';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { IORedisInstrumentation } from '@opentelemetry/instrumentation-ioredis';
-import { KoaInstrumentation } from '@opentelemetry/instrumentation-koa';
-import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
-import { MySQLInstrumentation } from '@opentelemetry/instrumentation-mysql';
-import { NetInstrumentation } from '@opentelemetry/instrumentation-net';
-import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
-import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
@@ -137,54 +124,91 @@ function getActiveInstumentations(): Set<string> {
   return instrumentationSet;
 }
 
-function defaultConfigureInstrumentations() {
+async function defaultConfigureInstrumentations() {
   const instrumentations = [];
   const activeInstrumentations = getActiveInstumentations();
-  // Use require statements for instrumentation
-  // to avoid having to have transitive dependencies on all the typescript definitions.
   if (activeInstrumentations.has('dns')) {
+    const { DnsInstrumentation } = await import(
+      '@opentelemetry/instrumentation-dns'
+    );
     instrumentations.push(new DnsInstrumentation());
   }
   if (activeInstrumentations.has('express')) {
+    const { ExpressInstrumentation } = await import(
+      '@opentelemetry/instrumentation-express'
+    );
     instrumentations.push(new ExpressInstrumentation());
   }
   if (activeInstrumentations.has('graphql')) {
+    const { GraphQLInstrumentation } = await import(
+      '@opentelemetry/instrumentation-graphql'
+    );
     instrumentations.push(new GraphQLInstrumentation());
   }
   if (activeInstrumentations.has('grpc')) {
+    const { GrpcInstrumentation } = await import(
+      '@opentelemetry/instrumentation-grpc'
+    );
     instrumentations.push(new GrpcInstrumentation());
   }
   if (activeInstrumentations.has('hapi')) {
+    const { HapiInstrumentation } = await import(
+      '@opentelemetry/instrumentation-hapi'
+    );
     instrumentations.push(new HapiInstrumentation());
   }
   if (activeInstrumentations.has('http')) {
+    const { HttpInstrumentation } = await import(
+      '@opentelemetry/instrumentation-http'
+    );
     instrumentations.push(new HttpInstrumentation());
   }
   if (activeInstrumentations.has('ioredis')) {
+    const { IORedisInstrumentation } = await import(
+      '@opentelemetry/instrumentation-ioredis'
+    );
     instrumentations.push(new IORedisInstrumentation());
   }
   if (activeInstrumentations.has('koa')) {
+    const { KoaInstrumentation } = await import(
+      '@opentelemetry/instrumentation-koa'
+    );
     instrumentations.push(new KoaInstrumentation());
   }
   if (activeInstrumentations.has('mongodb')) {
+    const { MongoDBInstrumentation } = await import(
+      '@opentelemetry/instrumentation-mongodb'
+    );
     instrumentations.push(new MongoDBInstrumentation());
   }
   if (activeInstrumentations.has('mysql')) {
+    const { MySQLInstrumentation } = await import(
+      '@opentelemetry/instrumentation-mysql'
+    );
     instrumentations.push(new MySQLInstrumentation());
   }
   if (activeInstrumentations.has('net')) {
+    const { NetInstrumentation } = await import(
+      '@opentelemetry/instrumentation-net'
+    );
     instrumentations.push(new NetInstrumentation());
   }
   if (activeInstrumentations.has('pg')) {
+    const { PgInstrumentation } = await import(
+      '@opentelemetry/instrumentation-pg'
+    );
     instrumentations.push(new PgInstrumentation());
   }
   if (activeInstrumentations.has('redis')) {
+    const { RedisInstrumentation } = await import(
+      '@opentelemetry/instrumentation-redis'
+    );
     instrumentations.push(new RedisInstrumentation());
   }
   return instrumentations;
 }
 
-function createInstrumentations() {
+async function createInstrumentations() {
   return [
     new AwsInstrumentation(
       typeof configureAwsInstrumentation === 'function'
@@ -197,8 +221,8 @@ function createInstrumentations() {
         : {},
     ),
     ...(typeof configureInstrumentations === 'function'
-      ? configureInstrumentations
-      : defaultConfigureInstrumentations)(),
+      ? configureInstrumentations()
+      : await defaultConfigureInstrumentations()),
   ];
 }
 
@@ -240,7 +264,7 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
-function initializeProvider() {
+async function initializeProvider() {
   const resource = detectResourcesSync({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
@@ -324,7 +348,7 @@ function initializeProvider() {
   // to prevent additional coldstart overhead
   // caused by creations and initializations of instrumentations.
   if (!instrumentations || !instrumentations.length) {
-    instrumentations = createInstrumentations();
+    instrumentations = await createInstrumentations();
   }
 
   // Re-register instrumentation with initialized provider. Patched code will see the update.
@@ -336,16 +360,25 @@ function initializeProvider() {
   });
 }
 
-export function wrap() {
-  initializeProvider();
+export async function wrap() {
+  if (!initialized) {
+    throw new Error('Not initialized yet');
+  }
+
+  await initializeProvider();
 }
 
-export function unwrap() {
+export async function unwrap() {
+  if (!initialized) {
+    throw new Error('Not initialized yet');
+  }
+
   if (disableInstrumentations) {
     disableInstrumentations();
     disableInstrumentations = () => {};
   }
   instrumentations = [];
+
   context.disable();
   propagation.disable();
   trace.disable();
@@ -353,18 +386,27 @@ export function unwrap() {
   logs.disable();
 }
 
+export async function init() {
+  if (initialized) {
+    return;
+  }
+
+  instrumentations = await createInstrumentations();
+
+  // Register instrumentations synchronously to ensure code is patched even before provider is ready.
+  disableInstrumentations = registerInstrumentations({
+    instrumentations,
+  });
+
+  initialized = true;
+}
+
 console.log('Registering OpenTelemetry');
+
+let initialized = false;
+let instrumentations: Instrumentation[];
+let disableInstrumentations: () => void;
 
 // Configure lambda logging
 const logLevel = getEnv().OTEL_LOG_LEVEL;
 diag.setLogger(new DiagConsoleLogger(), logLevel);
-
-let instrumentations = createInstrumentations();
-let disableInstrumentations: () => void;
-
-// Register instrumentations synchronously to ensure code is patched even before provider is ready.
-disableInstrumentations = registerInstrumentations({
-  instrumentations,
-});
-
-wrap();

@@ -1,4 +1,4 @@
-import { wrap, unwrap } from '../src/wrapper';
+import { init, wrap, unwrap } from '../src/wrapper';
 
 import {
   defaultTextMapGetter,
@@ -24,34 +24,36 @@ declare global {
   ): SDKRegistrationConfig;
 }
 
-describe('wrapper', () => {
+describe('wrapper', async () => {
   let oldEnv: NodeJS.ProcessEnv;
 
-  beforeEach(() => {
+  await init();
+
+  beforeEach(async () => {
     oldEnv = { ...process.env };
 
-    unwrap();
+    await unwrap();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     process.env = oldEnv;
 
-    unwrap();
+    await unwrap();
   });
 
   describe('configureAwsInstrumentation', () => {
-    it('is used if defined', () => {
+    it('is used if defined', async () => {
       const configureAwsInstrumentationStub = stub().returns({
         suppressInternalInstrumentation: true,
       });
       global.configureAwsInstrumentation = configureAwsInstrumentationStub;
-      wrap();
+      await wrap();
       assert(configureAwsInstrumentationStub.calledOnce);
     });
   });
 
   describe('getPropagator', () => {
-    const testConfiguredPropagator = (
+    const testConfiguredPropagator = async (
       propagatorNames: string[],
       expectedPropagatorFields: string[],
     ) => {
@@ -61,7 +63,7 @@ describe('wrapper', () => {
 
       const configureSdkRegistrationStub = stub().returnsArg(0);
       global.configureSdkRegistration = configureSdkRegistrationStub;
-      wrap();
+      await wrap();
       assert(configureSdkRegistrationStub.calledOnce);
 
       const sdkRegistrationConfig: SDKRegistrationConfig =
@@ -77,16 +79,16 @@ describe('wrapper', () => {
       assert.deepEqual(actualPropagatorFields, expectedPropagatorFields);
     };
 
-    const setAndGetConfiguredPropagator = (
+    const setAndGetConfiguredPropagator = async (
       propagatorNames: string[],
-    ): TextMapPropagator => {
+    ): Promise<TextMapPropagator> => {
       if (propagatorNames && propagatorNames.length) {
         process.env.OTEL_PROPAGATORS = propagatorNames.join(',');
       }
 
       const configureSdkRegistrationStub = stub().returnsArg(0);
       global.configureSdkRegistration = configureSdkRegistrationStub;
-      wrap();
+      await wrap();
       assert(configureSdkRegistrationStub.calledOnce);
 
       const sdkRegistrationConfig: SDKRegistrationConfig =
@@ -100,39 +102,45 @@ describe('wrapper', () => {
       return propagator!;
     };
 
-    it('is configured by default', () => {
+    it('is configured by default', async () => {
       // by default, 'W3CTraceContextPropagator' and 'W3CBaggagePropagator' propagators are added.
       // - 'traceparent' and 'tracestate' fields are used by the 'W3CTraceContextPropagator'
       // - 'baggage' field is used by the 'W3CBaggagePropagator'
-      testConfiguredPropagator([], ['traceparent', 'tracestate', 'baggage']);
+      await testConfiguredPropagator(
+        [],
+        ['traceparent', 'tracestate', 'baggage'],
+      );
     });
 
-    it('is configured to w3c-trace-context by env var', () => {
+    it('is configured to w3c-trace-context by env var', async () => {
       // 'traceparent' and 'tracestate' fields are used by the 'W3CTraceContextPropagator'
-      testConfiguredPropagator(['tracecontext'], ['traceparent', 'tracestate']);
+      await testConfiguredPropagator(
+        ['tracecontext'],
+        ['traceparent', 'tracestate'],
+      );
     });
 
-    it('is configured to w3c-baggage by env var', () => {
+    it('is configured to w3c-baggage by env var', async () => {
       // 'baggage' field is used by the 'W3CBaggagePropagator'
-      testConfiguredPropagator(['baggage'], ['baggage']);
+      await testConfiguredPropagator(['baggage'], ['baggage']);
     });
 
-    it('is configured to xray by env var', () => {
+    it('is configured to xray by env var', async () => {
       // 'x-amzn-trace-id' field is used by the 'AWSXRayPropagator'
-      testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
+      await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
     });
 
-    it('is configured to xray-lambda by env var', () => {
+    it('is configured to xray-lambda by env var', async () => {
       // 'x-amzn-trace-id' field is used by the 'AWSXRayLambdaPropagator'
-      testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
+      await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
     });
 
-    it('is configured by unsupported propagator', () => {
+    it('is configured by unsupported propagator', async () => {
       // in case of unsupported propagator, warning log is printed and empty propagator array is returned
-      testConfiguredPropagator(['jaeger'], []);
+      await testConfiguredPropagator(['jaeger'], []);
     });
 
-    it('is configured in correct order', () => {
+    it('is configured in correct order', async () => {
       const W3C_TRACE_ID = '5b8aa5a2d2c872e8321cf37308d69df2';
       const W3C_SPAN_ID = '051581bf3cb55c13';
       const AWS_XRAY_TRACE_ID = '8a3c60f7-d188f8fa79d48a391a778fa6';
@@ -142,10 +150,8 @@ describe('wrapper', () => {
         [AWSXRAY_TRACE_ID_HEADER]: `Root=1-${AWS_XRAY_TRACE_ID};Parent=${AWS_XRAY_SPAN_ID};Sampled=1`,
       };
 
-      const propagator1: TextMapPropagator = setAndGetConfiguredPropagator([
-        'tracecontext',
-        'xray',
-      ]);
+      const propagator1: TextMapPropagator =
+        await setAndGetConfiguredPropagator(['tracecontext', 'xray']);
       const extractedSpanContext1 = trace
         .getSpan(
           propagator1.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
@@ -159,12 +165,10 @@ describe('wrapper', () => {
         traceFlags: TraceFlags.SAMPLED,
       });
 
-      unwrap();
+      await unwrap();
 
-      const propagator2: TextMapPropagator = setAndGetConfiguredPropagator([
-        'xray',
-        'tracecontext',
-      ]);
+      const propagator2: TextMapPropagator =
+        await setAndGetConfiguredPropagator(['xray', 'tracecontext']);
       const extractedSpanContext2 = trace
         .getSpan(
           propagator2.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
