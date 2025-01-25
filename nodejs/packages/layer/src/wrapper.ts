@@ -55,6 +55,19 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
+import { DnsInstrumentation } from '@opentelemetry/instrumentation-dns';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+import { GraphQLInstrumentation } from '@opentelemetry/instrumentation-graphql';
+import { GrpcInstrumentation } from '@opentelemetry/instrumentation-grpc';
+import { HapiInstrumentation } from '@opentelemetry/instrumentation-hapi';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { IORedisInstrumentation } from '@opentelemetry/instrumentation-ioredis';
+import { KoaInstrumentation } from '@opentelemetry/instrumentation-koa';
+import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
+import { MySQLInstrumentation } from '@opentelemetry/instrumentation-mysql';
+import { NetInstrumentation } from '@opentelemetry/instrumentation-net';
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
+import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
@@ -130,79 +143,42 @@ function defaultConfigureInstrumentations() {
   // Use require statements for instrumentation
   // to avoid having to have transitive dependencies on all the typescript definitions.
   if (activeInstrumentations.has('dns')) {
-    const {
-      DnsInstrumentation,
-    } = require('@opentelemetry/instrumentation-dns');
     instrumentations.push(new DnsInstrumentation());
   }
   if (activeInstrumentations.has('express')) {
-    const {
-      ExpressInstrumentation,
-    } = require('@opentelemetry/instrumentation-express');
     instrumentations.push(new ExpressInstrumentation());
   }
   if (activeInstrumentations.has('graphql')) {
-    const {
-      GraphQLInstrumentation,
-    } = require('@opentelemetry/instrumentation-graphql');
     instrumentations.push(new GraphQLInstrumentation());
   }
   if (activeInstrumentations.has('grpc')) {
-    const {
-      GrpcInstrumentation,
-    } = require('@opentelemetry/instrumentation-grpc');
     instrumentations.push(new GrpcInstrumentation());
   }
   if (activeInstrumentations.has('hapi')) {
-    const {
-      HapiInstrumentation,
-    } = require('@opentelemetry/instrumentation-hapi');
     instrumentations.push(new HapiInstrumentation());
   }
   if (activeInstrumentations.has('http')) {
-    const {
-      HttpInstrumentation,
-    } = require('@opentelemetry/instrumentation-http');
     instrumentations.push(new HttpInstrumentation());
   }
   if (activeInstrumentations.has('ioredis')) {
-    const {
-      IORedisInstrumentation,
-    } = require('@opentelemetry/instrumentation-ioredis');
     instrumentations.push(new IORedisInstrumentation());
   }
   if (activeInstrumentations.has('koa')) {
-    const {
-      KoaInstrumentation,
-    } = require('@opentelemetry/instrumentation-koa');
     instrumentations.push(new KoaInstrumentation());
   }
   if (activeInstrumentations.has('mongodb')) {
-    const {
-      MongoDBInstrumentation,
-    } = require('@opentelemetry/instrumentation-mongodb');
     instrumentations.push(new MongoDBInstrumentation());
   }
   if (activeInstrumentations.has('mysql')) {
-    const {
-      MySQLInstrumentation,
-    } = require('@opentelemetry/instrumentation-mysql');
     instrumentations.push(new MySQLInstrumentation());
   }
   if (activeInstrumentations.has('net')) {
-    const {
-      NetInstrumentation,
-    } = require('@opentelemetry/instrumentation-net');
     instrumentations.push(new NetInstrumentation());
   }
   if (activeInstrumentations.has('pg')) {
-    const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
     instrumentations.push(new PgInstrumentation());
   }
   if (activeInstrumentations.has('redis')) {
-    const {
-      RedisInstrumentation,
-    } = require('@opentelemetry/instrumentation-redis');
     instrumentations.push(new RedisInstrumentation());
   }
   return instrumentations;
