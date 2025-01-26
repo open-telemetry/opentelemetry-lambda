@@ -3,12 +3,11 @@ import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
-  metrics,
   propagation,
   TextMapPropagator,
   trace,
+  TracerProvider,
 } from '@opentelemetry/api';
-import { logs } from '@opentelemetry/api-logs';
 import {
   CompositePropagator,
   getEnv,
@@ -24,25 +23,13 @@ import {
   TracerConfig,
 } from '@opentelemetry/sdk-trace-base';
 import {
-  MeterProvider,
-  MeterProviderOptions,
-  PeriodicExportingMetricReader,
-} from '@opentelemetry/sdk-metrics';
-import {
-  LoggerProvider,
-  SimpleLogRecordProcessor,
-  ConsoleLogRecordExporter,
-  LoggerProviderConfig,
-} from '@opentelemetry/sdk-logs';
-import {
   detectResourcesSync,
   envDetector,
+  IResource,
   processDetector,
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import {
   Instrumentation,
   registerInstrumentations,
@@ -85,24 +72,27 @@ const propagatorMap = new Map<string, () => TextMapPropagator>([
 
 declare global {
   // In case of downstream configuring span processors etc
-  function configureAwsInstrumentation(
-    defaultConfig: AwsSdkInstrumentationConfig,
-  ): AwsSdkInstrumentationConfig;
-  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
-  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
-  function configureSdkRegistration(
-    defaultSdkRegistration: SDKRegistrationConfig,
-  ): SDKRegistrationConfig;
-  function configureInstrumentations(): Instrumentation[];
-  function configureLoggerProvider(loggerProvider: LoggerProvider): void;
-  function configureMeter(
-    defaultConfig: MeterProviderOptions,
-  ): MeterProviderOptions;
-  function configureMeterProvider(meterProvider: MeterProvider): void;
   function configureLambdaInstrumentation(
     config: AwsLambdaInstrumentationConfig,
   ): AwsLambdaInstrumentationConfig;
+  function configureAwsInstrumentation(
+    defaultConfig: AwsSdkInstrumentationConfig,
+  ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
+  function configureSdkRegistration(
+    defaultSdkRegistration: SDKRegistrationConfig,
+  ): SDKRegistrationConfig;
+  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
+  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
+
+  // No explicit metric type here, but "unknown" type.
+  // Because metric packages are important dynamically.
+  function configureMeter(defaultConfig: unknown): unknown;
+  function configureMeterProvider(meterProvider: unknown): void;
+
+  // No explicit log type here, but "unknown" type.
+  // Because log packages are important dynamically.
+  function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
 function getActiveInstumentations(): Set<string> {
@@ -264,11 +254,9 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
-async function initializeProvider() {
-  const resource = detectResourcesSync({
-    detectors: [awsLambdaDetector, envDetector, processDetector],
-  });
-
+async function initializeTracerProvider(
+  resource: IResource,
+): Promise<TracerProvider> {
   let config: TracerConfig = {
     resource,
   };
@@ -302,9 +290,27 @@ async function initializeProvider() {
   }
   tracerProvider.register(sdkRegistrationConfig);
 
+  return tracerProvider;
+}
+
+async function initializeMeterProvider(
+  resource: IResource,
+): Promise<unknown | undefined> {
+  if (process.env.OTEL_METRICS_EXPORTER === 'none') {
+    return;
+  }
+
+  const { metrics } = await import('@opentelemetry/api');
+  const { MeterProvider, PeriodicExportingMetricReader } = await import(
+    '@opentelemetry/sdk-metrics'
+  );
+  const { OTLPMetricExporter } = await import(
+    '@opentelemetry/exporter-metrics-otlp-http'
+  );
+
   // Configure default meter provider (doesn't export metrics)
   const metricExporter = new OTLPMetricExporter();
-  let meterConfig: MeterProviderOptions = {
+  let meterConfig: unknown = {
     resource,
     readers: [
       new PeriodicExportingMetricReader({
@@ -316,15 +322,36 @@ async function initializeProvider() {
     meterConfig = configureMeter(meterConfig);
   }
 
-  const meterProvider = new MeterProvider(meterConfig);
+  const meterProvider = new MeterProvider(meterConfig as object);
   if (typeof configureMeterProvider === 'function') {
     configureMeterProvider(meterProvider);
   } else {
     metrics.setGlobalMeterProvider(meterProvider);
   }
 
+  metricsDisableFunction = () => {
+    metrics.disable();
+  };
+
+  return meterProvider;
+}
+
+async function initializeLoggerProvider(
+  resource: IResource,
+): Promise<unknown | undefined> {
+  if (process.env.OTEL_LOGS_EXPORTER === 'none') {
+    return;
+  }
+
+  const { logs } = await import('@opentelemetry/api-logs');
+  const { LoggerProvider, SimpleLogRecordProcessor, ConsoleLogRecordExporter } =
+    await import('@opentelemetry/sdk-logs');
+  const { OTLPLogExporter } = await import(
+    '@opentelemetry/exporter-logs-otlp-http'
+  );
+
   const logExporter = new OTLPLogExporter();
-  const loggerConfig: LoggerProviderConfig = {
+  const loggerConfig = {
     resource,
   };
   const loggerProvider = new LoggerProvider(loggerConfig);
@@ -344,6 +371,25 @@ async function initializeProvider() {
     );
   }
 
+  logsDisableFunction = () => {
+    logs.disable();
+  };
+
+  return loggerProvider;
+}
+
+async function initializeProvider() {
+  const resource = detectResourcesSync({
+    detectors: [awsLambdaDetector, envDetector, processDetector],
+  });
+
+  const tracerProvider: TracerProvider =
+    await initializeTracerProvider(resource);
+  const meterProvider: unknown | undefined =
+    await initializeMeterProvider(resource);
+  const loggerProvider: unknown | undefined =
+    await initializeLoggerProvider(resource);
+
   // Create instrumentations if they have not been created before
   // to prevent additional coldstart overhead
   // caused by creations and initializations of instrumentations.
@@ -352,11 +398,14 @@ async function initializeProvider() {
   }
 
   // Re-register instrumentation with initialized provider. Patched code will see the update.
+
   disableInstrumentations = registerInstrumentations({
     instrumentations,
     tracerProvider,
-    meterProvider,
-    loggerProvider,
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    meterProvider: meterProvider as any,
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    loggerProvider: loggerProvider as any,
   });
 }
 
@@ -382,8 +431,16 @@ export async function unwrap() {
   context.disable();
   propagation.disable();
   trace.disable();
-  metrics.disable();
-  logs.disable();
+
+  if (metricsDisableFunction) {
+    metricsDisableFunction();
+    metricsDisableFunction = () => {};
+  }
+
+  if (logsDisableFunction) {
+    logsDisableFunction();
+    logsDisableFunction = () => {};
+  }
 }
 
 export async function init() {
@@ -406,6 +463,8 @@ console.log('Registering OpenTelemetry');
 let initialized = false;
 let instrumentations: Instrumentation[];
 let disableInstrumentations: () => void;
+let metricsDisableFunction: () => void;
+let logsDisableFunction: () => void;
 
 // Configure lambda logging
 const logLevel = getEnv().OTEL_LOG_LEVEL;
