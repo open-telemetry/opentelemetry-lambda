@@ -2,13 +2,37 @@ name: "Manual Build (Collector)"
 
 on:
   workflow_dispatch:
+    inputs:
+      architecture:
+        type: choice
+        description: Architecture
+        options:
+          - all
+          - amd64
+          - arm64
+        default: all
 
 jobs:
+  include-jobs:
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.include-jobs.outputs.jobs }}
+    steps:
+      - id: include-jobs
+        name: Include jobs
+        run: |
+          includeJobs='
+            ${{ github.event.inputs.architecture == 'all' && '[{"architecture": "amd64"}, {"architecture": "arm64"}]' || '' }}
+            ${{ github.event.inputs.architecture == 'amd64' && '[{"architecture": "amd64"}]' || '' }}
+            ${{ github.event.inputs.architecture == 'arm64' && '[{"architecture": "arm64"}]' || '' }}
+          '
+          echo "jobs=${includeJobs}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
   build:
+    needs: include-jobs
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        architecture: [ amd64, arm64 ]
+        include: ${{ fromJSON(needs.include-jobs.outputs.jobs) }}
     outputs:
       COLLECTOR_VERSION: ${{ steps.save-collector-version.outputs.COLLECTOR_VERSION }}
     steps:
