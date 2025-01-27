@@ -66,7 +66,7 @@ Please use the following environment variable for your lambda:
 `OTEL_PROPAGATORS=tracecontext,baggage,xray-lambda`
 
 #### If you emit your traces to another system besides AWS X-Ray (Default Setting)
-Please use the following environment variable for your lambda:
+The following propagators are configured by default, but you can use this environment variable to customize it:
 `OTEL_PROPAGATORS=tracecontext,baggage,xray`
 
 
