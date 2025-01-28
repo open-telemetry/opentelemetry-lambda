@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.116.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.116.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.116.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.116.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.116.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.116.0
@@ -14,6 +15,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.116.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.98.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.116.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.98.0
 	go.opentelemetry.io/collector/component v0.116.0
 	go.opentelemetry.io/collector/connector v0.116.0
