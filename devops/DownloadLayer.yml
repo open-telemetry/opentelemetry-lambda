@@ -1,0 +1,27 @@
+parameters:
+  - name: skipBuild
+    type: string
+    default: "false"
+  - name: githubConnection
+    type: string
+    default: "Sage"
+  - name: defaultVersionType
+    type: string
+    default: "latest"
+
+jobs:
+  - job: DownloadOpenTelemetryLayer
+    displayName: "Download OpenTelemetry Layer"
+    condition: and(succeeded(), eq('${{ parameters.skipBuild }}', false))
+    steps:
+      - task: DownloadGitHubRelease@0
+        inputs:
+          connection: ${{ parameters.githubConnection }}
+          userRepository: Sage/opentelemetry-lambda
+          defaultVersionType: ${{ parameters.defaultVersionType }}
+          downloadPath: '$(System.ArtifactsDirectory)' 
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish to build output"
+        inputs:
+          artifactName: "build_output"
+          PathtoPublish: "$(System.ArtifactsDirectory)"
