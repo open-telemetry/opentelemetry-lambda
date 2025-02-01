@@ -11,6 +11,28 @@ on:
           - amd64
           - arm64
         default: all
+      aws_region:
+        type: choice
+        description: AWS Region
+        options:
+          - all
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+        default: all
 
 jobs:
   include-jobs:
@@ -21,18 +43,24 @@ jobs:
       - id: include-jobs
         name: Include jobs
         run: |
-          includeJobs='
-            ${{ github.event.inputs.architecture == 'all' && '[{"architecture": "amd64"}, {"architecture": "arm64"}]' || '' }}
-            ${{ github.event.inputs.architecture == 'amd64' && '[{"architecture": "amd64"}]' || '' }}
-            ${{ github.event.inputs.architecture == 'arm64' && '[{"architecture": "arm64"}]' || '' }}
-          '
-          echo "jobs=${includeJobs}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          architectures=''
+          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+            architectures='["amd64", "arm64"]'
+          else
+            architectures='["${{ github.event.inputs.architecture }}"]'
+          fi
+          aws_regions=''
+          if [ ${{ github.event.inputs.aws_region }} == 'all' ]; then
+            aws_regions='["ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
+          else
+            aws_regions='["${{ github.event.inputs.aws_region }}"]'
+          fi
+          echo "jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
   build:
     needs: include-jobs
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        include: ${{ fromJSON(needs.include-jobs.outputs.jobs) }}
+      matrix: ${{ fromJSON(needs.include-jobs.outputs.jobs) }}
     outputs:
       COLLECTOR_VERSION: ${{ steps.save-collector-version.outputs.COLLECTOR_VERSION }}
     steps:
@@ -47,5 +75,5 @@ jobs:
       - name: Upload Collector Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}-${{ matrix.aws_region }}.zip
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
