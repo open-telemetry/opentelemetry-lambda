@@ -52,6 +52,38 @@ For example, if you want to add the extension `foo`, the file providing this ext
 
 You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](#contributing) to this project.
 
+## Build and publish your own OpenTelemetry Collector Lambda layer
+To build and publish collector Lambda layer from your own fork/branch into your own AWS account, 
+you can use the `Publish Collector Lambda Layer` workflow which can only be triggered manually.
+
+To do that, first you need to 
+- Create Github's OIDC provider in your (or target) AWS account (for more details, you can check [here](https://github.com/aws-actions/configure-aws-credentials?oidc))
+- And create an AWS IAM Role in the AWS account to be assumed by the `Publish Collector Lambda Layer` workflow from your own OpenTelemetry Lambda repository/fork.
+
+To setup those, you can use (copy or load) the AWS CloudFormation template [here](../utils/aws-cloudformation/aws-cf-stack-for-layer-publish.yml).
+Once AWS CloudFormation stack is created from the given template, 
+ARN of the created AWS IAM Role to be assumed will be shown as `RoleARN` in the output of the stack, so note it to be used later.
+
+After that, you can run the `Publish Collector Lambda Layer` workflow to build the Lambda collector and publish it to the target AWS account as Lambda layer: 
+- Specify the architecture of the collector Lambda layer to be published via the `Architecture of the layer to be published` input. 
+  Available options are `all`, `amd64` and `arm64`.
+  The default value is `all` which builds and publishes layer for both of the `amd64` and `arm64` architectures.
+- Specify the AWS region(s) where the collector Lambda layer will be published to via the `AWS Region(s) where layer will be published` input.
+  Available options are `all`, `ap-northeast-1`, `ap-northeast-2`, `ap-south-1`, `ap-southeast-1`, `ap-southeast-2`, `ca-central-1`, `eu-central-1`, `eu-north-1`, `eu-west-1`, `eu-west-2`, `eu-west-3`, `sa-east-1`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
+  The default value is `all` which publishes layer to all the defined AWS regions mentioned above.
+- Specify the AWS IAM Role ARN to be assumed for publishing layer via the `AWS IAM Role ARN to be assumed for publishing layer` input.
+  This is the ARN of the AWS IAM Role you have taken from the `RoleARN` output variable of the created AWS CloudFormation stack above.
+  This input is **optional** and if not specified, AWS IAM Role ARN to be assumed is tried to be resolved from `OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN` secret.
+  If it is still not able to resolved (neither this input is specified, nor `OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN` secret is defined), 
+  layer publish job will fail due to missing AWS credentials.
+- Specify the layer version to be appended into layer name via the `Layer version to be appended into the layer name` input 
+  to be used in the following format: `opentelemetry-lambda-collector-${architecture}-${layer-version}`.
+  This input is **optional** and if not specified, layer name is generated in the `opentelemetry-lambda-collector-${architecture}` format without layer version postfix.
+- Specify the build tags to build the collector with a customized set of connectors/exporters/receivers/processors 
+  via the `Build tags to customize collector build` input.
+  This input is **optional** and if not specified, collector is built with the default set of connectors/exporters/receivers/processors.
+  Check the [Build Tags](#build-tags) section for the details.
+
 ## Installing
 To install the OpenTelemetry Collector Lambda layer to an existing Lambda function using the `aws` CLI:
 
