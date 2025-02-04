@@ -32,7 +32,14 @@ on:
         description: 'Publish to which AWS region?'
         required: true
         type: string
-
+      role-arn:
+        description: '(optional) AWS IAM Role ARN to be assumed for publishing layer. If no input is given, defaults to `PROD_LAMBDA_ROLE_ARN` secret.'
+        required: false
+        type: string
+      layer-version:
+        description: '(optional) Layer version to be used in the layer name. If no input is given, its value is tried to be extracted from the `GITHUB_REF_NAME` variable'
+        required: false
+        type: string
 
 permissions:
   id-token: write
@@ -58,18 +65,24 @@ jobs:
           echo "ARCH=$ARCH" >> $GITHUB_ENV
           
           if [[ -n "${{ inputs.runtimes }}" ]]; then
-            RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
+            COMPATIBLE_RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
           fi
-          echo "RUNTIMES=$RUNTIMES" >> $GITHUB_ENV
+          echo "COMPATIBLE_RUNTIMES=$COMPATIBLE_RUNTIMES" >> $GITHUB_ENV
           
           if [[ "${{ inputs.release-group }}" != "prod" ]]; then
             LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
           fi
           
-          LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
-          LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')
+          if [[ -n "${{ inputs.layer-version }}" ]]; then
+            LAYER_VERSION="${{ inputs.layer-version }}"
+          else
+            LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
+          fi
+          LAYER_VERSION_CLEANED=$(echo "$LAYER_VERSION" | sed -r 's/\./_/g')          
           
-          LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
+          if [[ -n "$LAYER_VERSION_CLEANED" ]]; then
+            LAYER_NAME=$LAYER_NAME-$LAYER_VERSION_CLEANED
+          fi
           echo "LAYER_NAME=$LAYER_NAME" >> $GITHUB_ENV
           
           echo GITHUB_ENV:
@@ -82,7 +95,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
+          role-to-assume: ${{ inputs.role-arn || secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN || secrets.PROD_LAMBDA_ROLE_ARN }}
           role-duration-seconds: 1200
           aws-region: ${{ inputs.aws_region }}
           mask-aws-account-id: false
@@ -93,7 +106,8 @@ jobs:
             aws lambda publish-layer-version \
               --layer-name $LAYER_NAME \
               --license-info "Apache 2.0" \
-              --compatible-architectures $ARCH $RUNTIMES \
+              --compatible-architectures $ARCH \
+              $COMPATIBLE_RUNTIMES \
               --zip-file fileb://${{ inputs.artifact-name }} \
               --query 'LayerVersionArn' \
               --output text
