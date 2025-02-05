@@ -33,7 +33,7 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 
 * **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
     > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
-  
+
     > Self-built binaries of the collector have **experimental** support for a custom set of connectors/exporters/receivers/processors. For more information, see [(Experimental) Customized collector build](./collector/README.md#experimental-customized-collector-build)
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository provides pre-built Lambda layers, their ARNs are available in the [Releases](https://github.com/open-telemetry/opentelemetry-lambda/releases). You can also build the layers manually and publish them in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
@@ -99,10 +99,6 @@ The table below captures the state of various features and their levels of suppo
 * `^` subject to change depending on spec updates
 * `N/A` not applicable to the particular language
 * blank cell means the status of the feature is not known.
-
-The following are runtimes which are no longer or not yet supported by this repository:
-
-* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
 
 [1]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#general-attributes
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
