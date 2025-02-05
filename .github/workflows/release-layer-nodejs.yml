@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Build
         run: |
@@ -53,7 +53,7 @@ jobs:
         with:
           name: opentelemetry-nodejs-layer.zip
           path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
-          
+
       - name: Add Binary to Release
         run: |
           gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
