@@ -60,7 +60,7 @@ you can use the `Publish Collector Lambda Layer` workflow which can only be trig
 
 To do that, first you need to 
 - Create Github's OIDC provider in your (or target) AWS account (for more details, you can check [here](https://github.com/aws-actions/configure-aws-credentials?oidc))
-- And create an AWS IAM Role in the AWS account to be assumed by the `Publish Collector Lambda Layer` workflow from your own OpenTelemetry Lambda repository/fork.
+- Create an AWS IAM Role in the AWS account to be assumed by the `Publish Collector Lambda Layer` workflow from your forked OpenTelemetry Lambda repository.
 
 To setup those, you can use (copy or load) the AWS CloudFormation template [here](../utils/aws-cloudformation/aws-cf-stack-for-layer-publish.yml).
 Once AWS CloudFormation stack is created from the given template, 
