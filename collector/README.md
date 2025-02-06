@@ -57,6 +57,7 @@ You can provide your addition as a pull-request to this repository. Before doing
 To build and publish collector Lambda layer from your own fork into your own AWS account, 
 you can use the `Publish Collector Lambda Layer` workflow which can only be triggered manually.
 
+
 To do that, first you need to 
 - Create Github's OIDC provider in your (or target) AWS account (for more details, you can check [here](https://github.com/aws-actions/configure-aws-credentials?oidc))
 - And create an AWS IAM Role in the AWS account to be assumed by the `Publish Collector Lambda Layer` workflow from your own OpenTelemetry Lambda repository/fork.
