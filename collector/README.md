@@ -54,7 +54,7 @@ You can provide your addition as a pull-request to this repository. Before doing
 
 ## Build and publish your own OpenTelemetry Collector Lambda layer
 
-To build and publish collector Lambda layer from your own fork/branch into your own AWS account, 
+To build and publish collector Lambda layer from your own fork into your own AWS account, 
 you can use the `Publish Collector Lambda Layer` workflow which can only be triggered manually.
 
 To do that, first you need to 
