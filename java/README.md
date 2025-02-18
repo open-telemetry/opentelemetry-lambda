@@ -59,13 +59,13 @@ For any other library, such as OkHttp, you will need to include the correspondin
 from the [instrumentation project](https://github.com/open-telemetry/opentelemetry-java-instrumentation) and
 modify your code to initialize it in your function.
 
-### Configuring Context Propagators
+## Configuring Context Propagators
 
-#### If you emit your traces to AWS X-Ray (instead of a third-party service) and have enabled X-Ray Active Tracing
+### If you emit your traces to AWS X-Ray (instead of a third-party service) and have enabled X-Ray Active Tracing
 Please use the following environment variable for your lambda:
 `OTEL_PROPAGATORS=tracecontext,baggage,xray-lambda`
 
-#### If you emit your traces to another system besides AWS X-Ray (Default Setting)
+### If you emit your traces to another system besides AWS X-Ray (Default Setting)
 The following propagators are configured by default, but you can use this environment variable to customize it:
 `OTEL_PROPAGATORS=tracecontext,baggage,xray`
 
