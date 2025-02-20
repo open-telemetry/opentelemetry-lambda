@@ -100,10 +100,6 @@ The table below captures the state of various features and their levels of suppo
 * `N/A` not applicable to the particular language
 * blank cell means the status of the feature is not known.
 
-The following are runtimes which are no longer or not yet supported by this repository:
-
-* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
-
 [1]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#general-attributes
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
 [3]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#outgoing-invocations
