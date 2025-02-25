@@ -1,0 +1,53 @@
+Parameters:
+  GitHubOrgName:
+    Description: Name of the GitHub organization/user
+    Type: String
+  RepositoryName:
+    Description: Name of the GitHub repository
+    Type: String
+    Default: "opentelemetry-lambda"
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "github-otel-lambda-layer-publish-role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Ref GithubOIDC
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrgName}/${RepositoryName}:*"
+      Policies:
+        - PolicyName: "github-otel-lambda-layer-publish-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:GetLayer*"
+                  - "lambda:ListLayer*"
+                  - "lambda:AddLayer*"
+                  - "lambda:PublishLayer*"
+                Resource:
+                  - !Sub "arn:aws:lambda:*:${AWS::AccountId}:layer:opentelemetry-*"
+                  - !Sub "arn:aws:lambda:*:${AWS::AccountId}:layer:opentelemetry-*:*"
+
+  GithubOIDC:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: "https://token.actions.githubusercontent.com"
+      ClientIdList: 
+        - "sts.amazonaws.com"
+      ThumbprintList:
+        - "ffffffffffffffffffffffffffffffffffffffff"
+
+Outputs:
+  RoleARN:
+    Description: "ARN of the AWS IAM role to be assumed by Github for the OpenTelemetry Layer publishing"
+    Value: !GetAtt Role.Arn

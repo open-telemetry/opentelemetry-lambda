@@ -3,12 +3,11 @@ import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
-  metrics,
   propagation,
   TextMapPropagator,
   trace,
+  TracerProvider,
 } from '@opentelemetry/api';
-import { logs } from '@opentelemetry/api-logs';
 import {
   CompositePropagator,
   getEnv,
@@ -24,25 +23,13 @@ import {
   TracerConfig,
 } from '@opentelemetry/sdk-trace-base';
 import {
-  MeterProvider,
-  MeterProviderOptions,
-  PeriodicExportingMetricReader,
-} from '@opentelemetry/sdk-metrics';
-import {
-  LoggerProvider,
-  SimpleLogRecordProcessor,
-  ConsoleLogRecordExporter,
-  LoggerProviderConfig,
-} from '@opentelemetry/sdk-logs';
-import {
   detectResourcesSync,
   envDetector,
+  IResource,
   processDetector,
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import {
   Instrumentation,
   registerInstrumentations,
@@ -85,24 +72,27 @@ const propagatorMap = new Map<string, () => TextMapPropagator>([
 
 declare global {
   // In case of downstream configuring span processors etc
-  function configureAwsInstrumentation(
-    defaultConfig: AwsSdkInstrumentationConfig,
-  ): AwsSdkInstrumentationConfig;
-  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
-  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
-  function configureSdkRegistration(
-    defaultSdkRegistration: SDKRegistrationConfig,
-  ): SDKRegistrationConfig;
-  function configureInstrumentations(): Instrumentation[];
-  function configureLoggerProvider(loggerProvider: LoggerProvider): void;
-  function configureMeter(
-    defaultConfig: MeterProviderOptions,
-  ): MeterProviderOptions;
-  function configureMeterProvider(meterProvider: MeterProvider): void;
   function configureLambdaInstrumentation(
     config: AwsLambdaInstrumentationConfig,
   ): AwsLambdaInstrumentationConfig;
+  function configureAwsInstrumentation(
+    defaultConfig: AwsSdkInstrumentationConfig,
+  ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
+  function configureSdkRegistration(
+    defaultSdkRegistration: SDKRegistrationConfig,
+  ): SDKRegistrationConfig;
+  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
+  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
+
+  // No explicit metric type here, but "unknown" type.
+  // Because metric packages are important dynamically.
+  function configureMeter(defaultConfig: unknown): unknown;
+  function configureMeterProvider(meterProvider: unknown): void;
+
+  // No explicit log type here, but "unknown" type.
+  // Because log packages are important dynamically.
+  function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
 function getActiveInstumentations(): Set<string> {
@@ -124,91 +114,91 @@ function getActiveInstumentations(): Set<string> {
   return instrumentationSet;
 }
 
-function defaultConfigureInstrumentations() {
+async function defaultConfigureInstrumentations() {
   const instrumentations = [];
   const activeInstrumentations = getActiveInstumentations();
-  // Use require statements for instrumentation
-  // to avoid having to have transitive dependencies on all the typescript definitions.
   if (activeInstrumentations.has('dns')) {
-    const {
-      DnsInstrumentation,
-    } = require('@opentelemetry/instrumentation-dns');
+    const { DnsInstrumentation } = await import(
+      '@opentelemetry/instrumentation-dns'
+    );
     instrumentations.push(new DnsInstrumentation());
   }
   if (activeInstrumentations.has('express')) {
-    const {
-      ExpressInstrumentation,
-    } = require('@opentelemetry/instrumentation-express');
+    const { ExpressInstrumentation } = await import(
+      '@opentelemetry/instrumentation-express'
+    );
     instrumentations.push(new ExpressInstrumentation());
   }
   if (activeInstrumentations.has('graphql')) {
-    const {
-      GraphQLInstrumentation,
-    } = require('@opentelemetry/instrumentation-graphql');
+    const { GraphQLInstrumentation } = await import(
+      '@opentelemetry/instrumentation-graphql'
+    );
     instrumentations.push(new GraphQLInstrumentation());
   }
   if (activeInstrumentations.has('grpc')) {
-    const {
-      GrpcInstrumentation,
-    } = require('@opentelemetry/instrumentation-grpc');
+    const { GrpcInstrumentation } = await import(
+      '@opentelemetry/instrumentation-grpc'
+    );
     instrumentations.push(new GrpcInstrumentation());
   }
   if (activeInstrumentations.has('hapi')) {
-    const {
-      HapiInstrumentation,
-    } = require('@opentelemetry/instrumentation-hapi');
+    const { HapiInstrumentation } = await import(
+      '@opentelemetry/instrumentation-hapi'
+    );
     instrumentations.push(new HapiInstrumentation());
   }
   if (activeInstrumentations.has('http')) {
-    const {
-      HttpInstrumentation,
-    } = require('@opentelemetry/instrumentation-http');
+    const { HttpInstrumentation } = await import(
+      '@opentelemetry/instrumentation-http'
+    );
     instrumentations.push(new HttpInstrumentation());
   }
   if (activeInstrumentations.has('ioredis')) {
-    const {
-      IORedisInstrumentation,
-    } = require('@opentelemetry/instrumentation-ioredis');
+    const { IORedisInstrumentation } = await import(
+      '@opentelemetry/instrumentation-ioredis'
+    );
     instrumentations.push(new IORedisInstrumentation());
   }
   if (activeInstrumentations.has('koa')) {
-    const {
-      KoaInstrumentation,
-    } = require('@opentelemetry/instrumentation-koa');
+    const { KoaInstrumentation } = await import(
+      '@opentelemetry/instrumentation-koa'
+    );
     instrumentations.push(new KoaInstrumentation());
   }
   if (activeInstrumentations.has('mongodb')) {
-    const {
-      MongoDBInstrumentation,
-    } = require('@opentelemetry/instrumentation-mongodb');
+    const { MongoDBInstrumentation } = await import(
+      '@opentelemetry/instrumentation-mongodb'
+    );
     instrumentations.push(new MongoDBInstrumentation());
   }
   if (activeInstrumentations.has('mysql')) {
-    const {
-      MySQLInstrumentation,
-    } = require('@opentelemetry/instrumentation-mysql');
+    const { MySQLInstrumentation } = await import(
+      '@opentelemetry/instrumentation-mysql'
+    );
     instrumentations.push(new MySQLInstrumentation());
   }
   if (activeInstrumentations.has('net')) {
-    const {
-      NetInstrumentation,
-    } = require('@opentelemetry/instrumentation-net');
+    const { NetInstrumentation } = await import(
+      '@opentelemetry/instrumentation-net'
+    );
     instrumentations.push(new NetInstrumentation());
   }
   if (activeInstrumentations.has('pg')) {
-    const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
+    const { PgInstrumentation } = await import(
+      '@opentelemetry/instrumentation-pg'
+    );
     instrumentations.push(new PgInstrumentation());
   }
   if (activeInstrumentations.has('redis')) {
-    const {
-      RedisInstrumentation,
-    } = require('@opentelemetry/instrumentation-redis');
+    const { RedisInstrumentation } = await import(
+      '@opentelemetry/instrumentation-redis'
+    );
     instrumentations.push(new RedisInstrumentation());
   }
   return instrumentations;
 }
 
-function createInstrumentations() {
+async function createInstrumentations() {
   return [
     new AwsInstrumentation(
       typeof configureAwsInstrumentation === 'function'
@@ -221,8 +211,8 @@ function createInstrumentations() {
         : {},
     ),
     ...(typeof configureInstrumentations === 'function'
-      ? configureInstrumentations
-      : defaultConfigureInstrumentations)(),
+      ? configureInstrumentations()
+      : await defaultConfigureInstrumentations()),
   ];
 }
 
@@ -264,11 +254,9 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
-function initializeProvider() {
-  const resource = detectResourcesSync({
-    detectors: [awsLambdaDetector, envDetector, processDetector],
-  });
-
+async function initializeTracerProvider(
+  resource: IResource,
+): Promise<TracerProvider> {
   let config: TracerConfig = {
     resource,
   };
@@ -302,9 +290,27 @@ function initializeProvider() {
   }
   tracerProvider.register(sdkRegistrationConfig);
 
+  return tracerProvider;
+}
+
+async function initializeMeterProvider(
+  resource: IResource,
+): Promise<unknown | undefined> {
+  if (process.env.OTEL_METRICS_EXPORTER === 'none') {
+    return;
+  }
+
+  const { metrics } = await import('@opentelemetry/api');
+  const { MeterProvider, PeriodicExportingMetricReader } = await import(
+    '@opentelemetry/sdk-metrics'
+  );
+  const { OTLPMetricExporter } = await import(
+    '@opentelemetry/exporter-metrics-otlp-http'
+  );
+
   // Configure default meter provider (doesn't export metrics)
   const metricExporter = new OTLPMetricExporter();
-  let meterConfig: MeterProviderOptions = {
+  let meterConfig: unknown = {
     resource,
     readers: [
       new PeriodicExportingMetricReader({
@@ -316,15 +322,36 @@ function initializeProvider() {
     meterConfig = configureMeter(meterConfig);
   }
 
-  const meterProvider = new MeterProvider(meterConfig);
+  const meterProvider = new MeterProvider(meterConfig as object);
   if (typeof configureMeterProvider === 'function') {
     configureMeterProvider(meterProvider);
   } else {
     metrics.setGlobalMeterProvider(meterProvider);
   }
 
+  metricsDisableFunction = () => {
+    metrics.disable();
+  };
+
+  return meterProvider;
+}
+
+async function initializeLoggerProvider(
+  resource: IResource,
+): Promise<unknown | undefined> {
+  if (process.env.OTEL_LOGS_EXPORTER === 'none') {
+    return;
+  }
+
+  const { logs } = await import('@opentelemetry/api-logs');
+  const { LoggerProvider, SimpleLogRecordProcessor, ConsoleLogRecordExporter } =
+    await import('@opentelemetry/sdk-logs');
+  const { OTLPLogExporter } = await import(
+    '@opentelemetry/exporter-logs-otlp-http'
+  );
+
   const logExporter = new OTLPLogExporter();
-  const loggerConfig: LoggerProviderConfig = {
+  const loggerConfig = {
     resource,
   };
   const loggerProvider = new LoggerProvider(loggerConfig);
@@ -344,51 +371,101 @@ function initializeProvider() {
     );
   }
 
+  logsDisableFunction = () => {
+    logs.disable();
+  };
+
+  return loggerProvider;
+}
+
+async function initializeProvider() {
+  const resource = detectResourcesSync({
+    detectors: [awsLambdaDetector, envDetector, processDetector],
+  });
+
+  const tracerProvider: TracerProvider =
+    await initializeTracerProvider(resource);
+  const meterProvider: unknown | undefined =
+    await initializeMeterProvider(resource);
+  const loggerProvider: unknown | undefined =
+    await initializeLoggerProvider(resource);
+
   // Create instrumentations if they have not been created before
   // to prevent additional coldstart overhead
   // caused by creations and initializations of instrumentations.
   if (!instrumentations || !instrumentations.length) {
-    instrumentations = createInstrumentations();
+    instrumentations = await createInstrumentations();
   }
 
   // Re-register instrumentation with initialized provider. Patched code will see the update.
+
   disableInstrumentations = registerInstrumentations({
     instrumentations,
     tracerProvider,
-    meterProvider,
-    loggerProvider,
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    meterProvider: meterProvider as any,
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+    loggerProvider: loggerProvider as any,
   });
 }
 
-export function wrap() {
-  initializeProvider();
+export async function wrap() {
+  if (!initialized) {
+    throw new Error('Not initialized yet');
+  }
+
+  await initializeProvider();
 }
 
-export function unwrap() {
+export async function unwrap() {
+  if (!initialized) {
+    throw new Error('Not initialized yet');
+  }
+
   if (disableInstrumentations) {
     disableInstrumentations();
     disableInstrumentations = () => {};
   }
   instrumentations = [];
+
   context.disable();
   propagation.disable();
   trace.disable();
-  metrics.disable();
-  logs.disable();
+
+  if (metricsDisableFunction) {
+    metricsDisableFunction();
+    metricsDisableFunction = () => {};
+  }
+
+  if (logsDisableFunction) {
+    logsDisableFunction();
+    logsDisableFunction = () => {};
+  }
+}
+
+export async function init() {
+  if (initialized) {
+    return;
+  }
+
+  instrumentations = await createInstrumentations();
+
+  // Register instrumentations synchronously to ensure code is patched even before provider is ready.
+  disableInstrumentations = registerInstrumentations({
+    instrumentations,
+  });
+
+  initialized = true;
 }
 
 console.log('Registering OpenTelemetry');
 
+let initialized = false;
+let instrumentations: Instrumentation[];
+let disableInstrumentations: () => void;
+let metricsDisableFunction: () => void;
+let logsDisableFunction: () => void;
+
 // Configure lambda logging
 const logLevel = getEnv().OTEL_LOG_LEVEL;
 diag.setLogger(new DiagConsoleLogger(), logLevel);
-
-let instrumentations = createInstrumentations();
-let disableInstrumentations: () => void;
-
-// Register instrumentations synchronously to ensure code is patched even before provider is ready.
-disableInstrumentations = registerInstrumentations({
-  instrumentations,
-});
-
-wrap();

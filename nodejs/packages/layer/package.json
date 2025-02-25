@@ -5,14 +5,19 @@
   "description": "Layer including OpenTelemetry SDK for use with AWS Lambda.",
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
+    "build": "npm run clean && npm run compile && npm run install-externals && npm run package",
     "clean": "rimraf build/*",
+    "compile:tsc": "tsc --build tsconfig.json",
+    "compile:webpack": "webpack",
+    "compile": "npm run compile:webpack",
+    "copy-js-files": "copyfiles -f 'src/**/*.js' build/workspace && copyfiles 'test/**/*.js' build",
+    "copy-esm-files": "copyfiles -f 'src/**/*.mjs' build/workspace && copyfiles 'test/**/*.mjs' build",
+    "install-externals": "./install-externals.sh",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts",
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
-    "build": "npm run clean && npm run compile && npm run postcompile",
-    "copy-esm-files": "copyfiles 'src/**/*.mjs' build && copyfiles 'test/**/*.mjs' build",
-    "compile": "tsc -p .",
-    "postcompile": "npm run copy-esm-files && copyfiles 'package*.json' build/workspace/nodejs && npm install --production --ignore-scripts --prefix build/workspace/nodejs && rm build/workspace/nodejs/package.json build/workspace/nodejs/package-lock.json && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*' build/workspace && cd build/workspace && bestzip ../layer.zip *",
-    "pretest": "npm run compile",
+    "package": "cd build/workspace && bestzip ../layer.zip *",
+    "postcompile": "npm run copy-js-files && npm run copy-esm-files && copyfiles -f 'scripts/*' build/workspace && copyfiles -f 'build/src/*.js' build/workspace && copyfiles -f 'build/src/*.mjs' build/workspace",
+    "pretest": "npm run compile:tsc",
     "test:cjs": "mocha 'test/**/*.spec.ts' --exclude 'test/**/*.spec.mjs' --timeout 10000",
     "test:esm": "mocha 'test/**/*.spec.mjs' --exclude 'test/**/*.spec.ts' --timeout 10000",
     "test": "npm run test:cjs && npm run test:esm"
@@ -52,11 +57,11 @@
     "@opentelemetry/instrumentation-mongodb": "^0.51.0",
     "@opentelemetry/instrumentation-mysql": "^0.45.0",
     "@opentelemetry/instrumentation-net": "^0.43.0",
-    "@opentelemetry/instrumentation-pg": "^0.50.0",
+    "@opentelemetry/instrumentation-pg": "^0.51.0",
     "@opentelemetry/instrumentation-redis": "^0.46.0",
     "@opentelemetry/propagator-aws-xray": "^1.26.0",
-    "@opentelemetry/propagator-aws-xray-lambda": "^0.53.1",
-    "@opentelemetry/resource-detector-aws": "^1.10.0",
+    "@opentelemetry/propagator-aws-xray-lambda": "^0.53.0",
+    "@opentelemetry/resource-detector-aws": "^1.11.0",
     "@opentelemetry/resources": "^1.30.0",
     "@opentelemetry/sdk-logs": "^0.57.0",
     "@opentelemetry/sdk-metrics": "^1.30.0",
@@ -67,6 +72,11 @@
     "@types/sinon": "^17.0.3",
     "mocha": "^11.0.1",
     "sinon": "^19.0.2",
-    "ts-node": "^10.9.2"
-  }
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "sideEffects": false
 }

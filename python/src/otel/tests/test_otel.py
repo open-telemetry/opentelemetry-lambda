@@ -45,6 +45,7 @@ from opentelemetry.trace.propagation.tracecontext import (
 )
 
 AWS_LAMBDA_EXEC_WRAPPER = "AWS_LAMBDA_EXEC_WRAPPER"
+AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME"
 INIT_OTEL_SCRIPTS_DIR = os.path.join(
     *(os.path.dirname(__file__), "..", "otel_sdk")
 )
@@ -182,6 +183,7 @@ class TestAwsLambdaInstrumentor(TestBase):
             "os.environ",
             {
                 AWS_LAMBDA_EXEC_WRAPPER: "mock_aws_lambda_exec_wrapper",
+                AWS_LAMBDA_FUNCTION_NAME: "test-func",
                 _HANDLER: "mocks.lambda_function.handler",
             },
         )

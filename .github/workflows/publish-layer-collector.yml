@@ -1,0 +1,131 @@
+name: "Publish Collector Lambda layer"
+
+on:
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Architecture of the layer to be published'
+        required: true
+        type: choice
+        options:
+          - all
+          - amd64
+          - arm64
+        default: all
+      aws-region:
+        description: 'AWS Region(s) where layer will be published'
+        required: true
+        type: choice
+        options:
+          - all
+          - ap-northeast-1
+          - ap-northeast-2
+          - ap-south-1
+          - ap-southeast-1
+          - ap-southeast-2
+          - ca-central-1
+          - eu-central-1
+          - eu-north-1
+          - eu-west-1
+          - eu-west-2
+          - eu-west-3
+          - sa-east-1
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+        default: all
+      role-arn:
+        description: 'AWS IAM Role ARN to be assumed for publishing layer'
+        required: false
+        type: string
+      layer-version:
+        description: 'Layer version to be appended into the layer name'
+        required: false
+        type: string
+      build-tags:
+        description: 'Build tags to customize collector build'
+        required: false
+        type: string
+
+jobs:
+  prepare-build-jobs:
+    runs-on: ubuntu-latest
+    outputs:
+      build_jobs: ${{ steps.prepare-build-jobs.outputs.build_jobs }}
+    steps:
+      - id: prepare-build-jobs
+        name: Prepare Build Jobs
+        run: |
+          architectures=''
+          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+            architectures='["amd64", "arm64"]'
+          else
+            architectures='["${{ github.event.inputs.architecture }}"]'
+          fi
+          echo "build_jobs={"architecture": ${architectures}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+  build-layer:
+    needs: prepare-build-jobs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.prepare-build-jobs.outputs.build_jobs) }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.21.9'
+      - name: Build Collector
+        run: |
+          if [[ -n "${{ inputs.build-tags }}" ]]; then
+            BUILDTAGS="${{ inputs.build-tags }}"
+            if [[ "$BUILDTAGS" != "lambdacomponents.custom"* ]]; then
+              BUILDTAGS="lambdacomponents.custom,$BUILDTAGS"
+            fi
+          fi
+          echo "Build tags: $BUILDTAGS"
+          make -C collector package GOARCH=${{ matrix.architecture }} BUILDTAGS=$BUILDTAGS
+      - name: Upload Collector Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+  prepare-release-jobs:
+    needs: build-layer
+    runs-on: ubuntu-latest
+    outputs:
+      release_jobs: ${{ steps.prepare-release-jobs.outputs.release_jobs }}
+    steps:
+      - id: prepare-release-jobs
+        name: Prepare Release Jobs
+        run: |
+          architectures=''
+          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+            architectures='["amd64", "arm64"]'
+          else
+            architectures='["${{ github.event.inputs.architecture }}"]'
+          fi
+          aws_regions=''
+          if [ ${{ github.event.inputs.aws-region }} == 'all' ]; then
+            aws_regions='["ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
+          else
+            aws_regions='["${{ github.event.inputs.aws-region }}"]'
+          fi
+          echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+  release-layer:
+    uses: ./.github/workflows/layer-publish.yml
+    needs: prepare-release-jobs
+    strategy:
+      matrix: ${{ fromJSON(needs.prepare-release-jobs.outputs.release_jobs) }}
+    with:
+      artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+      layer-name: opentelemetry-collector
+      architecture: ${{ matrix.architecture }}
+      runtimes: "nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.8 python3.9 python3.10 python3.11 python3.12"
+      release-group: prod
+      aws_region: ${{ matrix.aws_region }}
+      role-arn: ${{ github.event.inputs.role-arn }}
+      component-version: 'NA'
+      layer-version: ${{ github.event.inputs.layer-version }}
+    secrets: inherit
