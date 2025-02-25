@@ -20,6 +20,8 @@ github.com/aws/aws-sdk-go-v2/credentials v1.17.59 h1:9btwmrt//Q6JcSdgJOLI98sdr5p
 github.com/aws/aws-sdk-go-v2/credentials v1.17.59/go.mod h1:NM8fM6ovI3zak23UISdWidyZuI1ghNe2xjzUZAyT+08=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.28 h1:KwsodFKVQTlI5EyhRSugALzsV6mG/SGrdjlMXSZSdso=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.28/go.mod h1:EY3APf9MzygVhKuPXAc5H+MkGb8k/DOSQjWS0LgkKqI=
+github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.54 h1:6BWOAho3Cgdy4cmNJ4HWY8VZgqODEU7Gw78XXireNZI=
+github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.54/go.mod h1:n+t/oyYErOV3jf/GxNTVlizSM9RMV1yH7jvcIvld3Do=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.32 h1:BjUcr3X3K0wZPGFg2bxOWW3VPN8rkE3/61zhP+IHviA=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.32/go.mod h1:80+OGC/bgzzFFTUmcuwD0lb4YutwQeKLFpmt6hoWapU=
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.32 h1:m1GeXHVMJsRsUAqG6HjZWx9dj7F5TR+cF1bjyfYyBd4=
@@ -164,8 +166,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secre
 github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider v0.119.0/go.mod h1:6TogM+xLrHpq+/yXj1pXoOAfjEuR6VCNvJ63cx9UyTg=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.119.0 h1:0eIwc699pvvChuyKDexhl3xovAQzc18xVOvxJ7tv9r8=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.119.0/go.mod h1:Cmey/JEL25DSYfYNxSNpunKzuebMypjZs3VsNc4JSeU=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.116.0 h1:E/Lou5O/hhP2ti0wZ8eyXCqEPepaqmOPf5G2INXxSCU=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.116.0/go.mod h1:MlQ89zsPv9LVqXVllrp9ukc9S7sqC+446jbAYg7JUQY=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.119.0 h1:0FAtPJ8yCZgMVRoKz1YjlaZhyOaV7QJWFDYpTVvMV2Y=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awss3exporter v0.119.0/go.mod h1:3wvrLx2DPLts6vLXG6u+GdC/yvn1lpSDfiwiDnQGzZI=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.119.0 h1:Uw2qT8XxWEp+0YSeBEQuRlXgnvam8B3IR+6Qu0xKvwg=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.119.0/go.mod h1:zaYmXAbN866u9Wj/YAxlY4p2/lyzlE554Ql/FgI3J5A=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.119.0 h1:zzNRPHTSmLGXMO5G7gwJ1QkNuIYBR1Q13ctbw/PWd5U=
@@ -182,6 +184,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.119.0/go.mod h1:Cx/iI+dXpsifBnU9Ch4hN1de5R8dvnyiQJecIc1ty7M=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.119.0 h1:5F+Xa3A/xdlA9x2XdFEATeMhcU4R35TSIs3q6BynqCM=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.119.0/go.mod h1:N6FGJBXj0QY/e9zjdlIWGCKHD+fKUwUtreAfAZRyoFA=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.119.0 h1:Nc1rvF/hxp8TwYOSsA2qmvIQlS+8lougZsyxcTN6U78=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.119.0/go.mod h1:7ePS4L6s7UcWxxgIQkAiI5db/OxwRAV9+kziKVIO3Y8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.119.0 h1:ql3Ujsfiwd1uKAJfK+EbUnLXz1NcStK2q5PRNBqJaQY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.119.0/go.mod h1:Df15ipOX4JryZDCEiFhByJNgycMOoO6AP0XB/oeqtH4=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.119.0 h1:2ztsxw6DH2CbXbykCGgPSZmHHRilNuD06VOfI/z9xGs=
