@@ -204,8 +204,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceproc
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.119.0/go.mod h1:acrmdOey6Ccj0jlgaHgWwRM9VmSfUaWdHm0H9Dz8GO4=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.119.0 h1:HBQqRHsRIkJbG6iFHT8Q+TJPljwUSEd75wlqiHVtA5I=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.119.0/go.mod h1:CEzAuqlTFNnxOUk8ix41TM1Bmembk+nKrhYzNN6r0NM=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.116.0 h1:a48/8x5VSZSSBkdifVC0mSgNtdJ0M0GcRtX98VVd4nk=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.116.0/go.mod h1:5MKetAGO0XkoZSqdoZhfxSoFq3hn7zmEYF4Yjf+i+CI=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.119.0 h1:8HlxU1CW9qRYBSp5LdJn904NhdXAuKsklQ8PGTbdiw8=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.119.0/go.mod h1:yRAFW+mmlDKUXAZ77h+EQ4s7z/RZaGK/YClpieva5aY=
 github.com/pierrec/lz4/v4 v4.1.22 h1:cKFw6uJDK+/gfw5BcDL0JL5aBsAFdsIT18eRtLj7VIU=
 github.com/pierrec/lz4/v4 v4.1.22/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
