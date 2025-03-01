@@ -117,6 +117,42 @@ function getActiveInstumentations(): Set<string> {
 async function defaultConfigureInstrumentations() {
   const instrumentations = [];
   const activeInstrumentations = getActiveInstumentations();
+  if (activeInstrumentations.has('amqplib')) {
+    const { AmqplibInstrumentation } = await import(
+      '@opentelemetry/instrumentation-amqplib'
+    );
+    instrumentations.push(new AmqplibInstrumentation());
+  }
+  if (activeInstrumentations.has('bunyan')) {
+    const { BunyanInstrumentation } = await import(
+      '@opentelemetry/instrumentation-bunyan'
+    );
+    instrumentations.push(new BunyanInstrumentation());
+  }
+  if (activeInstrumentations.has('cassandra-driver')) {
+    const { CassandraDriverInstrumentation } = await import(
+      '@opentelemetry/instrumentation-cassandra-driver'
+    );
+    instrumentations.push(new CassandraDriverInstrumentation());
+  }
+  if (activeInstrumentations.has('connect')) {
+    const { ConnectInstrumentation } = await import(
+      '@opentelemetry/instrumentation-connect'
+    );
+    instrumentations.push(new ConnectInstrumentation());
+  }
+  if (activeInstrumentations.has('cucumber')) {
+    const { CucumberInstrumentation } = await import(
+      '@opentelemetry/instrumentation-cucumber'
+    );
+    instrumentations.push(new CucumberInstrumentation());
+  }
+  if (activeInstrumentations.has('dataloader')) {
+    const { DataloaderInstrumentation } = await import(
+      '@opentelemetry/instrumentation-dataloader'
+    );
+    instrumentations.push(new DataloaderInstrumentation());
+  }
   if (activeInstrumentations.has('dns')) {
     const { DnsInstrumentation } = await import(
       '@opentelemetry/instrumentation-dns'
@@ -128,6 +164,18 @@ async function defaultConfigureInstrumentations() {
       '@opentelemetry/instrumentation-express'
     );
     instrumentations.push(new ExpressInstrumentation());
+  }
+  if (activeInstrumentations.has('fs')) {
+    const { FsInstrumentation } = await import(
+      '@opentelemetry/instrumentation-fs'
+    );
+    instrumentations.push(new FsInstrumentation());
+  }
+  if (activeInstrumentations.has('generic-pool')) {
+    const { GenericPoolInstrumentation } = await import(
+      '@opentelemetry/instrumentation-generic-pool'
+    );
+    instrumentations.push(new GenericPoolInstrumentation());
   }
   if (activeInstrumentations.has('graphql')) {
     const { GraphQLInstrumentation } = await import(
@@ -159,11 +207,35 @@ async function defaultConfigureInstrumentations() {
     );
     instrumentations.push(new IORedisInstrumentation());
   }
+  if (activeInstrumentations.has('kafkajs')) {
+    const { KafkaJsInstrumentation } = await import(
+      '@opentelemetry/instrumentation-kafkajs'
+    );
+    instrumentations.push(new KafkaJsInstrumentation());
+  }
+  if (activeInstrumentations.has('knex')) {
+    const { KnexInstrumentation } = await import(
+      '@opentelemetry/instrumentation-knex'
+    );
+    instrumentations.push(new KnexInstrumentation());
+  }
   if (activeInstrumentations.has('koa')) {
     const { KoaInstrumentation } = await import(
       '@opentelemetry/instrumentation-koa'
     );
     instrumentations.push(new KoaInstrumentation());
+  }
+  if (activeInstrumentations.has('lru-memoizer')) {
+    const { LruMemoizerInstrumentation } = await import(
+      '@opentelemetry/instrumentation-lru-memoizer'
+    );
+    instrumentations.push(new LruMemoizerInstrumentation());
+  }
+  if (activeInstrumentations.has('memcached')) {
+    const { MemcachedInstrumentation } = await import(
+      '@opentelemetry/instrumentation-memcached'
+    );
+    instrumentations.push(new MemcachedInstrumentation());
   }
   if (activeInstrumentations.has('mongodb')) {
     const { MongoDBInstrumentation } = await import(
@@ -171,11 +243,29 @@ async function defaultConfigureInstrumentations() {
     );
     instrumentations.push(new MongoDBInstrumentation());
   }
+  if (activeInstrumentations.has('mongoose')) {
+    const { MongooseInstrumentation } = await import(
+      '@opentelemetry/instrumentation-mongoose'
+    );
+    instrumentations.push(new MongooseInstrumentation());
+  }
   if (activeInstrumentations.has('mysql')) {
     const { MySQLInstrumentation } = await import(
       '@opentelemetry/instrumentation-mysql'
     );
     instrumentations.push(new MySQLInstrumentation());
+  }
+  if (activeInstrumentations.has('mysql2')) {
+    const { MySQL2Instrumentation } = await import(
+      '@opentelemetry/instrumentation-mysql2'
+    );
+    instrumentations.push(new MySQL2Instrumentation());
+  }
+  if (activeInstrumentations.has('nestjs-core')) {
+    const { NestInstrumentation } = await import(
+      '@opentelemetry/instrumentation-nestjs-core'
+    );
+    instrumentations.push(new NestInstrumentation());
   }
   if (activeInstrumentations.has('net')) {
     const { NetInstrumentation } = await import(
@@ -189,11 +279,41 @@ async function defaultConfigureInstrumentations() {
     );
     instrumentations.push(new PgInstrumentation());
   }
+  if (activeInstrumentations.has('pino')) {
+    const { PinoInstrumentation } = await import(
+      '@opentelemetry/instrumentation-pino'
+    );
+    instrumentations.push(new PinoInstrumentation());
+  }
   if (activeInstrumentations.has('redis')) {
     const { RedisInstrumentation } = await import(
       '@opentelemetry/instrumentation-redis'
     );
     instrumentations.push(new RedisInstrumentation());
+  }
+  if (activeInstrumentations.has('restify')) {
+    const { RestifyInstrumentation } = await import(
+      '@opentelemetry/instrumentation-restify'
+    );
+    instrumentations.push(new RestifyInstrumentation());
+  }
+  if (activeInstrumentations.has('socket.io')) {
+    const { SocketIoInstrumentation } = await import(
+      '@opentelemetry/instrumentation-socket.io'
+    );
+    instrumentations.push(new SocketIoInstrumentation());
+  }
+  if (activeInstrumentations.has('undici')) {
+    const { UndiciInstrumentation } = await import(
+      '@opentelemetry/instrumentation-undici'
+    );
+    instrumentations.push(new UndiciInstrumentation);
+  }
+  if (activeInstrumentations.has('winston')) {
+    const { WinstonInstrumentation } = await import(
+      '@opentelemetry/instrumentation-winston'
+    );
+    instrumentations.push(new WinstonInstrumentation());
   }
   return instrumentations;
 }
