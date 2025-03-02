@@ -297,7 +297,7 @@ async function defaultConfigureInstrumentations() {
     const { UndiciInstrumentation } = await import(
       '@opentelemetry/instrumentation-undici'
     );
-    instrumentations.push(new UndiciInstrumentation);
+    instrumentations.push(new UndiciInstrumentation());
   }
   if (activeInstrumentations.has('winston')) {
     const { WinstonInstrumentation } = await import(
