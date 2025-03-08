@@ -141,12 +141,6 @@ async function defaultConfigureInstrumentations() {
     );
     instrumentations.push(new ConnectInstrumentation());
   }
-  if (activeInstrumentations.has('cucumber')) {
-    const { CucumberInstrumentation } = await import(
-      '@opentelemetry/instrumentation-cucumber'
-    );
-    instrumentations.push(new CucumberInstrumentation());
-  }
   if (activeInstrumentations.has('dataloader')) {
     const { DataloaderInstrumentation } = await import(
       '@opentelemetry/instrumentation-dataloader'
@@ -170,12 +164,6 @@ async function defaultConfigureInstrumentations() {
       '@opentelemetry/instrumentation-fs'
     );
     instrumentations.push(new FsInstrumentation());
-  }
-  if (activeInstrumentations.has('generic-pool')) {
-    const { GenericPoolInstrumentation } = await import(
-      '@opentelemetry/instrumentation-generic-pool'
-    );
-    instrumentations.push(new GenericPoolInstrumentation());
   }
   if (activeInstrumentations.has('graphql')) {
     const { GraphQLInstrumentation } = await import(
@@ -224,12 +212,6 @@ async function defaultConfigureInstrumentations() {
       '@opentelemetry/instrumentation-koa'
     );
     instrumentations.push(new KoaInstrumentation());
-  }
-  if (activeInstrumentations.has('lru-memoizer')) {
-    const { LruMemoizerInstrumentation } = await import(
-      '@opentelemetry/instrumentation-lru-memoizer'
-    );
-    instrumentations.push(new LruMemoizerInstrumentation());
   }
   if (activeInstrumentations.has('memcached')) {
     const { MemcachedInstrumentation } = await import(
