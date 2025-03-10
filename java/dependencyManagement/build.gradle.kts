@@ -11,12 +11,12 @@ data class DependencySet(val group: String, val version: String, val modules: Li
 val DEPENDENCY_BOMS = listOf(
     "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:2.12.0-alpha",
     "org.apache.logging.log4j:log4j-bom:2.24.3",
-    "software.amazon.awssdk:bom:2.30.16"
+    "software.amazon.awssdk:bom:2.30.36"
 )
 
 val DEPENDENCIES = listOf(
     "com.amazonaws:aws-lambda-java-core:1.2.3",
-    "com.amazonaws:aws-lambda-java-events:3.14.0",
+    "com.amazonaws:aws-lambda-java-events:3.15.0",
     "com.squareup.okhttp3:okhttp:4.12.0",
     "io.opentelemetry.javaagent:opentelemetry-javaagent:2.12.0",
     "io.opentelemetry:opentelemetry-sdk-extension-aws:1.19.0",
