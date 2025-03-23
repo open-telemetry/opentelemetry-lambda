@@ -5,8 +5,42 @@ the `AWS_LAMBDA_EXEC_WRAPPER` environment variable will initialize OpenTelemetry
 
 To use, add the layer to your function configuration and then set `AWS_LAMBDA_EXEC_WRAPPER` to `/opt/otel-handler`.
 
-[AWS SDK v2 instrumentation](https://github.com/aspecto-io/opentelemetry-ext-js/tree/master/packages/instrumentation-aws-sdk) is also
-included and loaded automatically if you use the AWS SDK v2.
+## Configuring auto instrumentation
+
+[AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/plugins/node/opentelemetry-instrumentation-aws-sdk)
+is loaded automatically by default.
+The instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node)
+are also included, except for `cucumber, generic-pool, lru-memoizer`.
+
+Following instrumentations from the metapackage are automatically loaded by default:
+- `dns`
+- `express`
+- `graphql`
+- `grpc`
+- `hapi`
+- `http`
+- `ioredis`
+- `koa`
+- `mongodb`
+- `mysql`
+- `net`
+- `pg`
+- `redis`
+
+To only load specific instrumentations, specify the `OTEL_NODE_ENABLED_INSTRUMENTATIONS` environment variable in the lambda configuration.
+This disables all the defaults mentioned above, and only enable the ones you specify. Selectively disabling instrumentations from the defaults is also possible with the `OTEL_NODE_DISABLED_INSTRUMENTATIONS` environment variable.
+
+The environment variables should be set to a comma-separated list of the instrumentation package names without the 
+`@opentelemetry/instrumentation-` prefix.
+
+For example, to enable only `@opentelemetry/instrumentation-http` and `@opentelemetry/instrumentation-undici`:
+```shell
+OTEL_NODE_ENABLED_INSTRUMENTATIONS="http,undici"
+```
+To disable only `@opentelemetry/instrumentation-net`:
+```shell
+OTEL_NODE_DISABLED_INSTRUMENTATIONS="net"
+```
 
 ## Building
 
