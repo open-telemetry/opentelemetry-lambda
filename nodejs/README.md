@@ -45,6 +45,7 @@ Following instrumentations from the metapackage are included:
 - `winston`
 
 Instrumentations annotated with "*- default*" are loaded by default.
+
 To only load specific instrumentations, specify the `OTEL_NODE_ENABLED_INSTRUMENTATIONS` environment variable in the lambda configuration.
 This disables all the defaults, and only enables the ones you specify. Selectively disabling instrumentations from the defaults is also possible with the `OTEL_NODE_DISABLED_INSTRUMENTATIONS` environment variable.
 
