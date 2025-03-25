@@ -9,26 +9,44 @@ To use, add the layer to your function configuration and then set `AWS_LAMBDA_EX
 
 [AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/plugins/node/opentelemetry-instrumentation-aws-sdk)
 is loaded automatically by default.
-The instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node)
-are also included, except for `cucumber, generic-pool, lru-memoizer`.
+A subset of instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node)
+are also included.
 
-Following instrumentations from the metapackage are automatically loaded by default:
-- `dns`
-- `express`
-- `graphql`
-- `grpc`
-- `hapi`
-- `http`
-- `ioredis`
-- `koa`
-- `mongodb`
-- `mysql`
-- `net`
-- `pg`
-- `redis`
+Following instrumentations from the metapackage are included:
+- `amqplib`
+- `bunyan`
+- `cassandra-driver`
+- `connect`
+- `dataloader`
+- `dns` *- default*
+- `express` *- default*
+- `fs`
+- `graphql` *- default*
+- `grpc` *- default*
+- `hapi` *- default*
+- `http` *- default*
+- `ioredis` *- default*
+- `kafkajs`
+- `knex`
+- `koa` *- default*
+- `memcached`
+- `mongodb` *- default*
+- `mongoose`
+- `mysql` *- default*
+- `mysql2`
+- `nestjs-core`
+- `net` *- default*
+- `pg` *- default*
+- `pino`
+- `redis` *- default*
+- `restify`
+- `socket.io`
+- `undici`
+- `winston`
 
+Instrumentations annotated with "*- default*" are loaded by default.
 To only load specific instrumentations, specify the `OTEL_NODE_ENABLED_INSTRUMENTATIONS` environment variable in the lambda configuration.
-This disables all the defaults mentioned above, and only enable the ones you specify. Selectively disabling instrumentations from the defaults is also possible with the `OTEL_NODE_DISABLED_INSTRUMENTATIONS` environment variable.
+This disables all the defaults, and only enables the ones you specify. Selectively disabling instrumentations from the defaults is also possible with the `OTEL_NODE_DISABLED_INSTRUMENTATIONS` environment variable.
 
 The environment variables should be set to a comma-separated list of the instrumentation package names without the 
 `@opentelemetry/instrumentation-` prefix.
