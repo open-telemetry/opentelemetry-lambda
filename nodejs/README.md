@@ -8,7 +8,7 @@ To use, add the layer to your function configuration and then set `AWS_LAMBDA_EX
 ## Configuring auto instrumentation
 
 [AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/plugins/node/opentelemetry-instrumentation-aws-sdk)
-is loaded automatically by default.
+is included and loaded automatically by default.
 A subset of instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node)
 are also included.
 
