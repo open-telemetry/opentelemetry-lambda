@@ -30,13 +30,14 @@ const (
 )
 
 var (
+	Type                  = component.MustNewType(typeStr)
 	errConfigNotDecouple  = errors.New("config was not a decouple processor config")
 	processorCapabilities = consumer.Capabilities{MutatesData: false}
 )
 
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
-		component.MustNewType(typeStr),
+		Type,
 		createDefaultConfig,
 		processor.WithTraces(createTracesProcessor, stability),
 		processor.WithMetrics(createMetricsProcessor, stability),

@@ -53,7 +53,7 @@ func TestNewFactory(t *testing.T) {
 				cfg := factory.CreateDefaultConfig()
 				_, err := factory.CreateTraces(
 					context.Background(),
-					receivertest.NewNopSettings(),
+					receivertest.NewNopSettings(Type),
 					cfg,
 					consumertest.NewNop(),
 				)
@@ -66,7 +66,7 @@ func TestNewFactory(t *testing.T) {
 				factory := NewFactory("test")
 				_, err := factory.CreateTraces(
 					context.Background(),
-					receivertest.NewNopSettings(),
+					receivertest.NewNopSettings(Type),
 					nil,
 					consumertest.NewNop(),
 				)
