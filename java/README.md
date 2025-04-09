@@ -41,7 +41,7 @@ For more information about the idea behind this optimization, you can check the 
 
 ### Wrapper
 
-[OpenTelemetry Lambda Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/aws-lambda-1.0/library)
+[OpenTelemetry Lambda Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/aws-lambda)
 and [OpenTelemetry SDK](https://github.com/open-telemetry/opentelemetry-java) are bundled into the
 `java/lib` directory to be available on the classpath of the Lambda function. No code change is
 needed to instrument the execution of your function, but you will need to set the `AWS_LAMBDA_EXEC_WRAPPER`
