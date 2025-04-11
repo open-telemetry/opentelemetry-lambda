@@ -31,7 +31,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/envprovider v1.29.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v1.29.0
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v1.29.0
-	go.opentelemetry.io/collector/confmap/provider/httpsprovider v1.25.0
+	go.opentelemetry.io/collector/confmap/provider/httpsprovider v1.29.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.29.0
 	go.opentelemetry.io/collector/otelcol v0.123.0
 	go.uber.org/multierr v1.11.0
