@@ -259,8 +259,8 @@ go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
-go.opentelemetry.io/collector/client v1.25.0 h1:7IS+b3Xm2ymgmQj9UbnZmVF4jIw6F7tQjJP7lFc+GoM=
-go.opentelemetry.io/collector/client v1.25.0/go.mod h1:IPyOnO7K0ztuZOV1i+WXShvq4tpbLp45tTDdIDvlZvM=
+go.opentelemetry.io/collector/client v1.29.0 h1:D8BGFftbhsVhpPCSA77WSX7y/UjB6hgWHG+CSVlKM+4=
+go.opentelemetry.io/collector/client v1.29.0/go.mod h1:LCUoEV2KCTKA1i+/txZaGsSPVWUcqeOV6wCfNsAippE=
 go.opentelemetry.io/collector/component v1.29.0 h1:SQDKqMb3EUNPyxZDrImkqgi8p682Hm986CMXBiiTkz0=
 go.opentelemetry.io/collector/component v1.29.0/go.mod h1:qHoiz0iyBgyAYsT0F8FgtcJv8pTEQDvo1Ox3eO3qVlY=
 go.opentelemetry.io/collector/component/componentstatus v0.123.0 h1:KL7nNmRoCLt8dVOr5kuvWDly2W5fLE5J6qZ8OdhEzw0=
