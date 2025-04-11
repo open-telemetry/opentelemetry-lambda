@@ -26,7 +26,6 @@ require (
 	go.opentelemetry.io/collector/processor v1.29.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.123.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.123.0
-	go.opentelemetry.io/collector/processor/xprocessor v0.123.0
 	go.opentelemetry.io/collector/receiver v1.29.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.123.0
 	go.uber.org/multierr v1.11.0
@@ -172,6 +171,7 @@ require (
 	go.opentelemetry.io/collector/processor/processorhelper v0.123.0 // indirect
 	go.opentelemetry.io/collector/processor/processorhelper/xprocessorhelper v0.123.0 // indirect
 	go.opentelemetry.io/collector/processor/processortest v0.123.0 // indirect
+	go.opentelemetry.io/collector/processor/xprocessor v0.123.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.123.0 // indirect
 	go.opentelemetry.io/collector/receiver/receivertest v0.123.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.123.0 // indirect
@@ -203,11 +203,11 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/net v0.37.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	gonum.org/v1/gonum v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
