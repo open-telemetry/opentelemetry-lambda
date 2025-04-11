@@ -105,7 +105,7 @@ func Test_newDecoupleProcessor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			lambdalifecycle.SetNotifier(tt.notifier)
 
-			dp, err := newDecoupleProcessor(tt.args.cfg, tt.args.consumer, processortest.NewNopSettings())
+			dp, err := newDecoupleProcessor(tt.args.cfg, tt.args.consumer, processortest.NewNopSettings(Type))
 			if tt.wantErr {
 				require.Error(t, err)
 			} else {
@@ -126,13 +126,13 @@ func TestLifecycle(t *testing.T) {
 	lambdalifecycle.SetNotifier(notifier)
 
 	t.Run("create and otelcol shutdown only", func(t *testing.T) {
-		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings())
+		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings(Type))
 		require.NoError(t, err)
 		require.NoError(t, dp.shutdown(context.Background()))
 	})
 
 	t.Run("full lifecycle", func(t *testing.T) {
-		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings())
+		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings(Type))
 		require.NoError(t, err)
 
 		dp.FunctionInvoked()
@@ -143,7 +143,7 @@ func TestLifecycle(t *testing.T) {
 	})
 
 	t.Run("full lifecycle with data from function", func(t *testing.T) {
-		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings())
+		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings(Type))
 		require.NoError(t, err)
 
 		dp.FunctionInvoked()
@@ -165,7 +165,7 @@ func TestLifecycle(t *testing.T) {
 	})
 
 	t.Run("full lifecycle with data before shutdown", func(t *testing.T) {
-		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings())
+		dp, err := newDecoupleProcessor(config, consumer, processortest.NewNopSettings(Type))
 		require.NoError(t, err)
 
 		dp.FunctionInvoked()

@@ -30,13 +30,14 @@ const (
 )
 
 var (
+	Type                  = component.MustNewType(typeStr)
 	errConfigNotColdstart = errors.New("config was not a Coldstart processor config")
 	processorCapabilities = consumer.Capabilities{MutatesData: true}
 )
 
 func NewFactory() processor.Factory {
 	return processor.NewFactory(
-		component.MustNewType(typeStr),
+		Type,
 		createDefaultConfig,
 		processor.WithTraces(createTracesProcessor, stability),
 	)
