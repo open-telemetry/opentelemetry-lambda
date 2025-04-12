@@ -24,12 +24,7 @@ import (
 	custom_receiver "github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents/receiver"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/connector"
-	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/otelcol"
-	"go.opentelemetry.io/collector/processor"
-	"go.opentelemetry.io/collector/receiver"
 
 	"go.uber.org/multierr"
 )
@@ -37,27 +32,27 @@ import (
 func Components(extensionID string) (otelcol.Factories, error) {
 	var errs []error
 
-	receivers, err := makeFactoryMap(custom_receiver.Factories, receiver.MakeFactoryMap, extensionID)
+	receivers, err := makeFactoryMap(custom_receiver.Factories, extensionID)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
-	processors, err := makeFactoryMap(custom_processor.Factories, processor.MakeFactoryMap, extensionID)
+	processors, err := makeFactoryMap(custom_processor.Factories, extensionID)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
-	exporters, err := makeFactoryMap(custom_exporter.Factories, exporter.MakeFactoryMap, extensionID)
+	exporters, err := makeFactoryMap(custom_exporter.Factories, extensionID)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
-	extensions, err := makeFactoryMap(custom_extension.Factories, extension.MakeFactoryMap, extensionID)
+	extensions, err := makeFactoryMap(custom_extension.Factories, extensionID)
 	if err != nil {
 		errs = append(errs, err)
 	}
 
-	connectors, err := makeFactoryMap(custom_connector.Factories, connector.MakeFactoryMap, extensionID)
+	connectors, err := makeFactoryMap(custom_connector.Factories, extensionID)
 	if err != nil {
 		errs = append(errs, err)
 	}
@@ -73,11 +68,11 @@ func Components(extensionID string) (otelcol.Factories, error) {
 	return factories, multierr.Combine(errs...)
 }
 
-func makeFactoryMap[F any](factories []func(extensionId string) F, fn func(...F) (map[component.Type]F, error), extensionId string) (map[component.Type]F, error) {
+func makeFactoryMap[F component.Factory](factories []func(extensionId string) F, extensionId string) (map[component.Type]F, error) {
 	preprocessedFactories := make([]F, len(factories))
 	for i, f := range factories {
 		preprocessedFactories[i] = f(extensionId)
 	}
 
-	return fn(preprocessedFactories...)
+	return otelcol.MakeFactoryMap(preprocessedFactories...)
 }
