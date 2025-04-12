@@ -10,7 +10,8 @@ import {
 } from '@opentelemetry/api';
 import {
   CompositePropagator,
-  getEnv,
+  diagLogLevelFromString,
+  getStringFromEnv,
   W3CBaggagePropagator,
   W3CTraceContextPropagator,
 } from '@opentelemetry/core';
@@ -569,5 +570,5 @@ let metricsDisableFunction: () => void;
 let logsDisableFunction: () => void;
 
 // Configure lambda logging
-const logLevel = getEnv().OTEL_LOG_LEVEL;
+const logLevel = diagLogLevelFromString(getStringFromEnv('OTEL_LOG_LEVEL'));
 diag.setLogger(new DiagConsoleLogger(), logLevel);
