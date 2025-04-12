@@ -23,9 +23,9 @@ import {
   TracerConfig,
 } from '@opentelemetry/sdk-trace-base';
 import {
-  detectResourcesSync,
+  detectResources,
   envDetector,
-  IResource,
+  Resource,
   processDetector,
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
@@ -357,7 +357,7 @@ function getPropagator(): TextMapPropagator {
 }
 
 async function initializeTracerProvider(
-  resource: IResource,
+  resource: Resource,
 ): Promise<TracerProvider> {
   let config: TracerConfig = {
     resource,
@@ -396,7 +396,7 @@ async function initializeTracerProvider(
 }
 
 async function initializeMeterProvider(
-  resource: IResource,
+  resource: Resource,
 ): Promise<unknown | undefined> {
   if (process.env.OTEL_METRICS_EXPORTER === 'none') {
     return;
@@ -439,7 +439,7 @@ async function initializeMeterProvider(
 }
 
 async function initializeLoggerProvider(
-  resource: IResource,
+  resource: Resource,
 ): Promise<unknown | undefined> {
   if (process.env.OTEL_LOGS_EXPORTER === 'none') {
     return;
@@ -481,7 +481,7 @@ async function initializeLoggerProvider(
 }
 
 async function initializeProvider() {
-  const resource = detectResourcesSync({
+  const resource = detectResources({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
