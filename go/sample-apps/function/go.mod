@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/go/sample-apps/function
 
-go 1.23
+go 1.23.1
 
 require (
 	github.com/aws/aws-lambda-go v1.48.0
@@ -49,7 +49,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect

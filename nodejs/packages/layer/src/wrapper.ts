@@ -84,6 +84,9 @@ declare global {
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
   function configureTracer(defaultConfig: TracerConfig): TracerConfig;
+  /**
+   * @deprecated please use {@link configureTracer} instead.
+   */
   function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
 
   // No explicit metric type here, but "unknown" type.
