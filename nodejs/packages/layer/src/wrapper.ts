@@ -16,7 +16,6 @@ import {
   W3CTraceContextPropagator,
 } from '@opentelemetry/core';
 import {
-  BasicTracerProvider,
   BatchSpanProcessor,
   ConsoleSpanExporter,
   SDKRegistrationConfig,
@@ -84,10 +83,6 @@ declare global {
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
   function configureTracer(defaultConfig: TracerConfig): TracerConfig;
-  /**
-   * @deprecated please use {@link configureTracer} instead.
-   */
-  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
 
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
@@ -365,26 +360,26 @@ async function initializeTracerProvider(
 ): Promise<TracerProvider> {
   let config: TracerConfig = {
     resource,
+    spanProcessors: [],
   };
+
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
-  }
-
-  const tracerProvider = new LambdaTracerProvider(config);
-  if (typeof configureTracerProvider === 'function') {
-    configureTracerProvider(tracerProvider);
   } else {
     // Defaults
-    tracerProvider.addSpanProcessor(
+    config.spanProcessors?.push(
       new BatchSpanProcessor(new OTLPTraceExporter()),
     );
   }
+
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
-    tracerProvider.addSpanProcessor(
+    config.spanProcessors?.push(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
     );
   }
+
+  const tracerProvider = new LambdaTracerProvider(config);
 
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {
