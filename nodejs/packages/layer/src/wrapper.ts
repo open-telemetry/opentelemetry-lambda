@@ -18,10 +18,11 @@ import {
 import {
   BatchSpanProcessor,
   ConsoleSpanExporter,
+  NodeTracerProvider,
   SDKRegistrationConfig,
   SimpleSpanProcessor,
   TracerConfig,
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace-node';
 import {
   detectResources,
   envDetector,
@@ -44,8 +45,6 @@ import {
 } from '@opentelemetry/instrumentation-aws-lambda';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
-
-import { LambdaTracerProvider } from './LambdaTracerProvider';
 
 const defaultInstrumentationList = [
   'dns',
@@ -379,7 +378,7 @@ async function initializeTracerProvider(
     );
   }
 
-  const tracerProvider = new LambdaTracerProvider(config);
+  const tracerProvider = new NodeTracerProvider(config);
 
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {

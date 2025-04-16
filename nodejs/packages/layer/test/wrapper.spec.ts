@@ -10,7 +10,7 @@ import {
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
 import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
-import { SDKRegistrationConfig } from '@opentelemetry/sdk-trace-base';
+import { SDKRegistrationConfig } from '@opentelemetry/sdk-trace-node';
 
 import { stub } from 'sinon';
 import assert from 'assert';
