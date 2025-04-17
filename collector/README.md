@@ -163,6 +163,15 @@ from an S3 object using a CloudFormation template:
 
 Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.
 
+## Environment Variables
+
+The following environment variables can be used to configure the OpenTelemetry Collector Lambda extension:
+
+| Variable Name                        | Value                                                                          | Description                                                                                                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENTELEMETRY_COLLECTOR_CONFIG_URI` | URI (e.g., `/var/task/collector.yaml`, `http://...`, `s3://...`)               | Specifies the location of the OpenTelemetry Collector configuration file. This can be a path within the function's deployment package, an HTTP URI, or an S3 URI. If loading from S3, the function's IAM role needs read access to the specified S3 object. |
+| `OPENTELEMETRY_EXTENSION_LOG_LEVEL`  | `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal` (Default: `info`) | Controls the logging level of the OpenTelemetry Lambda extension itself.                                                                                                                                                                                    |
+
 ## Auto-Configuration
 
 Configuring the Lambda Collector without the decouple processor and batch processor can lead to performance issues. So the OpenTelemetry Lambda Layer automatically adds the decouple processor to the end of the chain if the batch processor is used and the decouple processor is not.
