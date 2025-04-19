@@ -86,6 +86,6 @@ jobs:
       layer-name: opentelemetry-ruby
       component-version: ${{needs.build-layer.outputs.RUBY_SDK_VERSION}}
       runtimes: ruby3.2 ruby3.3
-      release-group: dev
+      release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
