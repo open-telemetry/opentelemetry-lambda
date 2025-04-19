@@ -49,18 +49,8 @@ import { LambdaTracerProvider } from './LambdaTracerProvider';
 
 const defaultInstrumentationList = [
   'dns',
-  'express',
-  'graphql',
-  'grpc',
-  'hapi',
   'http',
-  'ioredis',
-  'koa',
-  'mongodb',
-  'mysql',
   'net',
-  'pg',
-  'redis',
 ];
 
 const propagatorMap = new Map<string, () => TextMapPropagator>([
