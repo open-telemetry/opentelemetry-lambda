@@ -21,6 +21,7 @@ import {
   NodeTracerProvider,
   SDKRegistrationConfig,
   SimpleSpanProcessor,
+  SpanExporter,
   TracerConfig,
 } from '@opentelemetry/sdk-trace-node';
 import {
@@ -31,6 +32,7 @@ import {
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import {
   Instrumentation,
   registerInstrumentations,
@@ -354,6 +356,35 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
+function getExportersFromEnv(): SpanExporter[] {
+  if (
+    process.env.OTEL_TRACES_EXPORTER == null ||
+    process.env.OTEL_TRACES_EXPORTER.trim() === '' ||
+    process.env.OTEL_TRACES_EXPORTER.includes('none')
+  ) {
+    return [new OTLPTraceExporter()];
+  }
+
+  const stringToExporter = new Map<string, () => SpanExporter>([
+    ['otlp', () => new OTLPTraceExporter()],
+    ['zipkin', () => new ZipkinExporter()],
+    ['console', () => new ConsoleSpanExporter()],
+  ]);
+  const exporters: SpanExporter[] = [];
+  process.env.OTEL_TRACES_EXPORTER.split(',').map(exporterName => {
+    exporterName.toLowerCase().trim();
+    const exporter = stringToExporter.get(exporterName);
+    if (exporter) {
+      exporters.push(exporter());
+    } else {
+      diag.warn(
+        `Invalid exporter "${exporterName}" specified in the environment variable OTEL_TRACES_EXPORTER`,
+      );
+    }
+  });
+  return exporters;
+}
+
 async function initializeTracerProvider(
   resource: Resource,
 ): Promise<TracerProvider> {
@@ -364,8 +395,18 @@ async function initializeTracerProvider(
 
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
-  } else {
-    // Defaults
+  } else if (process.env.OTEL_TRACES_EXPORTER) {
+    const exporters = getExportersFromEnv();
+    exporters.map(exporter => {
+      if (exporter instanceof ConsoleSpanExporter) {
+        config.spanProcessors?.push(new SimpleSpanProcessor(exporter));
+      } else {
+        config.spanProcessors?.push(new BatchSpanProcessor(exporter));
+      }
+    });
+  }
+  if (config.spanProcessors?.length === 0) {
+    // Default
     config.spanProcessors?.push(
       new BatchSpanProcessor(new OTLPTraceExporter()),
     );
