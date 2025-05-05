@@ -1,5 +1,5 @@
-opentelemetry-sdk==1.32.0
-opentelemetry-exporter-otlp-proto-http==1.32.0
+opentelemetry-sdk==1.32.1
+opentelemetry-exporter-otlp-proto-http==1.32.1
 opentelemetry-distro==0.53b0
 opentelemetry-instrumentation==0.53b0
 opentelemetry-semantic-conventions==0.53b0
