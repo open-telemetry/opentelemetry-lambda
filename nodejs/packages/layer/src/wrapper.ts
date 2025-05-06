@@ -355,13 +355,15 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
-function getExportersFromEnv(): SpanExporter[] {
+function getExportersFromEnv(): SpanExporter[] | null {
   if (
     process.env.OTEL_TRACES_EXPORTER == null ||
-    process.env.OTEL_TRACES_EXPORTER.trim() === '' ||
-    process.env.OTEL_TRACES_EXPORTER.includes('none')
+    process.env.OTEL_TRACES_EXPORTER.trim() === ''
   ) {
-    return [new OTLPTraceExporter()];
+    return [];
+  }
+  if (process.env.OTEL_TRACES_EXPORTER.includes('none')) {
+    return null;
   }
 
   const stringToExporter = new Map<string, () => SpanExporter>([
@@ -385,16 +387,23 @@ function getExportersFromEnv(): SpanExporter[] {
 
 async function initializeTracerProvider(
   resource: Resource,
-): Promise<TracerProvider> {
+): Promise<TracerProvider | undefined> {
   let config: TracerConfig = {
     resource,
     spanProcessors: [],
   };
 
+  const exporters = getExportersFromEnv();
+  if (!exporters) {
+    return;
+  }
+
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
-  } else if (process.env.OTEL_TRACES_EXPORTER) {
-    const exporters = getExportersFromEnv();
+  }
+
+  if (exporters.length) {
+    config.spanProcessors = [];
     exporters.map(exporter => {
       if (exporter instanceof ConsoleSpanExporter) {
         config.spanProcessors?.push(new SimpleSpanProcessor(exporter));
@@ -403,16 +412,16 @@ async function initializeTracerProvider(
       }
     });
   }
-  if (config.spanProcessors?.length === 0) {
+
+  config.spanProcessors = config.spanProcessors || [];
+  if (config.spanProcessors.length === 0) {
     // Default
-    config.spanProcessors?.push(
-      new BatchSpanProcessor(new OTLPTraceExporter()),
-    );
+    config.spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter()));
   }
 
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
-    config.spanProcessors?.push(
+    config.spanProcessors.push(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
     );
   }
@@ -522,7 +531,7 @@ async function initializeProvider() {
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  const tracerProvider: TracerProvider =
+  const tracerProvider: TracerProvider | undefined =
     await initializeTracerProvider(resource);
   const meterProvider: unknown | undefined =
     await initializeMeterProvider(resource);
