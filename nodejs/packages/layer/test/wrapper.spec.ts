@@ -16,7 +16,6 @@ import {
   SDKRegistrationConfig,
 } from '@opentelemetry/sdk-trace-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 
 import { SinonSpy, spy, stub } from 'sinon';
 import assert from 'assert';
@@ -228,18 +227,14 @@ describe('wrapper', async () => {
       await testConfiguredExporter(undefined, [OTLPTraceExporter]);
     });
 
-    it('is configured to zipkin by env var', async () => {
-      await testConfiguredExporter(['zipkin'], [ZipkinExporter]);
-    });
-
     it('is configured to console by env var', async () => {
       await testConfiguredExporter(['console'], [ConsoleSpanExporter]);
     });
 
-    it('is configured to both zipkin and otlp by env var', async () => {
+    it('is configured to both console and otlp by env var', async () => {
       await testConfiguredExporter(
-        ['zipkin', 'otlp'],
-        [ZipkinExporter, OTLPTraceExporter],
+        ['console', 'otlp'],
+        [ConsoleSpanExporter, OTLPTraceExporter],
       );
     });
   });

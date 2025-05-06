@@ -32,7 +32,6 @@ import {
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import {
   Instrumentation,
   registerInstrumentations,
@@ -367,7 +366,6 @@ function getExportersFromEnv(): SpanExporter[] {
 
   const stringToExporter = new Map<string, () => SpanExporter>([
     ['otlp', () => new OTLPTraceExporter()],
-    ['zipkin', () => new ZipkinExporter()],
     ['console', () => new ConsoleSpanExporter()],
   ]);
   const exporters: SpanExporter[] = [];
