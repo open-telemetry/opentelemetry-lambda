@@ -449,7 +449,7 @@ async function initializeLoggerProvider(
   }
 
   const { logs } = await import('@opentelemetry/api-logs');
-  const { LoggerProvider, SimpleLogRecordProcessor, ConsoleLogRecordExporter } =
+  const { LoggerProvider, BatchLogRecordProcessor, ConsoleLogRecordExporter } =
     await import('@opentelemetry/sdk-logs');
   const { OTLPLogExporter } = await import(
     '@opentelemetry/exporter-logs-otlp-http'
@@ -464,7 +464,7 @@ async function initializeLoggerProvider(
     configureLoggerProvider(loggerProvider);
   } else {
     loggerProvider.addLogRecordProcessor(
-      new SimpleLogRecordProcessor(logExporter),
+      new BatchLogRecordProcessor(logExporter),
     );
     logs.setGlobalLoggerProvider(loggerProvider);
   }
@@ -472,7 +472,7 @@ async function initializeLoggerProvider(
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
     loggerProvider.addLogRecordProcessor(
-      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
+      new BatchLogRecordProcessor(new ConsoleLogRecordExporter()),
     );
   }
 
