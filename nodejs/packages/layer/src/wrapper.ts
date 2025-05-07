@@ -449,8 +449,12 @@ async function initializeLoggerProvider(
   }
 
   const { logs } = await import('@opentelemetry/api-logs');
-  const { LoggerProvider, BatchLogRecordProcessor, SimpleLogRecordProcessor, ConsoleLogRecordExporter } =
-    await import('@opentelemetry/sdk-logs');
+  const {
+    LoggerProvider,
+    BatchLogRecordProcessor,
+    SimpleLogRecordProcessor,
+    ConsoleLogRecordExporter,
+  } = await import('@opentelemetry/sdk-logs');
   const { OTLPLogExporter } = await import(
     '@opentelemetry/exporter-logs-otlp-http'
   );
