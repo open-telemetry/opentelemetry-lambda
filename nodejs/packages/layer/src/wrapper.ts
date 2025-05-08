@@ -372,7 +372,7 @@ function getExportersFromEnv(): SpanExporter[] | null {
   ]);
   const exporters: SpanExporter[] = [];
   process.env.OTEL_TRACES_EXPORTER.split(',').map(exporterName => {
-    exporterName.toLowerCase().trim();
+    exporterName = exporterName.toLowerCase().trim();
     const exporter = stringToExporter.get(exporterName);
     if (exporter) {
       exporters.push(exporter());
