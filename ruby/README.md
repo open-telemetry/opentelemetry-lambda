@@ -3,7 +3,7 @@
 Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Ruby.
 
 **Requirement**
-* [Ruby 3.2.0](https://www.ruby-lang.org/en/news/2022/12/25/ruby-3-2-0-released/) (only supported version)
+* Ruby 3.2.0/3.3.0/3.4.0
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Go](https://go.dev/doc/install)
@@ -11,21 +11,13 @@ Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on A
 
 **Building Lambda Ruby Layer With OpenTelemetry Ruby Dependencies**
 
-1. Pull and install all the gem dependencies in to `.aws-sam` folder
+1. Run build script
 
 ```bash
-sam build -u -t template.yml
+./build.sh
 ```
 
-2. Zip all the gems file, wrapper and handler into single zip file
-
-```bash
-(cd .aws-sam/build/OTelLayer/ && zip -qr ../<your_layer_name>.zip .)
-mv .aws-sam/build/<your_layer_name>.zip .
-
-# Or run the script
-zip_ruby_layer.sh -n <your_layer_name>
-```
+Layer is stored in `src/build` folder
 
 **Default GEM_PATH**
 
@@ -70,21 +62,28 @@ For more information about aws lambda wrapper and wrapper layer, check [aws lamb
 
 ### Sample App
 
-1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.)
-2. Navigate to the path `cd ruby/sample-apps`
-3. Build the layer and function based on template.yml. You will see .aws-sam folder after executed the command
+1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.). Current sample app only support testing Ruby 3.2.0. If you wish to play with other ruby version, please modify ruby version from Runtime in sample-apps/template.yml and src/otel/layer/Makefile.
+
+2. Navigate to the path `cd ruby/src` to build layer
+
+```bash
+sam build -u -t template.yml
+```
+
+3. Navigate to the path `cd ruby/sample-apps`
+4. Build the layer and function based on template.yml. You will see .aws-sam folder after executed the command
 ```bash
 sam build -u -t template.yml
 # for different arch, define it in properties from template.yml
    # Architectures:
     #   - arm64
 ```
-4. Test with local simulation
+5. Test with local simulation
 ```bash
 sam local start-api --skip-pull-image
 ```
 
-5. curl the lambda function
+6. curl the lambda function
 ```bash
 curl http://127.0.0.1:3000
 # you should expect: Hello 1.4.1

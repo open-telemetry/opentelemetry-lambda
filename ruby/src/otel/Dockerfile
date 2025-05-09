@@ -21,12 +21,14 @@ RUN echo 'alias be="bundle exec"' >> ~/.profile
 RUN . ~/.profile \
    && cd /root/.rbenv/plugins/ruby-build && git pull && cd - \
    && rbenv install 3.2.0 \
-   && rbenv install 3.3.0
+   && rbenv install 3.3.0 \
+   && rbenv install 3.4.0
 
 WORKDIR /build/layer
 
 RUN . ~/.profile && rbenv local 3.2.0 && bundle install
 RUN . ~/.profile && rbenv local 3.3.0 && bundle install
+RUN . ~/.profile && rbenv local 3.4.0 && bundle install
 
 WORKDIR /root/.rbenv/versions/3.2.0/lib/ruby/gems/
 RUN zip -r gems-3.2.0.zip 3.2.0/
@@ -34,14 +36,28 @@ RUN zip -r gems-3.2.0.zip 3.2.0/
 WORKDIR /root/.rbenv/versions/3.3.0/lib/ruby/gems/
 RUN zip -r gems-3.3.0.zip 3.3.0/
 
-RUN ls -al /root/.rbenv/versions/3.2.0/lib/ruby/gems && ls -al /root/.rbenv/versions/3.3.0/lib/ruby/gems
+WORKDIR /root/.rbenv/versions/3.4.0/lib/ruby/gems/
+
+# rbenv install 3.4.0 get 3.4.0+1/, so need to change back to 3.4.0+1
+RUN mv 3.4.0+1/ 3.4.0/
+RUN set -e && \
+  dir=$(find /root/.rbenv/versions/3.4.0/lib/ruby/gems/ -type d -name '3.4.0+1' | head -n 1) && \
+  target=$(echo "$dir" | sed 's/3\.4\.0+1/3.4.0/') && \
+  mv "$dir" "$target"
+RUN zip -r gems-3.4.0.zip 3.4.0/
 
 # copy gems to /build/ruby/gems for zipping 
 RUN mkdir /build/ruby && mkdir /build/ruby/gems
 WORKDIR /build/ruby/gems
 RUN cp /root/.rbenv/versions/3.2.0/lib/ruby/gems/gems-3.2.0.zip . && unzip gems-3.2.0.zip && rm gems-3.2.0.zip
 RUN cp /root/.rbenv/versions/3.3.0/lib/ruby/gems/gems-3.3.0.zip . && unzip gems-3.3.0.zip && rm gems-3.3.0.zip
+RUN cp /root/.rbenv/versions/3.4.0/lib/ruby/gems/gems-3.4.0.zip . && unzip gems-3.4.0.zip && rm gems-3.4.0.zip
 RUN ls -al /build/ruby/gems
+
+# rm gem cache
+RUN rm /root/.rbenv/versions/3.2.0/lib/ruby/gems/3.2.0/cache/* \
+    && rm /root/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0/cache/* \
+    && rm /root/.rbenv/versions/3.4.0/lib/ruby/gems/3.4.0/cache/*
 
 # zip all the gems
 WORKDIR /build
