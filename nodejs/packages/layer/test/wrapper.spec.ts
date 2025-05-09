@@ -10,9 +10,14 @@ import {
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
 import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
-import { SDKRegistrationConfig } from '@opentelemetry/sdk-trace-base';
+import {
+  ConsoleSpanExporter,
+  NodeTracerProvider,
+  SDKRegistrationConfig,
+} from '@opentelemetry/sdk-trace-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
-import { stub } from 'sinon';
+import { SinonSpy, spy, stub } from 'sinon';
 import assert from 'assert';
 
 declare global {
@@ -181,6 +186,56 @@ describe('wrapper', async () => {
         isRemote: true,
         traceFlags: TraceFlags.SAMPLED,
       });
+    });
+  });
+
+  describe('exporters', () => {
+    let providerSpy: SinonSpy;
+
+    before(() => {
+      // TODO: Does this belong here
+      delete (global as any).configureTracer;
+    });
+
+    beforeEach(() => {
+      providerSpy = spy(NodeTracerProvider.prototype, 'register');
+    });
+
+    afterEach(() => {
+      providerSpy.restore();
+    });
+
+    const testConfiguredExporter = async (
+      exporterNames: string[] | undefined,
+      expectedExporters: any[],
+    ) => {
+      if (exporterNames) {
+        process.env.OTEL_TRACES_EXPORTER = exporterNames.join(',');
+      }
+
+      await wrap();
+      assert(providerSpy.calledOnce);
+      const tracer = providerSpy.getCall(0).thisValue;
+      const spanProcessors = tracer._config.spanProcessors;
+
+      for (const [i, processor] of spanProcessors.entries()) {
+        assert.ok(processor._exporter instanceof expectedExporters[i]);
+      }
+    };
+
+    it('is configured to OTLP by default', async () => {
+      await testConfiguredExporter(undefined, [OTLPTraceExporter]);
+    });
+
+    it('is configured to console by env var', async () => {
+      await testConfiguredExporter(['console'], [ConsoleSpanExporter]);
+    });
+
+    it('is configured to both console and otlp by env var', async () => {
+      await testConfiguredExporter(
+        ['console', 'otlp'],
+        [ConsoleSpanExporter, OTLPTraceExporter],
+      );
     });
   });
 });

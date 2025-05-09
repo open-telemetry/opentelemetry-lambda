@@ -10,7 +10,7 @@ import {
 import {
   BatchSpanProcessor,
   InMemorySpanExporter
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace-node';
 
 import { registerLoader } from '../src/loader.mjs';
 import { init, wrap, unwrap } from '../build/src/wrapper.js';

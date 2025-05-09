@@ -10,22 +10,24 @@ import {
 } from '@opentelemetry/api';
 import {
   CompositePropagator,
-  getEnv,
+  diagLogLevelFromString,
+  getStringFromEnv,
   W3CBaggagePropagator,
   W3CTraceContextPropagator,
 } from '@opentelemetry/core';
 import {
-  BasicTracerProvider,
   BatchSpanProcessor,
   ConsoleSpanExporter,
+  NodeTracerProvider,
   SDKRegistrationConfig,
   SimpleSpanProcessor,
+  SpanExporter,
   TracerConfig,
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace-node';
 import {
-  detectResourcesSync,
+  detectResources,
   envDetector,
-  IResource,
+  Resource,
   processDetector,
 } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
@@ -44,8 +46,6 @@ import {
 } from '@opentelemetry/instrumentation-aws-lambda';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
-
-import { LambdaTracerProvider } from './LambdaTracerProvider';
 
 const defaultInstrumentationList = [
   'dns',
@@ -83,10 +83,6 @@ declare global {
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
   function configureTracer(defaultConfig: TracerConfig): TracerConfig;
-  /**
-   * @deprecated please use {@link configureTracer} instead.
-   */
-  function configureTracerProvider(tracerProvider: BasicTracerProvider): void;
 
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
@@ -359,31 +355,78 @@ function getPropagator(): TextMapPropagator {
   return new CompositePropagator({ propagators });
 }
 
+function getExportersFromEnv(): SpanExporter[] | null {
+  if (
+    process.env.OTEL_TRACES_EXPORTER == null ||
+    process.env.OTEL_TRACES_EXPORTER.trim() === ''
+  ) {
+    return [];
+  }
+  if (process.env.OTEL_TRACES_EXPORTER.includes('none')) {
+    return null;
+  }
+
+  const stringToExporter = new Map<string, () => SpanExporter>([
+    ['otlp', () => new OTLPTraceExporter()],
+    ['console', () => new ConsoleSpanExporter()],
+  ]);
+  const exporters: SpanExporter[] = [];
+  process.env.OTEL_TRACES_EXPORTER.split(',').map(exporterName => {
+    exporterName = exporterName.toLowerCase().trim();
+    const exporter = stringToExporter.get(exporterName);
+    if (exporter) {
+      exporters.push(exporter());
+    } else {
+      diag.warn(
+        `Invalid exporter "${exporterName}" specified in the environment variable OTEL_TRACES_EXPORTER`,
+      );
+    }
+  });
+  return exporters;
+}
+
 async function initializeTracerProvider(
-  resource: IResource,
-): Promise<TracerProvider> {
+  resource: Resource,
+): Promise<TracerProvider | undefined> {
   let config: TracerConfig = {
     resource,
+    spanProcessors: [],
   };
+
+  const exporters = getExportersFromEnv();
+  if (!exporters) {
+    return;
+  }
+
   if (typeof configureTracer === 'function') {
     config = configureTracer(config);
   }
 
-  const tracerProvider = new LambdaTracerProvider(config);
-  if (typeof configureTracerProvider === 'function') {
-    configureTracerProvider(tracerProvider);
-  } else {
-    // Defaults
-    tracerProvider.addSpanProcessor(
-      new BatchSpanProcessor(new OTLPTraceExporter()),
-    );
+  if (exporters.length) {
+    config.spanProcessors = [];
+    exporters.map(exporter => {
+      if (exporter instanceof ConsoleSpanExporter) {
+        config.spanProcessors?.push(new SimpleSpanProcessor(exporter));
+      } else {
+        config.spanProcessors?.push(new BatchSpanProcessor(exporter));
+      }
+    });
   }
+
+  config.spanProcessors = config.spanProcessors || [];
+  if (config.spanProcessors.length === 0) {
+    // Default
+    config.spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter()));
+  }
+
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
-    tracerProvider.addSpanProcessor(
+    config.spanProcessors.push(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
     );
   }
+
+  const tracerProvider = new NodeTracerProvider(config);
 
   let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {
@@ -399,7 +442,7 @@ async function initializeTracerProvider(
 }
 
 async function initializeMeterProvider(
-  resource: IResource,
+  resource: Resource,
 ): Promise<unknown | undefined> {
   if (process.env.OTEL_METRICS_EXPORTER === 'none') {
     return;
@@ -442,7 +485,7 @@ async function initializeMeterProvider(
 }
 
 async function initializeLoggerProvider(
-  resource: IResource,
+  resource: Resource,
 ): Promise<unknown | undefined> {
   if (process.env.OTEL_LOGS_EXPORTER === 'none') {
     return;
@@ -488,11 +531,11 @@ async function initializeLoggerProvider(
 }
 
 async function initializeProvider() {
-  const resource = detectResourcesSync({
+  const resource = detectResources({
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  const tracerProvider: TracerProvider =
+  const tracerProvider: TracerProvider | undefined =
     await initializeTracerProvider(resource);
   const meterProvider: unknown | undefined =
     await initializeMeterProvider(resource);
@@ -576,5 +619,5 @@ let metricsDisableFunction: () => void;
 let logsDisableFunction: () => void;
 
 // Configure lambda logging
-const logLevel = getEnv().OTEL_LOG_LEVEL;
+const logLevel = diagLogLevelFromString(getStringFromEnv('OTEL_LOG_LEVEL'));
 diag.setLogger(new DiagConsoleLogger(), logLevel);
