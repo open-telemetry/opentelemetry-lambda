@@ -118,6 +118,7 @@ Here is a list of community roles with current and previous members:
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
   - [Ivan Santos](https://github.com/pragmaticivan)
+  - [Warre Pessers](https://github.com/wpessers)
 
 - Emeritus Approvers:
 
