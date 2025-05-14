@@ -102,7 +102,7 @@ The table below captures the state of various features and their levels of suppo
 
 The following are runtimes which are no longer or not yet supported by this repository:
 
-* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
+* Node.js 12, Node.js 16 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
 
 [1]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#general-attributes
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
@@ -118,6 +118,7 @@ Here is a list of community roles with current and previous members:
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
   - [Ivan Santos](https://github.com/pragmaticivan)
+  - [Warre Pessers](https://github.com/wpessers)
 
 - Emeritus Approvers:
 

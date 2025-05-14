@@ -7,7 +7,7 @@ import {
   BatchSpanProcessor,
   InMemorySpanExporter,
   ReadableSpan,
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace-node';
 import { Context } from 'aws-lambda';
 
 import { init, wrap, unwrap } from '../src/wrapper';
