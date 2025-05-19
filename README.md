@@ -128,7 +128,6 @@ Here is a list of community roles with current and previous members:
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
-  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
   - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
@@ -136,5 +135,6 @@ Here is a list of community roles with current and previous members:
 
   - [Alex Boten](https://github.com/codeboten)
   - [Anthony Mirabella](https://github.com/Aneurysm9)
+  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
 
 Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
