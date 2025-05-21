@@ -5,7 +5,7 @@
 ![GitHub NodeJS Workflow Status](https://img.shields.io/github/actions/workflow/status/open-telemetry/opentelemetry-lambda/ci-nodejs.yml?branch%3Amain&label=CI%20%28NodeJS%29&style=for-the-badge)
 ![GitHub Terraform Lint Workflow Status](https://img.shields.io/github/actions/workflow/status/open-telemetry/opentelemetry-lambda/ci-terraform.yml?branch%3Amain&label=CI%20%28Terraform%20Lint%29&style=for-the-badge)
 ![GitHub Python Pull Request Workflow Status](https://img.shields.io/github/actions/workflow/status/open-telemetry/opentelemetry-lambda/ci-python.yml?branch%3Amain&label=Pull%20Request%20%28Python%29&style=for-the-badge)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/maxday/opentelemetry-lambda/badge)](https://scorecard.dev/viewer/?uri=github.com/{maxday}/{opentelemetry-lambda})
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/open-telemetry/opentelemetry-lambda/badge)](https://scorecard.dev/viewer/?uri=github.com/open-telemetry/opentelemetry-lambda})
 
 ## OpenTelemetry Lambda Layers
 
