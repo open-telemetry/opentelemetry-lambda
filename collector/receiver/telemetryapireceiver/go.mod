@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver
 
-go 1.23.1
+go 1.24.2
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 
