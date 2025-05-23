@@ -102,7 +102,7 @@ The table below captures the state of various features and their levels of suppo
 
 The following are runtimes which are no longer or not yet supported by this repository:
 
-* Node.js 12 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
+* Node.js 12, Node.js 16 - not [officially supported](https://github.com/open-telemetry/opentelemetry-js#supported-runtimes) by OpenTelemetry JS
 
 [1]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#general-attributes
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
@@ -118,6 +118,7 @@ Here is a list of community roles with current and previous members:
 - Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
 
   - [Ivan Santos](https://github.com/pragmaticivan)
+  - [Warre Pessers](https://github.com/wpessers)
 
 - Emeritus Approvers:
 
@@ -127,7 +128,6 @@ Here is a list of community roles with current and previous members:
 
 - Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
 
-  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), AWS
   - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
   - [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
@@ -135,5 +135,6 @@ Here is a list of community roles with current and previous members:
 
   - [Alex Boten](https://github.com/codeboten)
   - [Anthony Mirabella](https://github.com/Aneurysm9)
+  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
 
 Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
