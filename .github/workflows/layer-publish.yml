@@ -89,11 +89,11 @@ jobs:
           cat $GITHUB_ENV
 
       - name: Download built layer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ${{ inputs.artifact-name }}
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
         with:
           role-to-assume: ${{ inputs.role-arn || secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN || secrets.PROD_LAMBDA_ROLE_ARN }}
           role-duration-seconds: 1200
