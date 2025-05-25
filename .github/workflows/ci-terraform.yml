@@ -14,6 +14,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   check-terraform-syntax:
     runs-on: ubuntu-latest

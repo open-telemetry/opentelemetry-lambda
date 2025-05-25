@@ -20,6 +20,9 @@ env:
   # https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/.github/workflows/test.yml#L9
   CORE_REPO_SHA: v1.19.0
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
