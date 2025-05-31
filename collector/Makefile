@@ -40,6 +40,7 @@ build: clean set-otelcol-version
 
 .PHONY: package
 package: build
+	@echo Builing: go version = $(shell go version)
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
