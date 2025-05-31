@@ -9,10 +9,11 @@ import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 const sts = new STSClient({});
 
 export const handler = async (
-  _event: APIGatewayProxyEvent,
-  _context: Context
+  event: APIGatewayProxyEvent,
+  _context: Context,
 ): Promise<APIGatewayProxyResult> => {
-  console.info('Serving lambda request.');
+  console.log('Received event:', JSON.stringify(event, null, 2));
+  console.log('Received context:', JSON.stringify(_context, null, 2));
 
   try {
     const result = await sts.send(new GetCallerIdentityCommand({}));
