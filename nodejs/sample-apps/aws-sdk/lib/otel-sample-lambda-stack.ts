@@ -27,7 +27,7 @@ export class OtelSampleLambdaStack extends cdk.Stack {
       environment: {
         OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318/',
         OTEL_TRACES_EXPORTER: 'console',
-        OTEL_METRICS_EXPORTER: 'logging',
+        OTEL_METRICS_EXPORTER: 'console',
         OTEL_LOG_LEVEL: 'INFO',
         OTEL_TRACES_SAMPLER: 'always_on',
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
