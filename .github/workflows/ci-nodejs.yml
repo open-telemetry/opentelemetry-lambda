@@ -39,4 +39,4 @@ jobs:
         working-directory: nodejs
       - name: Build AWS SDK Sample
         run: npm run build
-        working-directory: nodejs/samples-apps/aws-sdk
+        working-directory: nodejs/sample-apps/aws-sdk
