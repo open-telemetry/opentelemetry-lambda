@@ -8,8 +8,6 @@
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
     "clean": "rimraf build/*",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
     "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
