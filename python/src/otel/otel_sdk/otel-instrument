@@ -25,6 +25,10 @@ variables OpenTelemetry uses, and then initializing OpenTelemetry using the
 `opentelemetry-instrument` auto instrumentation script from the
 `opentelemetry-instrumentation` package.
 
+All other runtimes use the `otel-handler` script which is the equivalent of this.
+In the next major version, the contents of this script will be moved to the
+`otel-handler` script.
+
 Additionally, this configuration assumes the user is using packages conforming
 to the `opentelemetry-instrumentation` and `opentelemetry-sdk` specifications.
 
