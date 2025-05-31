@@ -8,6 +8,8 @@
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
     "clean": "rimraf build/*",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
     "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
@@ -30,6 +32,7 @@
     "aws-sdk": "2.1692.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@types/aws-lambda": "^8.10.149",
     "@types/node": "^22.15.29",
     "aws-cdk": "^2.1017.1",
@@ -37,6 +40,9 @@
     "bestzip": "^2.2.1",
     "constructs": "^10.4.2",
     "copyfiles": "^2.4.1",
+    "eslint": "8",
+    "eslint-plugin-header": "3.1.1",
+    "eslint-plugin-import": "2.31.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
