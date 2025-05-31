@@ -34,7 +34,7 @@ clean:
 
 .PHONY: build
 build: clean set-otelcol-version
-	@echo Building otel collector extension, go version = $(shell go version)
+	@echo Building otel collector extension, $(shell go version)
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
