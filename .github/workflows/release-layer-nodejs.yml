@@ -52,15 +52,28 @@ jobs:
         run: mv layer.zip opentelemetry-nodejs-layer.zip
         working-directory: nodejs/packages/layer/build
 
+      - name: Import GPG Key
+        run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         name: Save assembled layer to build
         with:
           name: opentelemetry-nodejs-layer.zip
           path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+
+      - name: Sign the zip file
+        run: |
+          gpg --armor --output opentelemetry-nodejs-layer.zip.asc \
+              --detach-sign opentelemetry-nodejs-layer.zip
+        working-directory: nodejs/packages/layer/build
           
       - name: Add Binary to Release
         run: |
-          gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+          gh release upload ${{ github.ref_name }} \
+            nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip \
+            nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
