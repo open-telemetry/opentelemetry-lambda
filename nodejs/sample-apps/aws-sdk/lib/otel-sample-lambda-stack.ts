@@ -26,7 +26,7 @@ export class OtelSampleLambdaStack extends cdk.Stack {
       memorySize: 256,
       environment: {
         OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318/',
-        OTEL_TRACES_EXPORTER: 'logging',
+        OTEL_TRACES_EXPORTER: 'console',
         OTEL_METRICS_EXPORTER: 'logging',
         OTEL_LOG_LEVEL: 'INFO',
         OTEL_TRACES_SAMPLER: 'always_on',

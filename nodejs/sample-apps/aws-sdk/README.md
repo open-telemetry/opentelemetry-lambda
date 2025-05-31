@@ -41,7 +41,7 @@ If you'd prefer to deploy manually:
 5. **Set the following environment variables**
 ```
    OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/  
-   OTEL_TRACES_EXPORTER=logging  
+   OTEL_TRACES_EXPORTER=console  
    OTEL_METRICS_EXPORTER=logging  
    OTEL_LOG_LEVEL=INFO  
    OTEL_TRACES_SAMPLER=always_on  
