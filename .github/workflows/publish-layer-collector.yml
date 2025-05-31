@@ -48,6 +48,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   prepare-build-jobs:
     runs-on: ubuntu-latest
