@@ -34,13 +34,12 @@ clean:
 
 .PHONY: build
 build: clean set-otelcol-version
-	@echo Building otel collector extension
+	@echo Building otel collector extension, go version = $(shell go version)
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
 .PHONY: package
 package: build
-	@echo Builing: go version = $(shell go version)
 	@echo Package zip file for collector extension layer
 	mkdir -p $(BUILD_SPACE)/collector-config
 	cp config* $(BUILD_SPACE)/collector-config
