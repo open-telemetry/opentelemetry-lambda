@@ -1,0 +1,15 @@
+name: "Go version auto upgrade"
+on:
+  schedule:
+    - cron: "00 7 * * *" # Every day at 07:00 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gomod-go-version-updater-action:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 030/gomod-go-version-updater-action@7de28fa4093a877ba8924f7901e6c7b6e5dd3954 # v0.3.3
