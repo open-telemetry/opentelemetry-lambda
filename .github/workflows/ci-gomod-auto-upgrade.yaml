@@ -2,7 +2,7 @@ name: "Go version auto upgrade"
 on:
   schedule:
     - cron: "00 7 * * *" # Every day at 07:00 UTC
-  workflow_dispatch:
+  workflow_dispatch: # Ability to manually trigger the workflow
 permissions:
   contents: read
 jobs:
