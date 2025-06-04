@@ -14,7 +14,7 @@ on:
     branches:
       - main
   workflow_run:
-    workflows: ["Go version auto upgrade"]
+    workflows: ["Continuous Build (Collector Go Version Auto Upgrade)"]
     types:
       - completed
 

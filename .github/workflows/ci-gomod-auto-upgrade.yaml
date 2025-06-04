@@ -1,4 +1,4 @@
-name: "Go version auto upgrade"
+name: "Continuous Build (Collector Go Version Auto Upgrade)"
 on:
   schedule:
     - cron: "00 7 * * *" # Every day at 07:00 UTC
