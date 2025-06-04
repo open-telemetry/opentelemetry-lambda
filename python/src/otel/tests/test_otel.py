@@ -176,6 +176,11 @@ class TestAwsLambdaInstrumentor(TestBase):
             'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
             f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
         )
+        replace_in_file(
+            os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-instrument"),
+            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
+            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
+        )
 
     def setUp(self):
         super().setUp()
@@ -200,6 +205,11 @@ class TestAwsLambdaInstrumentor(TestBase):
         sys.path.remove(INIT_OTEL_SCRIPTS_DIR)
         replace_in_file(
             os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-handler"),
+            f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
+            'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
+        )
+        replace_in_file(
+            os.path.join(INIT_OTEL_SCRIPTS_DIR, "otel-instrument"),
             f'export LAMBDA_LAYER_PKGS_DIR="{TOX_PYTHON_DIRECTORY}"',
             'export LAMBDA_LAYER_PKGS_DIR="/opt/python"',
         )
