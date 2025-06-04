@@ -24,7 +24,7 @@ Resources:
         - AmazonS3FullAccess
       Environment:
         Variables:
-          AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-instrument
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/python/otel-handler
       Tracing: Active
       Layers:
         - !Ref OTelLayer
