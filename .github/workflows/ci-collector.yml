@@ -13,6 +13,10 @@ on:
       - '.github/workflows/ci-collector.yml'
     branches:
       - main
+  workflow_run:
+    workflows: ["Continuous Build (Collector Go Version Auto Upgrade)"]
+    types:
+      - completed
 
 permissions:
   contents: read
