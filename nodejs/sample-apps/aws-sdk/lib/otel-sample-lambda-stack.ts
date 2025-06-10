@@ -10,7 +10,7 @@ export class OtelSampleLambdaStack extends cdk.Stack {
     super(scope, id, props);
 
     const region = cdk.Stack.of(this).region;
-    const architecture = 'amd64'; // or 'arm64' for ARM architecture
+    const architecture = lambda.Architecture.ARM_64;
     const collectorLayerArn = `arn:aws:lambda:${region}:${AWS_ACCOUNT_ID}:layer:opentelemetry-collector-${architecture}-0_15_0:1`; // Update with the latest version if needed
     const nodejsInstrumentationLayerArn = `arn:aws:lambda:${region}:${AWS_ACCOUNT_ID}:layer:opentelemetry-nodejs-0_14_0:1`; // Update with the latest version if needed
 
@@ -24,6 +24,7 @@ export class OtelSampleLambdaStack extends cdk.Stack {
       ],
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
+      architecture,
       environment: {
         OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318/',
         OTEL_TRACES_EXPORTER: 'console',

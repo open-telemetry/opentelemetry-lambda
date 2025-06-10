@@ -22,6 +22,27 @@ Follow these steps to deploy the demo stack via CDK:
 
 ---
 
+## 🚀 Deploy Using Terraform
+
+Follow these steps to deploy the demo stack via Terraform:
+
+1. **Install dependencies**
+   `npm install`
+
+2. **Build the Lambda function artifact**
+   `npm run build`
+
+3. **Move to deploy/wrapper folder**
+   `cd deploy/wrapper`
+
+4. **Terraform init**
+   `terraform init`
+
+5. **Terraform apply**
+   `terraform apply`
+
+---
+
 ## 🛠️ Manual Deployment via AWS Console
 
 If you'd prefer to deploy manually:
@@ -43,9 +64,9 @@ If you'd prefer to deploy manually:
    OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/  
    OTEL_TRACES_EXPORTER=console
    OTEL_METRICS_EXPORTER=console
-   OTEL_LOG_LEVEL=INFO  
-   OTEL_TRACES_SAMPLER=always_on  
-   AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler  
+   OTEL_LOG_LEVEL=INFO
+   OTEL_TRACES_SAMPLER=always_on
+   AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler
 ```
 6. **Attach the Node.js instrumentation layer**  
    - Refer to the latest ARN in the OpenTelemetry Lambda releases, ie:  
