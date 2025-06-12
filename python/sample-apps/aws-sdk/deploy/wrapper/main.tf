@@ -19,7 +19,7 @@ module "hello-lambda-function" {
   ])
 
   environment_variables = {
-    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
+    AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-handler"
   }
 
   tracing_mode = var.tracing_mode
