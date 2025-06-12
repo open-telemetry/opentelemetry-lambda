@@ -35,6 +35,7 @@
     "README.md"
   ],
   "devDependencies": {
+    "@aws-sdk/client-sts": "^3.826.0",
     "@types/aws-lambda": "8.10.149",
     "@types/node": "22.15.30",
     "bestzip": "2.2.1",
