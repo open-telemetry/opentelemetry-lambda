@@ -1,6 +1,6 @@
 locals {
-  collector_layer_arn = "arn:aws:lambda:${data.aws_region.current.name}:${var.account_id}:layer:opentelemetry-collector-arm64-0_15_0:1"
-  sdk_layer_arn       = "arn:aws:lambda:${data.aws_region.current.name}:${var.account_id}:layer:opentelemetry-nodejs-0_14_0:1"
+  collector_layer_arn = "arn:aws:lambda:${data.aws_region.current.name}:${var.account_id}:layer:opentelemetry-collector-arm64-${var.collector_layer_version}:1"
+  sdk_layer_arn       = "arn:aws:lambda:${data.aws_region.current.name}:${var.account_id}:layer:opentelemetry-nodejs-${var.nodejs_layer_version}:1"
 }
 
 data "aws_region" "current" {}

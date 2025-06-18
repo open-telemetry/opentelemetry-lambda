@@ -27,3 +27,15 @@ variable "runtime" {
   description = "NodeJS runtime version used for sample Lambda Function"
   default     = "nodejs22.x"
 }
+
+variable "collector_layer_version" {
+  type  = string,
+  description = "Collector layer version, see latest releases here: https://github.com/open-telemetry/opentelemetry-lambda/releases"
+  default = "0_15_0"
+}
+
+variable "nodejs_layer_version" {
+  type  = string,
+  description = "Node.js layer version, see latest releases here: https://github.com/open-telemetry/opentelemetry-lambda/releases"
+  default = "0_14_0"
+}
