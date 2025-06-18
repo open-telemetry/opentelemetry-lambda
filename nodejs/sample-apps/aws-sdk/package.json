@@ -12,7 +12,7 @@
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
-    "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
+    "postcompile": "copyfiles 'package*.json' build/lambda/ && npm install --production --ignore-scripts --prefix build/lambda/ && cd build/lambda && bestzip ../function.zip *"
   },
   "keywords": [
     "opentelemetry",
