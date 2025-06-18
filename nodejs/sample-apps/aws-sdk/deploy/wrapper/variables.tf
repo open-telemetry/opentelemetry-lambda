@@ -29,13 +29,13 @@ variable "runtime" {
 }
 
 variable "collector_layer_version" {
-  type  = string,
+  type        = string
   description = "Collector layer version, see latest releases here: https://github.com/open-telemetry/opentelemetry-lambda/releases"
-  default = "0_15_0"
+  default     = "0_15_0"
 }
 
 variable "nodejs_layer_version" {
-  type  = string,
+  type        = string
   description = "Node.js layer version, see latest releases here: https://github.com/open-telemetry/opentelemetry-lambda/releases"
-  default = "0_14_0"
+  default     = "0_14_0"
 }
