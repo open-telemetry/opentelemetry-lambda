@@ -36,8 +36,8 @@
   ],
   "devDependencies": {
     "@aws-sdk/client-sts": "^3.826.0",
-    "@types/aws-lambda": "8.10.149",
-    "@types/node": "22.15.30",
+    "@types/aws-lambda": "8.10.150",
+    "@types/node": "24.0.3",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "rimraf": "6.0.1",
