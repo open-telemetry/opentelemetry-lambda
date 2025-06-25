@@ -129,7 +129,7 @@ Here is a list of community roles with current and previous members:
 ### Maintainers
 
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
-- [Tyler Benson](https://github.com/tylerbenson), Lightstep
+- [Tyler Benson](https://github.com/tylerbenson), ServiceNow
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
 
