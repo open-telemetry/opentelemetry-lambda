@@ -126,26 +126,32 @@ See the [Contributing Guide](CONTRIBUTING.md) for details.
 
 Here is a list of community roles with current and previous members:
 
-- Approvers ([@open-telemetry/lambda-extension-approvers](https://github.com/orgs/open-telemetry/teams/lambda-extension-approvers)):
+### Maintainers
 
-  - [Ivan Santos](https://github.com/pragmaticivan)
-  - [Warre Pessers](https://github.com/wpessers)
+- [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
+- [Tyler Benson](https://github.com/tylerbenson), Lightstep
 
-- Emeritus Approvers:
+For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
 
-  - [Lei Wang](https://github.com/wangzlei)
-  - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN)
-  - [Tristan Sloughter](https://github.com/tsloughter)
+### Approvers
 
-- Maintainers ([@open-telemetry/lambda-extension-maintainers](https://github.com/orgs/open-telemetry/teams/lambda-extension-maintainers)):
+- [Ivan Santos](https://github.com/pragmaticivan)
+- [Warre Pessers](https://github.com/wpessers)
 
-  - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
-  - [Tyler Benson](https://github.com/tylerbenson), Lightstep
+For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).
 
-- Emeritus Maintainers:
+### Emeritus Maintainers
 
-  - [Alex Boten](https://github.com/codeboten)
-  - [Anthony Mirabella](https://github.com/Aneurysm9)
-  - [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
+- [Alex Boten](https://github.com/codeboten)
+- [Anthony Mirabella](https://github.com/Aneurysm9)
+- [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
 
-Learn more about roles in the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md).
+For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
+
+### Emeritus Approvers
+
+- [Lei Wang](https://github.com/wangzlei)
+- [Nathaniel Ruiz Nowell](https://github.com/NathanielRN)
+- [Tristan Sloughter](https://github.com/tsloughter)
+
+For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
