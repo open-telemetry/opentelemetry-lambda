@@ -131,14 +131,14 @@ Here is a list of community roles with current and previous members:
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
 - [Tyler Benson](https://github.com/tylerbenson), ServiceNow
 
-For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
+For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
 ### Approvers
 
 - [Ivan Santos](https://github.com/pragmaticivan)
 - [Warre Pessers](https://github.com/wpessers)
 
-For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).
+For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
 ### Emeritus Maintainers
 
