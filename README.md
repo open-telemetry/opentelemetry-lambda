@@ -124,8 +124,6 @@ The following are runtimes which are no longer or not yet supported by this repo
 
 See the [Contributing Guide](CONTRIBUTING.md) for details.
 
-Here is a list of community roles with current and previous members:
-
 ### Maintainers
 
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
