@@ -7,7 +7,6 @@ on:
       - layer-ruby/**
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -64,6 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
