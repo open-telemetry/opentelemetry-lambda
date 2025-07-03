@@ -117,6 +117,9 @@ jobs:
           fi
           echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
   release-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: prepare-release-jobs
     strategy:

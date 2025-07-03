@@ -7,7 +7,6 @@ on:
       - layer-collector/**
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -59,6 +58,9 @@ jobs:
           echo "COLLECTOR_VERSION=$COLLECTOR_VERSION" >> $GITHUB_OUTPUT
 
   publish-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:

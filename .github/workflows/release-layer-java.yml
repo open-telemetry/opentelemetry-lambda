@@ -7,7 +7,6 @@ on:
       - layer-javaagent/**
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -80,6 +79,9 @@ jobs:
           echo "JAVAWRAPPER_VERSION=$JAVAWRAPPER_VERSION" >> $GITHUB_OUTPUT
 
   publish-javaagent-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
@@ -114,6 +116,9 @@ jobs:
     secrets: inherit
 
   publish-javawrapper-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
