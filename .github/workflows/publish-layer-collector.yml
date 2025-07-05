@@ -128,7 +128,7 @@ jobs:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
       architecture: ${{ matrix.architecture }}
-      runtimes: "nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.8 python3.9 python3.10 python3.11 python3.12 python3.13"
+      runtimes: "nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.9 python3.10 python3.11 python3.12 python3.13"
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
       role-arn: ${{ github.event.inputs.role-arn }}
