@@ -42,11 +42,12 @@ on:
         type: string
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
   publish_layer:
+    permissions:
+      id-token: write # required for AWS OIDC authentication
     runs-on: ubuntu-latest
 
     steps:
