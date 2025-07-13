@@ -48,6 +48,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   prepare-build-jobs:
     runs-on: ubuntu-latest
@@ -71,11 +74,11 @@ jobs:
       matrix: ${{ fromJSON(needs.prepare-build-jobs.outputs.build_jobs) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version: '~1.21.9'
+          go-version-file: collector/go.mod
       - name: Build Collector
         run: |
           if [[ -n "${{ inputs.build-tags }}" ]]; then
@@ -87,7 +90,7 @@ jobs:
           echo "Build tags: $BUILDTAGS"
           make -C collector package GOARCH=${{ matrix.architecture }} BUILDTAGS=$BUILDTAGS
       - name: Upload Collector Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
@@ -114,6 +117,9 @@ jobs:
           fi
           echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
   release-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: prepare-release-jobs
     strategy:
@@ -122,7 +128,7 @@ jobs:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
       architecture: ${{ matrix.architecture }}
-      runtimes: "nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.8 python3.9 python3.10 python3.11 python3.12 python3.13"
+      runtimes: "nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.9 python3.10 python3.11 python3.12 python3.13"
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
       role-arn: ${{ github.event.inputs.role-arn }}

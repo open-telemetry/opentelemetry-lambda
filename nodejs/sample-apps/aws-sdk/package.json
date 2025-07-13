@@ -12,7 +12,7 @@
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
     "build": "npm run clean && npm run compile && npm run postcompile",
     "compile": "tsc -p .",
-    "postcompile": "copyfiles 'package*.json' build/src/ && npm install --production --ignore-scripts --prefix build/src/ && cd build/src && bestzip ../function.zip *"
+    "postcompile": "copyfiles 'package*.json' build/lambda/ && npm install --production --ignore-scripts --prefix build/lambda/ && cd build/lambda && bestzip ../function.zip *"
   },
   "keywords": [
     "opentelemetry",
@@ -35,15 +35,14 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/aws-lambda": "8.10.149",
-    "@types/node": "22.15.19",
+    "@aws-sdk/client-sts": "^3.826.0",
+    "@types/aws-lambda": "8.10.150",
+    "@types/node": "24.0.7",
+    "aws-cdk-lib": "^2.201.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "rimraf": "6.0.1",
     "ts-node": "10.9.2",
     "typescript": "5.8.3"
-  },
-  "dependencies": {
-    "aws-sdk": "2.1692.0"
   }
 }

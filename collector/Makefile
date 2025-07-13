@@ -34,7 +34,7 @@ clean:
 
 .PHONY: build
 build: clean set-otelcol-version
-	@echo Building otel collector extension
+	@echo Building otel collector extension, $(shell go version)
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
 
@@ -47,12 +47,12 @@ package: build
 
 .PHONY: publish
 publish:
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.8 python3.9 python3.10 python3.11 python3.12 python3.13 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.9 python3.10 python3.11 python3.12 python3.13 --query 'LayerVersionArn' --output text
 
 .PHONY: publish-layer
 publish-layer: package
 	@echo Publishing collector extension layer...
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.8 python3.9 python3.10 python3.11 python3.12 python3.13 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs16.x nodejs18.x nodejs20.x nodejs22.x java11 java17 java21 python3.9 python3.10 python3.11 python3.12 python3.13 --query 'LayerVersionArn' --output text
 	@echo OpenTelemetry Collector layer published.
 
 .PHONY: set-otelcol-version
