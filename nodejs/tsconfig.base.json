@@ -15,7 +15,7 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2017",
+    "target": "es2022",
     "incremental": true,
     "newLine": "LF"
   },

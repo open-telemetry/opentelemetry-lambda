@@ -27,7 +27,7 @@ Once this build-tag is present, you need provide additional build-tags to includ
 - `lambdacomponents.processor.all` includes all available processors
 - `lambdacomponents.receiver.all` includes all available receivers
 
-Each available component can also be included explicitly by using its specific build-tag. For a full-list of available components, have a look into the [lambdacomponents](./collector/lambdacomponents) package.
+Each available component can also be included explicitly by using its specific build-tag. For a full-list of available components, have a look into the [lambdacomponents](./lambdacomponents) package.
 
 As an example, the full command to publish OpenTelemetry Collector Lambda layer in your AWS account and get its ARN including the following components:
 - All receivers
@@ -42,10 +42,10 @@ cd collector && BUILDTAGS="lambdacomponents.custom,lambdacomponents.receiver.all
 ```
 
 ### Adding additional options
-To add more options for a customized build, you can add your desired component to the [lambdacomponents](./collector/lambdacomponents) package.
+To add more options for a customized build, you can add your desired component to the [lambdacomponents](./lambdacomponents) package.
 Make sure to always restrict your addition using the appropriate build-tags.
 
-For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./collector/lambdacomponents/extension) directory have the following build restriction:
+For example, if you want to add the extension `foo`, the file providing this extension should be located in the [extension](./lambdacomponents/extension) directory have the following build restriction:
 ```
 //go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
 ```
@@ -162,6 +162,15 @@ from an S3 object using a CloudFormation template:
 ```
 
 Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.
+
+## Environment Variables
+
+The following environment variables can be used to configure the OpenTelemetry Collector Lambda extension:
+
+| Variable Name                        | Value                                                                          | Description                                                                                                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENTELEMETRY_COLLECTOR_CONFIG_URI` | URI (e.g., `/var/task/collector.yaml`, `http://...`, `s3://...`)               | Specifies the location of the OpenTelemetry Collector configuration file. This can be a path within the function's deployment package, an HTTP URI, or an S3 URI. If loading from S3, the function's IAM role needs read access to the specified S3 object. |
+| `OPENTELEMETRY_EXTENSION_LOG_LEVEL`  | `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal` (Default: `info`) | Controls the logging level of the OpenTelemetry Lambda extension itself.                                                                                                                                                                                    |
 
 ## Auto-Configuration
 

@@ -7,28 +7,31 @@ on:
       - layer-javaagent/**
 
 permissions:
-  id-token: write
-  contents: write
+  contents: read
 
 jobs:
   create-release:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Create Release
         run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     needs: create-release
     outputs:
       JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
       JAVAWRAPPER_VERSION: ${{ steps.save-javawrapper-version.outputs.JAVAWRAPPER_VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: corretto
           java-version: 17
@@ -41,13 +44,13 @@ jobs:
           cd java
           ./gradlew :layer-javaagent:assemble :layer-wrapper:assemble --scan --stacktrace
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         name: Save javaagent layer to build
         with:
           name: opentelemetry-javaagent-layer.zip
           path: java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         name: Save javawrapper layer to build
         with:
           name: opentelemetry-javawrapper-layer.zip
@@ -76,6 +79,9 @@ jobs:
           echo "JAVAWRAPPER_VERSION=$JAVAWRAPPER_VERSION" >> $GITHUB_OUTPUT
 
   publish-javaagent-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
@@ -110,6 +116,9 @@ jobs:
     secrets: inherit
 
   publish-javawrapper-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:

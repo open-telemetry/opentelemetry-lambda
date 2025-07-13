@@ -7,7 +7,7 @@ import {
   BatchSpanProcessor,
   InMemorySpanExporter,
   ReadableSpan,
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace-node';
 import { Context } from 'aws-lambda';
 
 import { init, wrap, unwrap } from '../src/wrapper';
@@ -35,8 +35,10 @@ describe('when loading ESM module', async () => {
   const initializeHandler = async (handler: string) => {
     process.env._HANDLER = handler;
 
-    global.configureTracerProvider = tracerProvider => {
-      tracerProvider.addSpanProcessor(new BatchSpanProcessor(memoryExporter));
+    global.configureTracer = _ => {
+      return {
+        spanProcessors: [new BatchSpanProcessor(memoryExporter)],
+      };
     };
     global.configureMeter = _ => {
       return {} as any;

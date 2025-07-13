@@ -111,7 +111,7 @@ func TestHandler(t *testing.T) {
 			consumer := mockConsumer{}
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				receivertest.NewNopSettings(),
+				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
 			r.registerTracesConsumer(&consumer)
@@ -158,7 +158,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				receivertest.NewNopSettings(),
+				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
 			td, err := r.createPlatformInitSpan(tc.start, tc.end)
@@ -448,7 +448,7 @@ func TestCreateLogs(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
 				&Config{},
-				receivertest.NewNopSettings(),
+				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
 			log, err := r.createLogs(tc.slice)
