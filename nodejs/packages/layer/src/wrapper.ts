@@ -504,20 +504,18 @@ async function initializeLoggerProvider(
   );
 
   const logExporter = new OTLPLogExporter();
-  const logRecordProcessors: LogRecordProcessor[] = []
+  const logRecordProcessors: LogRecordProcessor[] = [];
   const loggerConfig = {
     resource,
-    processors: logRecordProcessors
+    processors: logRecordProcessors,
   };
   if (typeof configureLoggerProvider !== 'function') {
-    logRecordProcessors.push(
-      new BatchLogRecordProcessor(logExporter)
-    );
+    logRecordProcessors.push(new BatchLogRecordProcessor(logExporter));
   }
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
     logRecordProcessors.push(
-      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
+      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
     );
   }
   const loggerProvider = new LoggerProvider(loggerConfig);
