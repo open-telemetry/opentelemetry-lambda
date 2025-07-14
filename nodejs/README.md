@@ -7,9 +7,9 @@ To use, add the layer to your function configuration and then set `AWS_LAMBDA_EX
 
 ## Configuring auto instrumentation
 
-[AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/plugins/node/opentelemetry-instrumentation-aws-sdk)
+[AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/packages/instrumentation-aws-sdk)
 is included and loaded automatically by default.
-A subset of instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node)
+A subset of instrumentations from the [OTEL auto-instrumentations-node metapackage](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/packages/auto-instrumentations-node)
 are also included.
 
 Following instrumentations from the metapackage are included:
@@ -49,7 +49,7 @@ Instrumentations annotated with "*- default*" are loaded by default.
 To only load specific instrumentations, specify the `OTEL_NODE_ENABLED_INSTRUMENTATIONS` environment variable in the lambda configuration.
 This disables all the defaults, and only enables the ones you specify. Selectively disabling instrumentations from the defaults is also possible with the `OTEL_NODE_DISABLED_INSTRUMENTATIONS` environment variable.
 
-The environment variables should be set to a comma-separated list of the instrumentation package names without the 
+The environment variables should be set to a comma-separated list of the instrumentation package names without the
 `@opentelemetry/instrumentation-` prefix.
 
 For example, to enable only `@opentelemetry/instrumentation-http` and `@opentelemetry/instrumentation-undici`:
@@ -84,4 +84,4 @@ You'll find the generated layer zip file at `./packages/layer/build/layer.zip`.
 Sample applications are provided to show usage of the above layer.
 
 - Application using AWS SDK - shows using the wrapper with an application using AWS SDK without code change.
-  - [WIP] [Using OTel Public Layer](./sample-apps/aws-sdk) 
+  - [WIP] [Using OTel Public Layer](./sample-apps/aws-sdk)
