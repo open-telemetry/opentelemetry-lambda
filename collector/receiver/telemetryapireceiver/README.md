@@ -37,4 +37,4 @@ receivers:
 ```
 
 [alpha]: https://github.com/open-telemetry/opentelemetry-collector#alpha
-[extension]: https://github.com/open-telemetry/opentelemetry-lambda/collector
+[extension]: https://github.com/open-telemetry/opentelemetry-lambda/tree/main/collector

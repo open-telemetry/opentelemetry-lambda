@@ -35,5 +35,5 @@ processors:
 ```
 
 [alpha]: https://github.com/open-telemetry/opentelemetry-collector#development
-[extension]: https://github.com/open-telemetry/opentelemetry-lambda/collector
+[extension]: https://github.com/open-telemetry/opentelemetry-lambda/tree/main/collector
 [lifecycle]: https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#runtimes-extensions-api-lifecycle
