@@ -1,4 +1,4 @@
 # TODO: move these dependencies to requirements.txt when they stopped relying on a pinned version of
 # opentelemetry-propagator-aws-xray
-opentelemetry-instrumentation-aws-lambda==0.55b1
-opentelemetry-instrumentation-botocore==0.55b1
+opentelemetry-instrumentation-aws-lambda==0.56b0
+opentelemetry-instrumentation-botocore==0.56b0
