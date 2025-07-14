@@ -46,6 +46,7 @@ import {
 } from '@opentelemetry/instrumentation-aws-lambda';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
+import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
 
 const defaultInstrumentationList = [
   'dns',
@@ -503,24 +504,27 @@ async function initializeLoggerProvider(
   );
 
   const logExporter = new OTLPLogExporter();
+  const logRecordProcessors: LogRecordProcessor[] = []
   const loggerConfig = {
     resource,
+    processors: logRecordProcessors
   };
+  if (typeof configureLoggerProvider !== 'function') {
+    logRecordProcessors.push(
+      new BatchLogRecordProcessor(logExporter)
+    );
+  }
+  // Logging for debug
+  if (logLevel === DiagLogLevel.DEBUG) {
+    logRecordProcessors.push(
+      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter())
+    );
+  }
   const loggerProvider = new LoggerProvider(loggerConfig);
   if (typeof configureLoggerProvider === 'function') {
     configureLoggerProvider(loggerProvider);
   } else {
-    loggerProvider.addLogRecordProcessor(
-      new BatchLogRecordProcessor(logExporter),
-    );
     logs.setGlobalLoggerProvider(loggerProvider);
-  }
-
-  // Logging for debug
-  if (logLevel === DiagLogLevel.DEBUG) {
-    loggerProvider.addLogRecordProcessor(
-      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
-    );
   }
 
   logsDisableFunction = () => {
