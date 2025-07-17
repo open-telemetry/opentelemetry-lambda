@@ -52,6 +52,8 @@ updates:
       - "/nodejs/sample-apps/aws-sdk"
     schedule:
       interval: "weekly"
+    allow:
+      - dependency-type: "all"
     groups:
       opentelemetry-deps-nodejs:
         patterns:
