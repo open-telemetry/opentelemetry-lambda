@@ -45,17 +45,18 @@ const initialQueueSize = 5
 const scopeName = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 
 type telemetryAPIReceiver struct {
-	httpServer            *http.Server
-	logger                *zap.Logger
-	queue                 *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
-	nextTraces            consumer.Traces
-	nextLogs              consumer.Logs
-	lastPlatformStartTime string
-	lastPlatformEndTime   string
-	extensionID           string
-	port                  int
-	types                 []telemetryapi.EventType
-	resource              pcommon.Resource
+	httpServer              *http.Server
+	logger                  *zap.Logger
+	queue                   *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
+	nextTraces              consumer.Traces
+	nextLogs                consumer.Logs
+	lastPlatformStartTime   string
+	lastPlatformEndTime     string
+	extensionID             string
+	port                    int
+	types                   []telemetryapi.EventType
+	resource                pcommon.Resource
+	currentFaasInvocationID string
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
@@ -217,15 +218,30 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				}
 				if requestId, ok := record["requestId"].(string); ok {
 					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
+				} else if r.currentFaasInvocationID != "" {
+					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
 				}
 				if line, ok := record["message"].(string); ok {
 					logRecord.Body().SetStr(line)
 				}
 			} else {
+				if r.currentFaasInvocationID != "" {
+					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
+				}
 				// in plain text https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 				if line, ok := el.Record.(string); ok {
 					logRecord.Body().SetStr(line)
 				}
+			}
+		} else { // platform events, if subscribed to
+			if el.Type == string(telemetryapi.PlatformStart) {
+				if record, ok := el.Record.(map[string]interface{}); ok {
+					if requestId, ok := record["requestId"].(string); ok {
+						r.currentFaasInvocationID = requestId
+					}
+				}
+			} else if el.Type == string(telemetryapi.PlatformRuntimeDone) {
+				r.currentFaasInvocationID = ""
 			}
 		}
 	}
