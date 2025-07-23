@@ -12,10 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
+package awstelemetryapi
 
 import (
 	"fmt"
+)
+
+const (
+	// Default values for the Telemetry API subscription.
+	defaultMaxItems  = 1000
+	defaultMaxBytes  = 262144
+	defaultTimeoutMS = 1000
 )
 
 // Config defines the configuration for the various elements of the receiver agent.
@@ -23,6 +30,9 @@ type Config struct {
 	extensionID string
 	Port        int      `mapstructure:"port"`
 	Types       []string `mapstructure:"types"`
+	MaxItems    uint     `mapstructure:"maxItems"`
+	MaxBytes    uint     `mapstructure:"maxBytes"`
+	TimeoutMS   uint     `mapstructure:"timeoutMs"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields

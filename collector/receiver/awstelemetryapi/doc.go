@@ -12,10 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
-
-type event struct {
-	Time   string `json:"time"`
-	Type   string `json:"type"`
-	Record any    `json:"record"`
-}
+// Package telemetryapireceiver generates telemetry in response to events from the Telemetry API.
+package awstelemetryapi // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"

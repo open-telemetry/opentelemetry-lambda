@@ -1,32 +1,32 @@
-telemetryapi:
-telemetryapi/1:
+awstelemetryapi:
+awstelemetryapi/1:
   port: 12345
-telemetryapi/2:
+awstelemetryapi/2:
   port: 12345
   types: ["platform"]
-telemetryapi/3:
+awstelemetryapi/3:
   port: 12345
   types: ["function"]
-telemetryapi/4:
+awstelemetryapi/4:
   port: 12345
   types: ["extension"]
-telemetryapi/5:
+awstelemetryapi/5:
   port: 12345
   types: ["platform", "function"]
-telemetryapi/6:
+awstelemetryapi/6:
   port: 12345
   types: ["platform", "extension"]
-telemetryapi/7:
+awstelemetryapi/7:
   port: 12345
   types: ["function", "extension"]
-telemetryapi/8:
+awstelemetryapi/8:
   port: 12345
   types: []
-telemetryapi/9:
+awstelemetryapi/9:
   port: 12345
   types:
     - function
     - extension
-telemetryapi/10:
+awstelemetryapi/10:
   port: 12345
   types: [function, extension]

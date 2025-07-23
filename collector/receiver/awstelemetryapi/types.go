@@ -12,5 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package telemetryapireceiver generates telemetry in response to events from the Telemetry API.
-package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
+package awstelemetryapi
+
+import "time"
+
+type event struct {
+	Time   string `json:"time"`
+	Type   string `json:"type"`
+	Record any    `json:"record"`
+}
+
+// getTime parses the event's timestamp string into a time.Time object.
+func (e *event) getTime() time.Time {
+	t, _ := time.Parse(time.RFC3339, e.Time)
+	return t
+}
