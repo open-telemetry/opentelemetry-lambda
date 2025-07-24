@@ -50,18 +50,8 @@ import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
 
 const defaultInstrumentationList = [
   'dns',
-  'express',
-  'graphql',
-  'grpc',
-  'hapi',
   'http',
-  'ioredis',
-  'koa',
-  'mongodb',
-  'mysql',
   'net',
-  'pg',
-  'redis',
 ];
 
 const propagatorMap = new Map<string, () => TextMapPropagator>([
