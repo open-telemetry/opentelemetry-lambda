@@ -41,7 +41,14 @@ func TestNewFactory(t *testing.T) {
 			testFunc: func(t *testing.T) {
 				factory := NewFactory("test")
 
-				var expectedCfg component.Config = &Config{extensionID: "test", Port: defaultPort, Types: []string{platform, function, extension}}
+				var expectedCfg component.Config = &Config{
+					extensionID: "test",
+					Port:        defaultPort,
+					Types:       []string{platform, function, extension},
+					MaxItems:    defaultMaxItems,
+					MaxBytes:    defaultMaxBytes,
+					TimeoutMS:   defaultTimeoutMS,
+				}
 
 				require.Equal(t, expectedCfg, factory.CreateDefaultConfig())
 			},
@@ -71,6 +78,34 @@ func TestNewFactory(t *testing.T) {
 					consumertest.NewNop(),
 				)
 				require.ErrorIs(t, err, errConfigNotTelemetryAPI)
+			},
+		},
+		{
+			desc: "creates a new factory and CreateLogsReceiver returns no error",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				cfg := factory.CreateDefaultConfig()
+				_, err := factory.CreateLogs(
+					context.Background(),
+					receivertest.NewNopSettings(Type),
+					cfg,
+					consumertest.NewNop(),
+				)
+				require.NoError(t, err)
+			},
+		},
+		{
+			desc: "creates a new factory and CreateMetricsReceiver returns no error",
+			testFunc: func(t *testing.T) {
+				factory := NewFactory("test")
+				cfg := factory.CreateDefaultConfig()
+				_, err := factory.CreateMetrics(
+					context.Background(),
+					receivertest.NewNopSettings(Type),
+					cfg,
+					consumertest.NewNop(),
+				)
+				require.NoError(t, err)
 			},
 		},
 	}

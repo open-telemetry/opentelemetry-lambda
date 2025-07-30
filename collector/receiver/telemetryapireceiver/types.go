@@ -12,10 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
+package telemetryapireceiver
+
+import (
+	"log"
+	"time"
+)
 
 type event struct {
 	Time   string `json:"time"`
 	Type   string `json:"type"`
 	Record any    `json:"record"`
+}
+
+// getTime parses the event's timestamp string into a time.Time object.
+func (e *event) getTime() time.Time {
+	t, err := time.Parse(time.RFC3339, e.Time)
+	if err != nil {
+		log.Printf("WARN: Failed to parse event timestamp '%s', using current time as fallback: %v", e.Time, err)
+		return time.Now()
+	}
+	return t
 }
