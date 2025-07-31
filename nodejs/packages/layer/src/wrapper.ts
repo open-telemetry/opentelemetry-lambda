@@ -46,7 +46,6 @@ import {
 } from '@opentelemetry/instrumentation-aws-lambda';
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
-import { LogRecordProcessor } from '@opentelemetry/sdk-logs';
 
 const defaultInstrumentationList = [
   'dns',
@@ -88,10 +87,19 @@ declare global {
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
   function configureMeter(defaultConfig: unknown): unknown;
+  /**
+   * @deprecated please use {@link configureMeter} instead.
+   */
   function configureMeterProvider(meterProvider: unknown): void;
 
+  // No explicit logger type here, but "unknown" type.
+  // Because logger packages are important dynamically.
+  function configureLogger(defaultConfig: unknown): unknown;
   // No explicit log type here, but "unknown" type.
   // Because log packages are important dynamically.
+  /**
+   * @deprecated please use {@link configureLogger} instead.
+   */
   function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
@@ -504,21 +512,27 @@ async function initializeLoggerProvider(
   );
 
   const logExporter = new OTLPLogExporter();
-  const logRecordProcessors: LogRecordProcessor[] = [];
-  const loggerConfig = {
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+  let loggerConfig: any = {
     resource,
-    processors: logRecordProcessors,
+    processors: [],
   };
-  if (typeof configureLoggerProvider !== 'function') {
-    logRecordProcessors.push(new BatchLogRecordProcessor(logExporter));
+  if (typeof configureLogger === 'function') {
+    loggerConfig = configureLogger(loggerConfig);
+  }
+
+  loggerConfig.processors = loggerConfig.processors || [];
+  if (loggerConfig.processors.length === 0) {
+    loggerConfig.processors.push(new BatchLogRecordProcessor(logExporter));
   }
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
-    logRecordProcessors.push(
+    loggerConfig.processors.push(
       new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
     );
   }
-  const loggerProvider = new LoggerProvider(loggerConfig);
+
+  const loggerProvider = new LoggerProvider(loggerConfig as object);
   if (typeof configureLoggerProvider === 'function') {
     configureLoggerProvider(loggerProvider);
   } else {
