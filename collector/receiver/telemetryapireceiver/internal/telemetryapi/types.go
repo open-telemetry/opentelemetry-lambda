@@ -35,11 +35,6 @@ type Destination struct {
 	URI      string   `json:"URI"`
 }
 
-// RegisterRequest is the request body for the /extension/register endpoint.
-type RegisterRequest struct {
-	Events []string `json:"events"`
-}
-
 // SubscribeRequest is the request body for the /telemetry endpoint.
 type SubscribeRequest struct {
 	SchemaVersion string       `json:"schemaVersion"`

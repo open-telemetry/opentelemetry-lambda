@@ -6,6 +6,7 @@
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
     "build": "npm run clean && npm run compile && npm run install-externals && npm run package",
+    "build-combined": "./build-combined.sh",
     "clean": "rimraf build/*",
     "compile:tsc": "tsc --build tsconfig.json",
     "compile:webpack": "webpack",

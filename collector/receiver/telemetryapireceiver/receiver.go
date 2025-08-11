@@ -122,13 +122,12 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 		return fmt.Errorf("failed to create telemetry api client: %w", err)
 	}
 
-	extensionID, err := apiClient.Register(ctx, typeStr)
-	if err != nil {
-		return fmt.Errorf("failed to register extension: %w", err)
+	// Use the extension ID from the factory
+	if r.config.extensionID == "" {
+		return fmt.Errorf("extension ID not provided to telemetryapi receiver")
 	}
-	r.config.extensionID = extensionID
 
-	// If the user has configured any types, subscribe to them.
+	// Subscribe to telemetry API for the configured event types
 	if len(r.config.Types) > 0 {
 		eventTypes := make([]telemetryapi.EventType, len(r.config.Types))
 		for i, s := range r.config.Types {
@@ -144,7 +143,7 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 			URI:      fmt.Sprintf("http://%s/", address),
 		}
 
-		err = apiClient.Subscribe(ctx, extensionID, eventTypes, bufferingCfg, destinationCfg)
+		err = apiClient.Subscribe(ctx, r.config.extensionID, eventTypes, bufferingCfg, destinationCfg)
 		if err != nil {
 			return fmt.Errorf("failed to subscribe to Telemetry API: %w", err)
 		}

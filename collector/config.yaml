@@ -5,19 +5,47 @@ receivers:
         endpoint: "localhost:4317"
       http:
         endpoint: "localhost:4318"
+  telemetryapireceiver:
+    types: ["platform", "function", "extension"]
 
+processors:
+  batch:
+  
 exporters:
   debug:
     verbosity: detailed
+  logzio/logs:
+    account_token: "${env:LOGZIO_LOGS_TOKEN}"
+    region: "${env:LOGZIO_REGION}"
+    headers:
+      user-agent: logzio-opentelemetry-layer-logs
+  logzio/traces:
+    account_token: "${env:LOGZIO_TRACES_TOKEN}"
+    region: "${env:LOGZIO_REGION}"
+    headers:
+      user-agent: logzio-opentelemetry-layer-traces
+  prometheusremotewrite:
+    endpoint: "https://listener.logz.io:8053"
+    headers:
+      Authorization: "Bearer ${env:LOGZIO_METRICS_TOKEN}"
+      user-agent: logzio-opentelemetry-layer-metrics
+    target_info:
+      enabled: false
 
 service:
   pipelines:
     traces:
-      receivers: [otlp]
-      exporters: [debug]
+      receivers: [otlp, telemetryapireceiver]
+      processors: [batch]
+      exporters: [logzio/traces]
     metrics:
-      receivers: [otlp]
-      exporters: [debug]
+      receivers: [otlp, telemetryapireceiver]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
+    logs:
+      receivers: [telemetryapireceiver]
+      processors: [batch]
+      exporters: [logzio/logs]
   telemetry:
-    metrics:
-      address: localhost:8888
+    logs:
+      level: "info"
