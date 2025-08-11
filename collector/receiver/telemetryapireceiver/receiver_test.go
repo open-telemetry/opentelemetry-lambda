@@ -222,6 +222,37 @@ func TestCreateLogs(t *testing.T) {
 			expectError:               false,
 		},
 		{
+			desc: "function text with requestId",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.start",
+					Record: map[string]any{
+						"requestId": "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					},
+				},
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "function",
+					Record: "[INFO] Hello world, I am an extension!",
+				},
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.runtimeDone",
+					Record: map[string]any{},
+				},
+			},
+			expectedLogRecords:        1,
+			expectedType:              "function",
+			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
+			expectedBody:              "[INFO] Hello world, I am an extension!",
+			expectedContainsRequestId: true,
+			expectedRequestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+			expectedSeverityText:      "",
+			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
+			expectError:               false,
+		},
+		{
 			desc: "function json",
 			slice: []event{
 				{
@@ -351,9 +382,11 @@ func TestCreateLogs(t *testing.T) {
 			desc: "platform.start anything",
 			slice: []event{
 				{
-					Time:   "2022-10-12T00:03:50.000Z",
-					Type:   "platform.start",
-					Record: map[string]any{},
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.start",
+					Record: map[string]any{
+						"requestId": "test-id",
+					},
 				},
 			},
 			expectedLogRecords: 0,
