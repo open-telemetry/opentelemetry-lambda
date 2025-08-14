@@ -7,42 +7,38 @@
 
 set -euo pipefail
 
-# Configuration
-UPSTREAM_LAYER_VERSION="layer-python/0.15.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 WORKSPACE_DIR="$BUILD_DIR/workspace"
 COLLECTOR_DIR="$SCRIPT_DIR/../../collector"
-INSTRUMENTATION_MANAGER="$SCRIPT_DIR/../../utils/instrumentation-layer-manager.sh"
 ARCHITECTURE="${ARCHITECTURE:-amd64}"
 
-echo "Building combined Python extension layer (pinned to upstream version $UPSTREAM_LAYER_VERSION)..."
+# Pre-flight checks
+require_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "Error: '$1' is required but not installed." >&2; exit 1; }; }
+require_cmd unzip
+require_cmd zip
+require_cmd docker
+
+echo "Building combined Python extension layer from local sources..."
 
 # Clean and create directories
 rm -rf "$BUILD_DIR"
 mkdir -p "$WORKSPACE_DIR"
 
-echo "Step 1: Downloading official OpenTelemetry Python instrumentation layer..."
-# Download the pinned upstream instrumentation layer and capture the output
-DOWNLOAD_RESULT=$("$INSTRUMENTATION_MANAGER" download python "$BUILD_DIR/temp" "$ARCHITECTURE" "$UPSTREAM_LAYER_VERSION" 2>&1)
-DOWNLOAD_EXIT_CODE=$?
+echo "Step 1: Building OpenTelemetry Python instrumentation layer from local source..."
+# Build local instrumentation layer using provided Docker-based builder
+(
+  cd "$SCRIPT_DIR"
+  ./build.sh
+)
 
-echo "$DOWNLOAD_RESULT" # Display the download output for verification
-
-if [ $DOWNLOAD_EXIT_CODE -ne 0 ]; then
-    echo "ERROR: Failed to download upstream Python instrumentation layer version $UPSTREAM_LAYER_VERSION"
-    echo "This is a critical error for production builds. Exiting."
+LOCAL_LAYER_ZIP="$SCRIPT_DIR/build/opentelemetry-python-layer.zip"
+if [ ! -f "$LOCAL_LAYER_ZIP" ]; then
+    echo "ERROR: Local Python layer artifact not found: $LOCAL_LAYER_ZIP"
     exit 1
 fi
-
-# Extract instrumentation layer directly to workspace
-if [ ! -d "$BUILD_DIR/temp/instrumentation" ]; then
-    echo "ERROR: Downloaded instrumentation layer is missing expected structure"
-    exit 1
-fi
-
-echo "Extracting Python instrumentation layer to workspace..."
-cp -r "$BUILD_DIR/temp/instrumentation"/* "$WORKSPACE_DIR/"
+echo "Extracting locally built Python layer to workspace..."
+unzip -oq -d "$WORKSPACE_DIR" "$LOCAL_LAYER_ZIP"
 
 echo "Step 2: Building custom OpenTelemetry Collector..."
 # Build the collector
@@ -59,32 +55,29 @@ mkdir -p "$WORKSPACE_DIR/extensions"
 mkdir -p "$WORKSPACE_DIR/collector-config"
 cp "$COLLECTOR_DIR/build/extensions"/* "$WORKSPACE_DIR/extensions/"
 cp "$COLLECTOR_DIR/config.yaml" "$WORKSPACE_DIR/collector-config/"
-
-echo "Step 4: Creating build metadata..."
-# Extract the exact release tag from the download output
-ACTUAL_DOWNLOAD_TAG=$(echo "$DOWNLOAD_RESULT" | grep "Release tag:" | awk '{print $3}')
-if [ -z "$ACTUAL_DOWNLOAD_TAG" ]; then
-    ACTUAL_DOWNLOAD_TAG="unknown (check build log for details)"
+# Include E2E-specific collector config for testing workflows
+if [ -f "$COLLECTOR_DIR/config.e2e.yaml" ]; then
+    cp "$COLLECTOR_DIR/config.e2e.yaml" "$WORKSPACE_DIR/collector-config/"
 fi
 
-# Add build info to workspace root
+echo "Step 4: Creating build metadata..."
 cat > "$WORKSPACE_DIR/build-info.txt" << EOF
-Combined Python extension layer
+Combined Python extension layer (built from local source)
 Built on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
 Architecture: $ARCHITECTURE
-Requested Upstream Python layer version: $UPSTREAM_LAYER_VERSION
-Actual Downloaded Upstream Tag: $ACTUAL_DOWNLOAD_TAG
+Python requirements hash: $(shasum "$SCRIPT_DIR/otel/otel_sdk/requirements.txt" 2>/dev/null | awk '{print $1}')
 Collector version: $(cat "$COLLECTOR_DIR/VERSION" 2>/dev/null || echo 'unknown')
+Git commit: $(git -C "$SCRIPT_DIR/../.." rev-parse --short HEAD 2>/dev/null || echo 'unknown')
 EOF
 
 echo "Step 5: Creating final layer package..."
 # Package the combined layer (workspace becomes /opt at runtime)
 cd "$WORKSPACE_DIR"
-zip -r ../otel-python-extension-layer.zip .
+zip -qr ../otel-python-extension-layer.zip .
 cd "$SCRIPT_DIR"
 
 # Clean up temporary files
-rm -rf "$BUILD_DIR/temp"
+:
 
 echo "✅ Combined Python extension layer created: $BUILD_DIR/otel-python-extension-layer.zip"
 echo ""

@@ -1,0 +1,823 @@
+name: E2E - Python Layer
+
+on:
+  workflow_dispatch:
+    inputs:
+      logzio_api_url:
+        description: "Logz.io API base URL (default https://api.logz.io)"
+        required: false
+        default: "https://api.logz.io"
+      aws_region:
+        description: "AWS Region"
+        required: false
+        default: "us-east-1"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ inputs.aws_region || 'us-east-1' }}
+  AWS_DEFAULT_REGION: ${{ inputs.aws_region || 'us-east-1' }}
+  ARCHITECTURE: amd64
+  FUNCTION_NAME: one-layer-e2e-test-python
+  LAYER_BASE_NAME: otel-python-extension-e2e
+  SERVICE_NAME: logzio-e2e-python-service
+  LOGZIO_REGION: us
+
+jobs:
+  build-layer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go (for Collector)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: collector/go.mod
+
+      - name: Set up Docker
+        uses: crazy-max/ghaction-setup-docker@v3
+
+      - name: Build combined Python layer (amd64)
+        run: |
+          cd python/src
+          ARCHITECTURE=${ARCHITECTURE} ./build-combined.sh
+
+      - name: Upload layer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: otel-python-extension-layer.zip
+          path: python/src/build/otel-python-extension-layer.zip
+
+  publish-update-invoke:
+    runs-on: ubuntu-latest
+    needs: build-layer
+    outputs:
+      layer_arn: ${{ steps.publish.outputs.layer_arn }}
+      e2e_label: ${{ steps.vars.outputs.e2e_label }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download layer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: otel-python-extension-layer.zip
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.E2E_AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish layer version
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          LAYER_NAME="${LAYER_BASE_NAME}-amd64"
+          ARN=$(aws lambda publish-layer-version \
+            --layer-name "$LAYER_NAME" \
+            --license-info "Apache-2.0" \
+            --compatible-architectures x86_64 \
+            --compatible-runtimes python3.9 python3.10 python3.11 python3.12 python3.13 \
+            --zip-file fileb://otel-python-extension-layer.zip \
+            --query 'LayerVersionArn' --output text)
+          echo "layer_arn=$ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare variables
+        id: vars
+        run: |
+          echo "e2e_label=python-e2e-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Update Lambda configuration
+        run: |
+          aws lambda update-function-configuration \
+            --function-name "${FUNCTION_NAME}" \
+            --layers "${{ steps.publish.outputs.layer_arn }}" \
+            --environment "Variables={AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler,OPENTELEMETRY_COLLECTOR_CONFIG_URI=/opt/collector-config/config.e2e.yaml,OTEL_SERVICE_NAME=${SERVICE_NAME},OTEL_TRACES_SAMPLER=always_on,OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf,OTEL_RESOURCE_ATTRIBUTES=deployment.environment=${{ steps.vars.outputs.e2e_label }},ENVIRONMENT=${{ steps.vars.outputs.e2e_label }},LOGZIO_REGION=${LOGZIO_REGION},LOGZIO_LOGS_TOKEN=${{ secrets.LOGZIO_LOGS_TOKEN }},LOGZIO_TRACES_TOKEN=${{ secrets.LOGZIO_TRACES_TOKEN }},LOGZIO_METRICS_TOKEN=${{ secrets.LOGZIO_METRICS_TOKEN }}}"
+          aws lambda wait function-updated --function-name "${FUNCTION_NAME}"
+
+      - name: Invoke function twice
+        run: |
+          aws lambda invoke --function-name "${FUNCTION_NAME}" --payload '{}' --cli-binary-format raw-in-base64-out response1.json | cat
+          aws lambda invoke --function-name "${FUNCTION_NAME}" --payload '{}' --cli-binary-format raw-in-base64-out response2.json | cat
+
+  verify-e2e:
+    runs-on: ubuntu-latest
+    needs: publish-update-invoke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Create E2E test module (python)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p e2e/python
+          cat > e2e/python/go.mod <<'EOF'
+          module e2e-python
+
+          go 1.21
+
+          require (
+            github.com/sirupsen/logrus v1.9.3
+            github.com/stretchr/testify v1.9.0
+          )
+          EOF
+          # Helpers
+          cat > e2e/python/e2e_helpers_test.go <<'EOF'
+          //go:build e2e
+
+          package e2e
+
+          import (
+            "bytes"
+            "encoding/json"
+            "errors"
+            "fmt"
+            "io"
+            "net/http"
+            "net/url"
+            "os"
+            "strings"
+            "testing"
+            "time"
+
+            "github.com/sirupsen/logrus"
+            "github.com/stretchr/testify/require"
+          )
+
+          var e2eLogger = logrus.WithField("test_type", "e2e")
+
+          var (
+            logzioLogsQueryAPIKey     = os.Getenv("LOGZIO_API_KEY")
+            logzioAPIURL              = os.Getenv("LOGZIO_API_URL")
+            e2eTestEnvironmentLabel   = os.Getenv("E2E_TEST_ENVIRONMENT_LABEL")
+            logzioMetricsQueryAPIKey  = os.Getenv("LOGZIO_API_METRICS_KEY")
+            logzioMetricsQueryBaseURL = os.Getenv("LOGZIO_METRICS_QUERY_URL")
+            logzioTracesQueryAPIKey   = os.Getenv("LOGZIO_API_TRACES_KEY")
+          )
+
+          var (
+            totalBudgetSeconds = 500
+            testStartTime      time.Time
+            timeSpentMetrics   time.Duration
+            timeSpentLogs      time.Duration
+            timeSpentTraces    time.Duration
+          )
+
+          func initTimeTracking() {
+            testStartTime = time.Now()
+            timeSpentMetrics = 0
+            timeSpentLogs = 0
+            timeSpentTraces = 0
+          }
+
+          func getRemainingBudgetSeconds() int {
+            elapsed := time.Since(testStartTime)
+            remaining := time.Duration(totalBudgetSeconds)*time.Second - elapsed
+            return max(0, int(remaining.Seconds()))
+          }
+
+          func getDynamicRetryConfig(testType string) (maxRetries int, retryDelay time.Duration) {
+            defaultMaxRetries := 50
+            defaultRetryDelay := 10 * time.Second
+
+            remainingBudget := getRemainingBudgetSeconds()
+            retryDelay = defaultRetryDelay
+
+            var allocatedBudgetPortion float64
+            switch testType {
+            case "metrics":
+              allocatedBudgetPortion = 0.1
+            case "logs":
+              allocatedBudgetPortion = 0.6
+            case "traces":
+              allocatedBudgetPortion = 0.3
+            default:
+              allocatedBudgetPortion = 0.2
+            }
+
+            var effectiveBudget int
+            if timeSpentMetrics == 0 && timeSpentLogs == 0 && timeSpentTraces == 0 {
+              effectiveBudget = int(float64(totalBudgetSeconds) * allocatedBudgetPortion)
+            } else {
+              effectiveBudget = int(float64(remainingBudget) * allocatedBudgetPortion)
+            }
+
+            effectiveBudget = max(effectiveBudget, int(defaultRetryDelay.Seconds())*2+1)
+
+            maxRetries = effectiveBudget / int(defaultRetryDelay.Seconds())
+            maxRetries = max(2, min(maxRetries, defaultMaxRetries))
+
+            e2eLogger.Infof("Time budget for %s: %d attempts (delay %s). Total remaining: %ds. Effective budget for this test: %ds", testType, maxRetries, retryDelay, remainingBudget, effectiveBudget)
+            return maxRetries, retryDelay
+          }
+
+          func recordTimeSpent(testType string, duration time.Duration) {
+            switch testType {
+            case "metrics":
+              timeSpentMetrics += duration
+            case "logs":
+              timeSpentLogs += duration
+            case "traces":
+              timeSpentTraces += duration
+            }
+            total := timeSpentMetrics + timeSpentLogs + timeSpentTraces
+            e2eLogger.Infof("Time spent - Metrics: %.1fs, Logs: %.1fs, Traces: %.1fs, Total: %.1fs/%ds", timeSpentMetrics.Seconds(), timeSpentLogs.Seconds(), timeSpentTraces.Seconds(), total.Seconds(), totalBudgetSeconds)
+          }
+
+          const (
+            apiTimeout     = 45 * time.Second
+            searchLookback = "30m"
+          )
+
+          var ErrNoDataFoundAfterRetries = errors.New("no data found after all retries")
+
+          func skipIfEnvVarsMissing(t *testing.T, testName string) {
+            baseRequired := []string{"E2E_TEST_ENVIRONMENT_LABEL"}
+            specificRequiredMissing := false
+
+            if logzioAPIURL == "" {
+              e2eLogger.Errorf("Skipping E2E test %s: Missing base required environment variable LOGZIO_API_URL.", testName)
+              t.Skipf("Skipping E2E test %s: Missing base required environment variable LOGZIO_API_URL.", testName)
+              return
+            }
+
+            if strings.Contains(testName, "Logs") || strings.Contains(testName, "E2ELogsTest") {
+              if logzioLogsQueryAPIKey == "" {
+                e2eLogger.Errorf("Skipping E2E Log test %s: Missing LOGZIO_API_KEY.", testName)
+                t.Skipf("Skipping E2E Log test %s: Missing LOGZIO_API_KEY.", testName)
+                specificRequiredMissing = true
+              }
+            }
+            if strings.Contains(testName, "Metrics") || strings.Contains(testName, "E2EMetricsTest") {
+              if logzioMetricsQueryAPIKey == "" {
+                e2eLogger.Errorf("Skipping E2E Metrics test %s: Missing LOGZIO_API_METRICS_KEY.", testName)
+                t.Skipf("Skipping E2E Metrics test %s: Missing LOGZIO_API_METRICS_KEY.", testName)
+                specificRequiredMissing = true
+              }
+              if logzioMetricsQueryBaseURL == "" {
+                e2eLogger.Errorf("Skipping E2E Metrics test %s: Missing LOGZIO_METRICS_QUERY_URL.", testName)
+                t.Skipf("Skipping E2E Metrics test %s: Missing LOGZIO_METRICS_QUERY_URL.", testName)
+                specificRequiredMissing = true
+              }
+            }
+            if strings.Contains(testName, "Traces") || strings.Contains(testName, "E2ETracesTest") {
+              if logzioTracesQueryAPIKey == "" {
+                e2eLogger.Errorf("Skipping E2E Traces test %s: Missing required environment variable LOGZIO_API_TRACES_KEY.", testName)
+                t.Skipf("Skipping E2E Traces test %s: Missing required environment variable LOGZIO_API_TRACES_KEY.", testName)
+                specificRequiredMissing = true
+              }
+            }
+
+            if specificRequiredMissing {
+              return
+            }
+
+            for _, v := range baseRequired {
+              if os.Getenv(v) == "" {
+                e2eLogger.Errorf("Skipping E2E test %s: Missing base required environment variable %s.", testName, v)
+                t.Skipf("Skipping E2E test %s: Missing base required environment variable %s.", testName, v)
+                return
+              }
+            }
+          }
+
+          type logzioSearchQueryBody struct {
+            Query       map[string]interface{} `json:"query"`
+            Size        int                    `json:"size"`
+            Sort        []map[string]string    `json:"sort"`
+            SearchAfter []interface{}          `json:"search_after,omitempty"`
+          }
+
+          type logzioSearchResponse struct {
+            Hits struct {
+              Total json.RawMessage `json:"total"`
+              Hits  []struct {
+                Source map[string]interface{} `json:"_source"`
+                Sort   []interface{}          `json:"sort"`
+              } `json:"hits"`
+            } `json:"hits"`
+            Error *struct {
+              Reason string `json:"reason"`
+            } `json:"error,omitempty"`
+          }
+
+          func (r *logzioSearchResponse) getTotalHits() int {
+            if len(r.Hits.Total) == 0 { return 0 }
+            var totalInt int
+            if err := json.Unmarshal(r.Hits.Total, &totalInt); err == nil { return totalInt }
+            var totalObj struct { Value int `json:"value"` }
+            if err := json.Unmarshal(r.Hits.Total, &totalObj); err == nil { return totalObj.Value }
+            e2eLogger.Warnf("Could not determine total hits from raw message: %s", string(r.Hits.Total))
+            return 0
+          }
+
+          func fetchLogzSearchAPI(t *testing.T, apiKey, queryBaseAPIURL, luceneQuery string, testType string) (*logzioSearchResponse, error) {
+            maxRetries, retryDelay := getDynamicRetryConfig(testType)
+            return fetchLogzSearchAPIWithRetries(t, apiKey, queryBaseAPIURL, luceneQuery, maxRetries, retryDelay)
+          }
+
+          func fetchLogzSearchAPIWithRetries(t *testing.T, apiKey, queryBaseAPIURL, luceneQuery string, maxRetries int, retryDelay time.Duration) (*logzioSearchResponse, error) {
+            searchAPIEndpoint := fmt.Sprintf("%s/v1/search", strings.TrimSuffix(queryBaseAPIURL, "/"))
+            searchEndTime := time.Now().UTC()
+            searchStartTime := testStartTime.UTC().Add(-1 * time.Minute)
+
+            timestampGte := searchStartTime.Format(time.RFC3339Nano)
+            timestampLte := searchEndTime.Format(time.RFC3339Nano)
+            queryBodyMap := logzioSearchQueryBody{
+              Query: map[string]interface{}{"bool": map[string]interface{}{"must": []map[string]interface{}{{"query_string": map[string]string{"query": luceneQuery}}}, "filter": []map[string]interface{}{{"range": map[string]interface{}{"@timestamp": map[string]string{"gte": timestampGte, "lte": timestampLte}}}}}},
+              Size:  100, Sort: []map[string]string{{"@timestamp": "desc"}},
+            }
+            queryBytes, err := json.Marshal(queryBodyMap)
+            require.NoError(t, err)
+            var lastErr error
+
+            for i := 0; i < maxRetries; i++ {
+              e2eLogger.Infof("Attempt %d/%d to fetch Logz.io search results (Query: %s)...", i+1, maxRetries, luceneQuery)
+              req, err := http.NewRequest("POST", searchAPIEndpoint, bytes.NewBuffer(queryBytes))
+              require.NoError(t, err)
+              req.Header.Set("Accept", "application/json")
+              req.Header.Set("Content-Type", "application/json")
+              req.Header.Set("X-API-TOKEN", apiKey)
+              client := &http.Client{Timeout: apiTimeout}
+              resp, err := client.Do(req)
+              if err != nil {
+                lastErr = fmt.Errorf("API request failed on attempt %d: %w", i+1, err)
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              respBodyBytes, readErr := io.ReadAll(resp.Body)
+              resp.Body.Close()
+              if readErr != nil {
+                lastErr = fmt.Errorf("failed to read API response body on attempt %d: %w", i+1, readErr)
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if resp.StatusCode != http.StatusOK {
+                lastErr = fmt.Errorf("API returned status %d on attempt %d: %s", resp.StatusCode, i+1, string(respBodyBytes))
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              var logResponse logzioSearchResponse
+              unmarshalErr := json.Unmarshal(respBodyBytes, &logResponse)
+              if unmarshalErr != nil {
+                lastErr = fmt.Errorf("failed to unmarshal API response on attempt %d: %w. Body: %s", i+1, unmarshalErr, string(respBodyBytes))
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if logResponse.Error != nil {
+                lastErr = fmt.Errorf("Logz.io API error in response on attempt %d: %s", i+1, logResponse.Error.Reason)
+                if strings.Contains(logResponse.Error.Reason, "parse_exception") || strings.Contains(logResponse.Error.Reason, "query_shard_exception") {
+                  e2eLogger.Errorf("Non-retryable API error encountered: %v", lastErr)
+                  return nil, lastErr
+                }
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if logResponse.getTotalHits() > 0 {
+                e2eLogger.Infof("Attempt %d successful. Found %d total hits.", i+1, logResponse.getTotalHits())
+                return &logResponse, nil
+              }
+              lastErr = fmt.Errorf("attempt %d/%d: no data found for query '%s'", i+1, maxRetries, luceneQuery)
+              e2eLogger.Infof("%s. Retrying in %s...", lastErr.Error(), retryDelay)
+              if i < maxRetries-1 { time.Sleep(retryDelay) }
+            }
+            e2eLogger.Warnf("No data found for query '%s' after %d retries.", luceneQuery, maxRetries)
+            return nil, ErrNoDataFoundAfterRetries
+          }
+
+          type logzioPrometheusResponse struct {
+            Status string `json:"status"`
+            Data   struct {
+              ResultType string `json:"resultType"`
+              Result     []struct {
+                Metric map[string]string `json:"metric"`
+                Value  []interface{}     `json:"value"`
+              } `json:"result"`
+            } `json:"data"`
+            ErrorType string `json:"errorType,omitempty"`
+            Error     string `json:"error,omitempty"`
+          }
+
+          func fetchLogzMetricsAPI(t *testing.T, apiKey, metricsAPIBaseURL, promqlQuery string) (*logzioPrometheusResponse, error) {
+            maxRetries, retryDelay := getDynamicRetryConfig("metrics")
+            return fetchLogzMetricsAPIWithRetries(t, apiKey, metricsAPIBaseURL, promqlQuery, maxRetries, retryDelay)
+          }
+
+          func fetchLogzMetricsAPIWithRetries(t *testing.T, apiKey, metricsAPIBaseURL, promqlQuery string, maxRetries int, retryDelay time.Duration) (*logzioPrometheusResponse, error) {
+            queryAPIEndpoint := fmt.Sprintf("%s/v1/metrics/prometheus/api/v1/query?query=%s", strings.TrimSuffix(metricsAPIBaseURL, "/"), url.QueryEscape(promqlQuery))
+            var lastErr error
+
+            for i := 0; i < maxRetries; i++ {
+              e2eLogger.Infof("Attempt %d/%d to fetch Logz.io metrics (Query: %s)...", i+1, maxRetries, promqlQuery)
+              req, err := http.NewRequest("GET", queryAPIEndpoint, nil)
+              if err != nil { return nil, fmt.Errorf("metrics API request creation failed: %w", err) }
+              req.Header.Set("Accept", "application/json")
+              req.Header.Set("X-API-TOKEN", apiKey)
+
+              client := &http.Client{Timeout: apiTimeout}
+              resp, err := client.Do(req)
+              if err != nil {
+                lastErr = fmt.Errorf("metrics API request failed on attempt %d: %w", i+1, err)
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              respBodyBytes, readErr := io.ReadAll(resp.Body)
+              resp.Body.Close()
+              if readErr != nil {
+                lastErr = fmt.Errorf("failed to read metrics API response body on attempt %d: %w", i+1, readErr)
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if resp.StatusCode != http.StatusOK {
+                lastErr = fmt.Errorf("metrics API returned status %d on attempt %d: %s", resp.StatusCode, i+1, string(respBodyBytes))
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              var metricResponse logzioPrometheusResponse
+              unmarshalErr := json.Unmarshal(respBodyBytes, &metricResponse)
+              if unmarshalErr != nil {
+                lastErr = fmt.Errorf("failed to unmarshal metrics API response on attempt %d: %w. Body: %s", i+1, unmarshalErr, string(respBodyBytes))
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if metricResponse.Status != "success" {
+                lastErr = fmt.Errorf("Logz.io Metrics API returned status '%s' on attempt %d, ErrorType: '%s', Error: '%s'", metricResponse.Status, i+1, metricResponse.ErrorType, metricResponse.Error)
+                e2eLogger.Warnf("%v. Retrying in %s...", lastErr, retryDelay)
+                if i < maxRetries-1 { time.Sleep(retryDelay) }
+                continue
+              }
+              if len(metricResponse.Data.Result) > 0 {
+                e2eLogger.Infof("Attempt %d successful. Found %d metric series.", i+1, len(metricResponse.Data.Result))
+                return &metricResponse, nil
+              }
+              lastErr = fmt.Errorf("attempt %d/%d: no data found for query '%s'", i+1, maxRetries, promqlQuery)
+              e2eLogger.Infof("%s. Retrying in %s...", lastErr.Error(), retryDelay)
+              if i < maxRetries-1 { time.Sleep(retryDelay) }
+            }
+            e2eLogger.Warnf("No data found for query '%s' after %d retries.", promqlQuery, maxRetries)
+            return nil, ErrNoDataFoundAfterRetries
+          }
+
+          func fetchLogzSearchAPIBasic(t *testing.T, apiKey, queryBaseAPIURL, luceneQuery string) (*logzioSearchResponse, error) {
+            searchAPIEndpoint := fmt.Sprintf("%s/v1/search", strings.TrimSuffix(queryBaseAPIURL, "/"))
+            queryBodyMap := logzioSearchQueryBody{ Query: map[string]interface{}{"bool": map[string]interface{}{"must": []map[string]interface{}{{"query_string": map[string]string{"query": luceneQuery}}}}}, Size: 1, Sort: []map[string]string{{"@timestamp": "desc"}} }
+            queryBytes, err := json.Marshal(queryBodyMap)
+            if err != nil { return nil, fmt.Errorf("failed to marshal query for basic search: %w", err) }
+            req, err := http.NewRequest("POST", searchAPIEndpoint, bytes.NewBuffer(queryBytes))
+            if err != nil { return nil, fmt.Errorf("failed to create request for basic search: %w", err) }
+            req.Header.Set("Accept", "application/json")
+            req.Header.Set("Content-Type", "application/json")
+            req.Header.Set("X-API-TOKEN", apiKey)
+            client := &http.Client{Timeout: 15 * time.Second}
+            resp, err := client.Do(req)
+            if err != nil { return nil, fmt.Errorf("request failed for basic search: %w", err) }
+            defer resp.Body.Close()
+            respBodyBytes, err := io.ReadAll(resp.Body)
+            if err != nil { return nil, fmt.Errorf("failed to read response body for basic search: %w", err) }
+            if resp.StatusCode != http.StatusOK { return nil, fmt.Errorf("API status %d for basic search: %s", resp.StatusCode, string(respBodyBytes)) }
+            var logResponse logzioSearchResponse
+            err = json.Unmarshal(respBodyBytes, &logResponse)
+            if err != nil { return nil, fmt.Errorf("failed to unmarshal response for basic search: %w. Body: %s", err, string(respBodyBytes)) }
+            if logResponse.Error != nil { return nil, fmt.Errorf("Logz.io API error in basic search response: %s", logResponse.Error.Reason) }
+            return &logResponse, nil
+          }
+
+          func getNestedValue(data map[string]interface{}, path ...string) interface{} {
+            var current interface{} = data
+            for _, key := range path {
+              m, ok := current.(map[string]interface{})
+              if !ok { return nil }
+              current, ok = m[key]
+              if !ok { return nil }
+            }
+            return current
+          }
+
+          func min(a, b int) int { if a < b { return a } ; return b }
+          func max(a, b int) int { if a > b { return a } ; return b }
+          EOF
+          # Logs test
+          cat > e2e/python/e2e_log_test.go <<'EOF'
+          //go:build e2e
+
+          package e2e
+
+          import (
+            "encoding/json"
+            "fmt"
+            "os"
+            "testing"
+
+            "github.com/stretchr/testify/assert"
+            "github.com/stretchr/testify/require"
+          )
+
+          func TestE2ELogs(t *testing.T) {
+            skipIfEnvVarsMissing(t, t.Name())
+            e2eLogger.Infof("Starting E2E Log Test for environment label: %s", e2eTestEnvironmentLabel)
+
+            expectedServiceName := os.Getenv("EXPECTED_SERVICE_NAME")
+            require.NotEmpty(t, expectedServiceName, "EXPECTED_SERVICE_NAME environment variable must be set for log tests")
+
+            e2eLogger.Infof("Expecting logs with service_name: %s and environment: %s", expectedServiceName, e2eTestEnvironmentLabel)
+
+            baseQuery := fmt.Sprintf(`environment:"%s" AND service_name:"%s"`, e2eTestEnvironmentLabel, expectedServiceName)
+
+            logChecks := []struct {
+              name        string
+              mustContain string
+              assertion   func(t *testing.T, hits []map[string]interface{})
+            }{
+              {
+                name:        "extension_startup_log",
+                mustContain: `"Launching OpenTelemetry Lambda extension"`,
+                assertion: func(t *testing.T, hits []map[string]interface{}) {
+                  assert.GreaterOrEqual(t, len(hits), 1, "Should find at least one extension startup log")
+                },
+              },
+              {
+                name:        "function_invocation_log",
+                mustContain: `"📍 Lambda invocation started"`,
+                assertion: func(t *testing.T, hits []map[string]interface{}) {
+                  assert.GreaterOrEqual(t, len(hits), 1, "Should find function invocation start log")
+                  hit := hits[0]
+                  assert.NotEmpty(t, hit["faas.instance"], "Log should have faas.instance (Lambda Request ID)")
+                  assert.Equal(t, expectedServiceName, hit["service_name"])
+                  assert.Equal(t, e2eTestEnvironmentLabel, hit["environment"])
+                },
+              },
+            }
+
+            allChecksPassed := true
+
+            for _, check := range logChecks {
+              t.Run(check.name, func(t *testing.T) {
+                query := fmt.Sprintf(`%s AND %s`, baseQuery, check.mustContain)
+                e2eLogger.Infof("Querying for logs: %s", query)
+
+                logResponse, err := fetchLogzSearchAPI(t, logzioLogsQueryAPIKey, logzioAPIURL, query, "logs")
+                if err != nil {
+                  e2eLogger.Errorf("Failed to fetch logs for check '%s' after all retries: %v", check.name, err)
+                  allChecksPassed = false
+                  t.Fail()
+                  return
+                }
+
+                require.NotNil(t, logResponse, "Log response should not be nil if error is nil for check '%s'", check.name)
+
+                var sources []map[string]interface{}
+                for _, hit := range logResponse.Hits.Hits {
+                  sources = append(sources, hit.Source)
+                  if len(sources) <= 2 {
+                    logSample, _ := json.Marshal(hit.Source)
+                    e2eLogger.Debugf("Sample log for check '%s': %s", check.name, string(logSample))
+                  }
+                }
+
+                if check.assertion != nil {
+                  check.assertion(t, sources)
+                }
+              })
+            }
+
+            require.True(t, allChecksPassed, "One or more E2E log checks failed.")
+            e2eLogger.Info("E2E Log Test Completed Successfully.")
+          }
+          EOF
+          # Metrics test
+          cat > e2e/python/e2e_metric_test.go <<'EOF'
+          //go:build e2e
+
+          package e2e
+
+          import (
+            "errors"
+            "fmt"
+            "os"
+            "testing"
+
+            "github.com/stretchr/testify/assert"
+            "github.com/stretchr/testify/require"
+          )
+
+          func TestE2EMetrics(t *testing.T) {
+            skipIfEnvVarsMissing(t, t.Name())
+            e2eLogger.Infof("Starting E2E Metrics Test for environment: %s", e2eTestEnvironmentLabel)
+
+            expectedFaasName := os.Getenv("EXPECTED_LAMBDA_FUNCTION_NAME")
+            require.NotEmpty(t, expectedFaasName, "EXPECTED_LAMBDA_FUNCTION_NAME environment variable must be set")
+
+            expectedServiceName := os.Getenv("EXPECTED_SERVICE_NAME")
+            require.NotEmpty(t, expectedServiceName, "EXPECTED_SERVICE_NAME environment variable must be set")
+
+            e2eLogger.Infof("Expecting metrics with common labels - faas.name: %s, service_name: %s, environment: %s", expectedFaasName, expectedServiceName, e2eTestEnvironmentLabel)
+
+            query := fmt.Sprintf(`{environment="%s", faas_name="%s", service_name="%s"}`, e2eTestEnvironmentLabel, expectedFaasName, expectedServiceName)
+            e2eLogger.Infof("Querying for any metrics matching: %s", query)
+
+            metricResponse, err := fetchLogzMetricsAPI(t, logzioMetricsQueryAPIKey, logzioMetricsQueryBaseURL, query)
+
+            if err != nil {
+              if errors.Is(err, ErrNoDataFoundAfterRetries) {
+                t.Fatalf("Failed to find metrics after all retries for query '%s': %v", query, err)
+              } else {
+                t.Fatalf("Error fetching metrics for query '%s': %v", query, err)
+              }
+            }
+            require.NotNil(t, metricResponse, "Metric response should not be nil if error is nil")
+            require.Equal(t, "success", metricResponse.Status, "Metric API status should be success")
+            require.GreaterOrEqual(t, len(metricResponse.Data.Result), 1, "Should find at least one metric series matching the core labels. Query: %s", query)
+
+            e2eLogger.Info("Validating labels on the first found metric series...")
+            firstSeries := metricResponse.Data.Result[0]
+            metricLabels := firstSeries.Metric
+            e2eLogger.Infof("Found metric '%s' with labels: %+v", metricLabels["__name__"], metricLabels)
+
+            assert.Equal(t, e2eTestEnvironmentLabel, metricLabels["environment"], "Label 'environment' mismatch")
+            assert.Equal(t, expectedFaasName, metricLabels["faas_name"], "Label 'faas_name' mismatch")
+            assert.Equal(t, expectedServiceName, metricLabels["service_name"], "Label 'service_name' mismatch")
+            assert.Equal(t, "aws_lambda", metricLabels["cloud_platform"], "Label 'cloud_platform' should be 'aws_lambda'")
+            assert.Equal(t, "aws", metricLabels["cloud_provider"], "Label 'cloud_provider' should be 'aws'")
+            assert.NotEmpty(t, metricLabels["cloud_region"], "Label 'cloud_region' should be present")
+
+            if metricName, ok := metricLabels["__name__"]; ok && (metricName == "aws_lambda_duration_milliseconds" || metricName == "aws_lambda_maxMemoryUsed_megabytes" || metricName == "aws_lambda_invocations" || metricName == "aws_lambda_errors") {
+              assert.NotEmpty(t, metricLabels["faas_execution"], "Label 'faas_execution' (Lambda Request ID) should be present for AWS platform metrics")
+            }
+
+            foundDurationMetric := false
+            for _, series := range metricResponse.Data.Result {
+              if series.Metric["__name__"] == "aws_lambda_duration_milliseconds" {
+                foundDurationMetric = true
+                e2eLogger.Info("Confirmed 'aws_lambda_duration_milliseconds' is among the found metrics with correct labels.")
+                break
+              }
+            }
+            assert.True(t, foundDurationMetric, "Expected 'aws_lambda_duration_milliseconds' to be one of the metrics reported with the correct labels.")
+            e2eLogger.Info("E2E Metrics Test: Core label validation successful.")
+          }
+          EOF
+          # Traces test
+          cat > e2e/python/e2e_trace_test.go <<'EOF'
+          //go:build e2e
+
+          package e2e
+
+          import (
+            "encoding/json"
+            "fmt"
+            "os"
+            "testing"
+
+            "github.com/stretchr/testify/assert"
+            "github.com/stretchr/testify/require"
+          )
+
+          func TestE2ETraces(t *testing.T) {
+            skipIfEnvVarsMissing(t, t.Name())
+            e2eLogger.Infof("Starting E2E Trace Test for environment: %s", e2eTestEnvironmentLabel)
+
+            tracesQueryKey := logzioTracesQueryAPIKey
+            expectedFaasName := os.Getenv("EXPECTED_LAMBDA_FUNCTION_NAME")
+            require.NotEmpty(t, expectedFaasName, "EXPECTED_LAMBDA_FUNCTION_NAME must be set")
+            expectedServiceName := os.Getenv("EXPECTED_SERVICE_NAME")
+            require.NotEmpty(t, expectedServiceName, "EXPECTED_SERVICE_NAME must be set")
+
+            e2eLogger.Infof("Expecting traces with faas.name: %s, service.name: %s, environment: %s", expectedFaasName, expectedServiceName, e2eTestEnvironmentLabel)
+
+            query := fmt.Sprintf(`type:jaegerSpan AND process.serviceName:"%s" AND process.tag.faas@name:"%s" AND process.tag.deployment@environment:"%s"`, expectedServiceName, expectedFaasName, e2eTestEnvironmentLabel)
+            e2eLogger.Infof("Querying for traces with full time budget: %s", query)
+
+            traceResponse, err := fetchLogzSearchAPI(t, tracesQueryKey, logzioAPIURL, query, "traces")
+
+            require.NoError(t, err, "Failed to find any matching traces after all retries.")
+            require.NotNil(t, traceResponse, "Trace response should not be nil if no error was returned")
+            require.GreaterOrEqual(t, traceResponse.getTotalHits(), 1, "Should find at least one trace matching the query.")
+
+            e2eLogger.Info("✅ Found traces! Validating content of the first trace...")
+
+            hit := traceResponse.Hits.Hits[0].Source
+            logSample, _ := json.Marshal(hit)
+
+            e2eLogger.Debugf("Sample trace for validation: %s", string(logSample))
+
+            assert.Equal(t, expectedServiceName, getNestedValue(hit, "process", "serviceName"))
+            assert.Equal(t, expectedFaasName, getNestedValue(hit, "process", "tag", "faas@name"))
+            assert.Equal(t, e2eTestEnvironmentLabel, getNestedValue(hit, "process", "tag", "deployment@environment"))
+
+            e2eLogger.Info("E2E Trace Test Completed Successfully.")
+          }
+          EOF
+          # Runner
+          cat > e2e/python/e2e_runner_test.go <<'EOF'
+          //go:build e2e
+
+          package e2e
+
+          import (
+            "fmt"
+            "testing"
+            "time"
+          )
+
+          func TestE2ERunner(t *testing.T) {
+            e2eLogger.Info("E2E Test Runner: Waiting 180 seconds for initial Lambda execution and data ingestion before starting tests...")
+            time.Sleep(180 * time.Second)
+
+            initTimeTracking()
+            e2eLogger.Infof("E2E Test Runner starting with a total budget of %d seconds.", totalBudgetSeconds)
+            e2eLogger.Info("Tests will run in order: Metrics -> Logs -> Traces.")
+
+            t.Run("E2EMetricsTest", func(t *testing.T) {
+              e2eLogger.Info("=== Starting E2E Metrics Test ===")
+              startTime := time.Now()
+              TestE2EMetrics(t)
+              duration := time.Since(startTime)
+              recordTimeSpent("metrics", duration)
+              e2eLogger.Infof("=== E2E Metrics Test completed in %.1f seconds ===", duration.Seconds())
+            })
+
+            if t.Failed() { e2eLogger.Error("Metrics test or previous setup failed. Subsequent tests might be affected or also fail.") }
+
+            t.Run("E2ELogsTest", func(t *testing.T) {
+              e2eLogger.Info("=== Starting E2E Logs Test ===")
+              startTime := time.Now()
+              TestE2ELogs(t)
+              duration := time.Since(startTime)
+              recordTimeSpent("logs", duration)
+              e2eLogger.Infof("=== E2E Logs Test completed in %.1f seconds ===", duration.Seconds())
+            })
+
+            if t.Failed() { e2eLogger.Error("Logs test or previous setup/tests failed. Subsequent tests might be affected or also fail.") }
+
+            t.Run("E2ETracesTest", func(t *testing.T) {
+              e2eLogger.Info("=== Starting E2E Traces Test ===")
+              startTime := time.Now()
+              TestE2ETraces(t)
+              duration := time.Since(startTime)
+              recordTimeSpent("traces", duration)
+              e2eLogger.Infof("=== E2E Traces Test completed in %.1f seconds ===", duration.Seconds())
+            })
+
+            totalElapsed := time.Since(testStartTime)
+            e2eLogger.Infof("E2E Test Runner finished all tests in %.1f seconds. Remaining budget: %ds", totalElapsed.Seconds(), getRemainingBudgetSeconds())
+
+            if t.Failed() { e2eLogger.Error("One or more E2E tests failed.") } else { e2eLogger.Info("All E2E tests passed successfully!") }
+          }
+          EOF
+
+      - name: Run E2E verification tests
+        env:
+          LOGZIO_API_KEY: ${{ secrets.LOGZIO_API_KEY }}
+          LOGZIO_API_URL: ${{ inputs.logzio_api_url || 'https://api.logz.io' }}
+          LOGZIO_API_METRICS_KEY: ${{ secrets.LOGZIO_API_METRICS_KEY }}
+          LOGZIO_METRICS_QUERY_URL: ${{ inputs.logzio_api_url || 'https://api.logz.io' }}
+          LOGZIO_API_TRACES_KEY: ${{ secrets.LOGZIO_API_TRACES_KEY }}
+          E2E_TEST_ENVIRONMENT_LABEL: ${{ needs.publish-update-invoke.outputs.e2e_label }}
+          EXPECTED_LAMBDA_FUNCTION_NAME: one-layer-e2e-test-python
+          EXPECTED_SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          cd e2e/python
+          go test ./... -v -tags=e2e -run TestE2ERunner
+
+  cleanup:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [publish-update-invoke, verify-e2e]
+    steps:
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.E2E_AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region || 'us-east-1' }}
+      - name: Delete published layer version
+        if: ${{ needs.publish-update-invoke.outputs.layer_arn != '' }}
+        shell: bash
+        run: |
+          ARN="${{ needs.publish-update-invoke.outputs.layer_arn }}"
+          LAYER_NAME=$(echo "$ARN" | cut -d: -f7)
+          LAYER_VERSION=$(echo "$ARN" | cut -d: -f8)
+          aws lambda delete-layer-version --layer-name "$LAYER_NAME" --version-number "$LAYER_VERSION" || echo "Failed to delete layer version."
+
+
