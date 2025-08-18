@@ -15,7 +15,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Create Release
         run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
         env:
@@ -28,7 +28,7 @@ jobs:
     outputs:
       PYTHON_OPENTELEMETRY_SDK_VERSION: ${{ steps.save-python-opentelemetry-sdk-version.outputs.PYTHON_OPENTELEMETRY_SDK_VERSION}}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
