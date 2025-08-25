@@ -412,7 +412,7 @@ async function initializeTracerProvider(
   }
 
   if (exporters.length) {
-    config.spanProcessors = [];
+    config.spanProcessors = config.spanProcessors || [];
     exporters.map(exporter => {
       if (exporter instanceof ConsoleSpanExporter) {
         config.spanProcessors?.push(new SimpleSpanProcessor(exporter));
