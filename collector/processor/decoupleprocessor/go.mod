@@ -6,7 +6,7 @@ go 1.24.4
 
 require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.opentelemetry.io/collector/client v1.38.0
 	go.opentelemetry.io/collector/component v1.38.0
 	go.opentelemetry.io/collector/confmap v1.38.0
