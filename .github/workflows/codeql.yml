@@ -68,7 +68,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.5
+      uses: github/codeql-action/init@f1f6e5f6af878fb37288ce1c627459e94dbf7d01 # v3.29.5
       with:
         languages: ${{ matrix.target.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -82,7 +82,7 @@ jobs:
     # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.5
+      uses: github/codeql-action/autobuild@f1f6e5f6af878fb37288ce1c627459e94dbf7d01 # v3.29.5
       with:
         working-directory: ${{ matrix.target.directory }}
       # There are no array literals in GHA that is why we need to use fromJson.
@@ -114,7 +114,7 @@ jobs:
       if: ${{ matrix.target.language == 'java' }}
 
     - name: setup dotnet
-      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
       with:
         dotnet-version: 6.x
       if: ${{ matrix.target.language == 'csharp' }}
@@ -126,6 +126,6 @@ jobs:
       if: ${{ matrix.target.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.5
+      uses: github/codeql-action/analyze@f1f6e5f6af878fb37288ce1c627459e94dbf7d01 # v3.29.5
       with:
         category: "/language:${{matrix.target.language}}"
