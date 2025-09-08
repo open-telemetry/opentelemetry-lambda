@@ -36,13 +36,13 @@
   ],
   "devDependencies": {
     "@aws-sdk/client-sts": "^3.826.0",
-    "@types/aws-lambda": "8.10.150",
-    "@types/node": "24.0.7",
+    "@types/aws-lambda": "8.10.152",
+    "@types/node": "24.3.1",
     "aws-cdk-lib": "^2.201.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "rimraf": "6.0.1",
     "ts-node": "10.9.2",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }
