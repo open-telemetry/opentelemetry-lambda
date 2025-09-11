@@ -39,6 +39,7 @@
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.203.0",
     "@opentelemetry/core": "^2.0.0",
+    "@opentelemetry/propagator-b3": "^2.0.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.203.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.203.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.203.0",
@@ -81,7 +82,9 @@
     "@opentelemetry/resources": "^2.0.0",
     "@opentelemetry/sdk-logs": "^0.203.0",
     "@opentelemetry/sdk-metrics": "^2.0.0",
-    "@opentelemetry/sdk-trace-node": "^2.0.0"
+    "@opentelemetry/sdk-trace-node": "^2.0.0",
+    "@sentry/aws-serverless": "10.11.0",
+    "@sentry/opentelemetry": "10.11.0"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.9",

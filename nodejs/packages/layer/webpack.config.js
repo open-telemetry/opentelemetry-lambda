@@ -1,27 +1,21 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  entry: './src/wrapper.ts',
-  target: 'node',
-  mode: 'production',
+  entry: "./src/wrapper.ts",
+  target: "node",
+  mode: "production",
   externalsPresets: { node: true }, // in order to ignore built-in modules like path, fs, etc.
-  externals: [
-    'import-in-the-middle',
-    '@aws-sdk',
-  ],
+  externals: ["import-in-the-middle", "@aws-sdk"],
   output: {
-    path: path.resolve('./build/src'),
-    filename: 'wrapper.js',
+    path: path.resolve("./build/src"),
+    filename: "wrapper.js",
     library: {
-      type: 'commonjs2',
-    }
+      type: "commonjs2",
+    },
   },
   resolve: {
-    extensions: ['.ts', '.js', '.mjs'],
-    modules: [
-      path.resolve('./src'),
-      'node_modules',
-    ],
+    extensions: [".ts", ".js", ".mjs"],
+    modules: [path.resolve("./src"), "node_modules"],
   },
   module: {
     rules: [
@@ -29,14 +23,14 @@ module.exports = {
         test: /\.ts$/,
         use: [
           {
-            loader: 'ts-loader',
+            loader: "ts-loader",
             options: {
-              configFile: "tsconfig.webpack.json"
-            }
-          }
+              configFile: "tsconfig.webpack.json",
+            },
+          },
         ],
         exclude: /node_modules/,
-      }
+      },
     ],
   },
   optimization: {
