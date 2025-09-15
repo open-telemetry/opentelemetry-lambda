@@ -51,6 +51,10 @@ jobs:
         run: mv layer.zip opentelemetry-nodejs-layer.zip
         working-directory: nodejs/packages/layer/build
 
+      - name: Generate artifact attestation for nodejs-layer
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a  #v3.0.0
+        with:
+          subject-path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         name: Save assembled layer to build
         with:
