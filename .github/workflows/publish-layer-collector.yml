@@ -47,11 +47,7 @@ on:
         description: 'Build tags to customize collector build'
         required: false
         type: string
-      codesigning-profile:
-        description: 'The AWS Signing Profile for the layers'
-        required: false
-        type: string
-
+      
 permissions:
   contents: read
 
