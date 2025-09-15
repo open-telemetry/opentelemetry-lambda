@@ -54,7 +54,6 @@ on:
 
 permissions:
   contents: read
-  attestations: write
 
 jobs:
   prepare-build-jobs:
@@ -75,6 +74,10 @@ jobs:
   build-layer:
     needs: prepare-build-jobs
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
     strategy:
       matrix: ${{ fromJSON(needs.prepare-build-jobs.outputs.build_jobs) }}
     steps:
