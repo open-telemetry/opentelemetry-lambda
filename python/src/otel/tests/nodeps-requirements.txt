@@ -1,1 +1,1 @@
-opentelemetry-instrumentation-aws-lambda==0.57b0
+opentelemetry-instrumentation-aws-lambda==0.58b0
