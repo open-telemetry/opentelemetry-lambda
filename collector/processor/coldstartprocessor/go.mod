@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/cespare/xxhash v1.1.0
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.38.0
 	go.opentelemetry.io/collector/consumer v1.38.0
 	go.opentelemetry.io/collector/consumer/consumertest v0.132.0
