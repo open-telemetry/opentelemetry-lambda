@@ -68,7 +68,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.29.5
+      uses: github/codeql-action/init@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v3.29.5
       with:
         languages: ${{ matrix.target.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -82,7 +82,7 @@ jobs:
     # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.29.5
+      uses: github/codeql-action/autobuild@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v3.29.5
       with:
         working-directory: ${{ matrix.target.directory }}
       # There are no array literals in GHA that is why we need to use fromJson.
@@ -106,7 +106,7 @@ jobs:
       if: ${{ matrix.target.language == 'java' }}
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4.4.0
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: build Java
       run: ./gradlew build --no-build-cache
@@ -126,6 +126,6 @@ jobs:
       if: ${{ matrix.target.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.29.5
+      uses: github/codeql-action/analyze@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v3.29.5
       with:
         category: "/language:${{matrix.target.language}}"
