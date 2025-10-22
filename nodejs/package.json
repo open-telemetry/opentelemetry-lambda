@@ -30,6 +30,7 @@
   "author": "OpenTelemetry Authors",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/aws-lambda": "8.10.156",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
     "aws-sdk": "2.1692.0",
@@ -43,6 +44,9 @@
     "lerna-changelog": "2.2.0",
     "rimraf": "6.0.1",
     "typescript": "5.9.2"
+  },
+  "overrides": {
+    "@types/aws-lambda": "8.10.156"
   },
   "changelog": {
     "labels": {
