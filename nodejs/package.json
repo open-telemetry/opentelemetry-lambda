@@ -43,7 +43,7 @@
     "lerna": "^9.0.0",
     "lerna-changelog": "2.2.0",
     "rimraf": "6.0.1",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "overrides": {
     "@types/aws-lambda": "8.10.156"
