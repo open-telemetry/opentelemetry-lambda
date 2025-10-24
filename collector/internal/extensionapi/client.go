@@ -30,6 +30,7 @@ type RegisterResponse struct {
 	FunctionName    string `json:"functionName"`
 	FunctionVersion string `json:"functionVersion"`
 	Handler         string `json:"handler"`
+	AccountId       string `json:"accountId"`
 	ExtensionID     string
 }
 
@@ -65,9 +66,11 @@ const (
 )
 
 const (
-	extensionNameHeader      = "Lambda-Extension-Name"
-	extensionIdentiferHeader = "Lambda-Extension-Identifier"
-	extensionErrorType       = "Lambda-Extension-Function-Error-Type"
+	extensionNameHeader         = "Lambda-Extension-Name"
+	extensionIdentiferHeader    = "Lambda-Extension-Identifier"
+	extensionErrorType          = "Lambda-Extension-Function-Error-Type"
+	extensionAcceptFeatureHeader = "Lambda-Extension-Accept-Feature"
+	accountIdFeature            = "accountId"
 )
 
 // Client is a simple client for the Lambda Extensions API.
@@ -104,6 +107,8 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 		return nil, err
 	}
 	req.Header.Set(extensionNameHeader, filename)
+	// Request accountId feature in the response
+	req.Header.Set(extensionAcceptFeatureHeader, accountIdFeature)
 
 	var registerResp RegisterResponse
 	resp, err := e.doRequest(req, &registerResp)
