@@ -539,9 +539,9 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 						"requestId": "test-request-id-123",
 						"metrics": map[string]any{
 							"durationMs":       123.45,
-							"billedDurationMs": 124,
-							"memorySizeMB":     512,
-							"maxMemoryUsedMB":  256,
+							"billedDurationMs": float64(124),
+							"memorySizeMB":     float64(512),
+							"maxMemoryUsedMB":  float64(256),
 						},
 					},
 				},
@@ -662,6 +662,56 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 			},
 			logReport:          true,
 			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - with initDurationMs",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124.0,
+							"memorySizeMB":     512.0,
+							"maxMemoryUsedMB":  256.0,
+							"initDurationMs":   50.5,
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB Init Duration: 50.50 ms",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - with invalid initDurationMs type",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124.0,
+							"memorySizeMB":     512.0,
+							"maxMemoryUsedMB":  256.0,
+							"initDurationMs":   "invalid-string",
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
 			expectError:        false,
 		},
 	}

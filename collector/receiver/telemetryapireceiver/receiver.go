@@ -45,11 +45,12 @@ const (
 	initialQueueSize = 5
 	scopeName        = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
 
-	logReportFmt           = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %d ms Memory Size: %d MB Max Memory Used: %d MB"
+	logReportFmt           = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %.0f ms Memory Size: %.0f MB Max Memory Used: %.0f MB"
 	metricBilledDurationMs = "billedDurationMs"
 	metricDurationMs       = "durationMs"
 	metricMaxMemoryUsedMB  = "maxMemoryUsedMB"
 	metricMemorySizeMB     = "memorySizeMB"
+	metricInitDurationMs   = "initDurationMs"
 )
 
 type telemetryAPIReceiver struct {
@@ -277,19 +278,26 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 	if !ok {
 		return nil
 	}
-	var durationMs float64
-	var billedDurationMs, memorySizeMB, maxMemoryUsedMB int
+	var durationMs, billedDurationMs, memorySizeMB, maxMemoryUsedMB float64
 	if durationMs, ok = metrics[metricDurationMs].(float64); !ok {
 		return nil
 	}
-	if billedDurationMs, ok = metrics[metricBilledDurationMs].(int); !ok {
+	if billedDurationMs, ok = metrics[metricBilledDurationMs].(float64); !ok {
 		return nil
 	}
-	if memorySizeMB, ok = metrics[metricMemorySizeMB].(int); !ok {
+	if memorySizeMB, ok = metrics[metricMemorySizeMB].(float64); !ok {
 		return nil
 	}
-	if maxMemoryUsedMB, ok = metrics[metricMaxMemoryUsedMB].(int); !ok {
+	if maxMemoryUsedMB, ok = metrics[metricMaxMemoryUsedMB].(float64); !ok {
 		return nil
+	}
+
+	// optionally gather information about cold start time
+	var initDurationMs float64
+	if initDurationMsVal, exists := metrics[metricInitDurationMs]; exists {
+		if val, ok := initDurationMsVal.(float64); ok {
+			initDurationMs = val
+		}
 	}
 
 	// gathering requestId
@@ -300,16 +308,21 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 
 	// we have all information available, we can create the log record
 	logRecord := scopeLog.LogRecords().AppendEmpty()
-	logRecord.Body().SetStr(
-		fmt.Sprintf(
-			logReportFmt,
-			requestId,
-			durationMs,
-			billedDurationMs,
-			memorySizeMB, 
-			maxMemoryUsedMB,
-		),
+	logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
+
+	// building the body of the log record, optionally adding the init duration
+	body := fmt.Sprintf(
+		logReportFmt,
+		requestId,
+		durationMs,
+		billedDurationMs,
+		memorySizeMB,
+		maxMemoryUsedMB,
 	)
+	if initDurationMs > 0 {
+		body += fmt.Sprintf(" Init Duration: %.2f ms", initDurationMs)
+	}
+	logRecord.Body().SetStr(body)
 
 	return &logRecord
 }
