@@ -44,13 +44,7 @@ import (
 const (
 	initialQueueSize = 5
 	scopeName        = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
-
-	logReportFmt           = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %.0f ms Memory Size: %.0f MB Max Memory Used: %.0f MB"
-	metricBilledDurationMs = "billedDurationMs"
-	metricDurationMs       = "durationMs"
-	metricMaxMemoryUsedMB  = "maxMemoryUsedMB"
-	metricMemorySizeMB     = "memorySizeMB"
-	metricInitDurationMs   = "initDurationMs"
+	logReportFmt     = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %.0f ms Memory Size: %.0f MB Max Memory Used: %.0f MB"
 )
 
 type telemetryAPIReceiver struct {
@@ -279,16 +273,16 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 		return nil
 	}
 	var durationMs, billedDurationMs, memorySizeMB, maxMemoryUsedMB float64
-	if durationMs, ok = metrics[metricDurationMs].(float64); !ok {
+	if durationMs, ok = metrics[string(telemetryapi.MetricDurationMs)].(float64); !ok {
 		return nil
 	}
-	if billedDurationMs, ok = metrics[metricBilledDurationMs].(float64); !ok {
+	if billedDurationMs, ok = metrics[string(telemetryapi.MetricBilledDurationMs)].(float64); !ok {
 		return nil
 	}
-	if memorySizeMB, ok = metrics[metricMemorySizeMB].(float64); !ok {
+	if memorySizeMB, ok = metrics[string(telemetryapi.MetricMemorySizeMB)].(float64); !ok {
 		return nil
 	}
-	if maxMemoryUsedMB, ok = metrics[metricMaxMemoryUsedMB].(float64); !ok {
+	if maxMemoryUsedMB, ok = metrics[string(telemetryapi.MetricMaxMemoryUsedMB)].(float64); !ok {
 		return nil
 	}
 

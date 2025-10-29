@@ -527,6 +527,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 		expectedType              string
 		expectedTimestamp         string
 		expectedBody              string
+		expectedAttributes        map[string]interface{}
 		expectError               bool
 	}{
 		{
