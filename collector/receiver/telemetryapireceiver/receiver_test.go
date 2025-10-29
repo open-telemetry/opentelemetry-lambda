@@ -516,6 +516,193 @@ func TestCreateLogs(t *testing.T) {
 	}
 }
 
+func TestCreateLogsWithLogReport(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		desc                      string
+		slice                     []event
+		logReport                 bool
+		expectedLogRecords        int
+		expectedType              string
+		expectedTimestamp         string
+		expectedBody              string
+		expectError               bool
+	}{
+		{
+			desc: "platform.report with logReport enabled - valid metrics",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport disabled",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - missing requestId",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - invalid timestamp",
+			slice: []event{
+				{
+					Time: "invalid-timestamp",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - missing metrics",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - invalid metrics format",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       "invalid",
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - record not a map",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.report",
+					Record: "invalid record format",
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			r, err := newTelemetryAPIReceiver(
+				&Config{LogReport: tc.logReport},
+				receivertest.NewNopSettings(Type),
+			)
+			require.NoError(t, err)
+			log, err := r.createLogs(tc.slice)
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, 1, log.ResourceLogs().Len())
+				resourceLog := log.ResourceLogs().At(0)
+				require.Equal(t, 1, resourceLog.ScopeLogs().Len())
+				scopeLog := resourceLog.ScopeLogs().At(0)
+				require.Equal(t, scopeName, scopeLog.Scope().Name())
+				require.Equal(t, tc.expectedLogRecords, scopeLog.LogRecords().Len())
+				if scopeLog.LogRecords().Len() > 0 {
+					logRecord := scopeLog.LogRecords().At(0)
+					attr, ok := logRecord.Attributes().Get("type")
+					require.True(t, ok)
+					require.Equal(t, tc.expectedType, attr.Str())
+					if tc.expectedTimestamp != "" {
+						expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
+						require.NoError(t, err)
+						require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
+					} else {
+						// For invalid timestamps, no timestamp should be set (zero value)
+						require.Equal(t, pcommon.Timestamp(0), logRecord.Timestamp())
+					}
+					require.Equal(t, tc.expectedBody, logRecord.Body().Str())
+				}
+			}
+		})
+	}
+}
+
 func TestSeverityTextToNumber(t *testing.T) {
 	t.Parallel()
 

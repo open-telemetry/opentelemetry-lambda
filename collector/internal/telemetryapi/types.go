@@ -24,6 +24,8 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformReport is used when a report of function invocation is received.
+	PlatformReport EventType = Platform + ".report"
 	// Function invocation started.
 	PlatformStart EventType = Platform + ".start"
 	// The runtime finished processing an event with either success or failure.
