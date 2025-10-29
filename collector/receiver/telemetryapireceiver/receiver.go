@@ -288,7 +288,7 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 
 	// optionally gather information about cold start time
 	var initDurationMs float64
-	if initDurationMsVal, exists := metrics[metricInitDurationMs]; exists {
+	if initDurationMsVal, exists := metrics[string(telemetryapi.MetricInitDurationMs)]; exists {
 		if val, ok := initDurationMsVal.(float64); ok {
 			initDurationMs = val
 		}
