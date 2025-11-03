@@ -48,6 +48,8 @@ import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
 const defaultInstrumentationList = [
+  'aws-lambda',
+  'aws-sdk',
   'dns',
   'express',
   'graphql',
@@ -309,21 +311,39 @@ async function defaultConfigureInstrumentations() {
 }
 
 async function createInstrumentations() {
-  return [
-    new AwsInstrumentation(
-      typeof configureAwsInstrumentation === 'function'
-        ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
-        : { suppressInternalInstrumentation: true },
-    ),
-    new AwsLambdaInstrumentation(
-      typeof configureLambdaInstrumentation === 'function'
-        ? configureLambdaInstrumentation({})
-        : {},
-    ),
+  const activeInstrumentations = getActiveInstumentations();
+  const instrumentations = [];
+
+  // Conditionally load AWS SDK instrumentation
+  if (activeInstrumentations.has('aws-sdk')) {
+    instrumentations.push(
+      new AwsInstrumentation(
+        typeof configureAwsInstrumentation === 'function'
+          ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
+          : { suppressInternalInstrumentation: true },
+      )
+    );
+  }
+
+  // Conditionally load AWS Lambda instrumentation
+  if (activeInstrumentations.has('aws-lambda')) {
+    instrumentations.push(
+      new AwsLambdaInstrumentation(
+        typeof configureLambdaInstrumentation === 'function'
+          ? configureLambdaInstrumentation({})
+          : {},
+      )
+    );
+  }
+
+  // Load other instrumentations
+  instrumentations.push(
     ...(typeof configureInstrumentations === 'function'
       ? configureInstrumentations()
-      : await defaultConfigureInstrumentations()),
-  ];
+      : await defaultConfigureInstrumentations())
+  );
+
+  return instrumentations;
 }
 
 function getPropagator(): TextMapPropagator {
