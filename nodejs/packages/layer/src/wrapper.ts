@@ -319,9 +319,11 @@ async function createInstrumentations() {
     instrumentations.push(
       new AwsInstrumentation(
         typeof configureAwsInstrumentation === 'function'
-          ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
+          ? configureAwsInstrumentation({
+              suppressInternalInstrumentation: true,
+            })
           : { suppressInternalInstrumentation: true },
-      )
+      ),
     );
   }
 
@@ -332,7 +334,7 @@ async function createInstrumentations() {
         typeof configureLambdaInstrumentation === 'function'
           ? configureLambdaInstrumentation({})
           : {},
-      )
+      ),
     );
   }
 
@@ -340,7 +342,7 @@ async function createInstrumentations() {
   instrumentations.push(
     ...(typeof configureInstrumentations === 'function'
       ? configureInstrumentations()
-      : await defaultConfigureInstrumentations())
+      : await defaultConfigureInstrumentations()),
   );
 
   return instrumentations;
@@ -485,13 +487,26 @@ async function initializeMeterProvider(
     '@opentelemetry/exporter-metrics-otlp-http'
   );
 
-  // Configure default meter provider (doesn't export metrics)
+  // Configure default meter provider with configurable export interval
   const metricExporter = new OTLPMetricExporter();
+
+  // Respect OTEL_METRIC_EXPORT_INTERVAL for Lambda serverless environments
+  // Default 60s is too long for Lambda (functions finish in ~5s and freeze)
+  const exportIntervalMillis = process.env.OTEL_METRIC_EXPORT_INTERVAL
+    ? parseInt(process.env.OTEL_METRIC_EXPORT_INTERVAL, 10)
+    : 60000;
+
+  const exportTimeoutMillis = process.env.OTEL_METRIC_EXPORT_TIMEOUT
+    ? parseInt(process.env.OTEL_METRIC_EXPORT_TIMEOUT, 10)
+    : 30000;
+
   let meterConfig: unknown = {
     resource,
     readers: [
       new PeriodicExportingMetricReader({
         exporter: metricExporter,
+        exportIntervalMillis,
+        exportTimeoutMillis,
       }),
     ],
   };
