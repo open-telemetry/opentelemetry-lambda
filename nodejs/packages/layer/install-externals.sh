@@ -5,7 +5,7 @@ set -euf -o pipefail
 rm -rf ./build/workspace/node_modules
 
 # Space separated list of external NPM packages
-EXTERNAL_PACKAGES=( "import-in-the-middle" )
+EXTERNAL_PACKAGES=( "import-in-the-middle" "require-in-the-middle" )
 
 for EXTERNAL_PACKAGE in "${EXTERNAL_PACKAGES[@]}"
 do
