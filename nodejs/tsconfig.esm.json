@@ -18,7 +18,10 @@
     "strict": true,
     "strictNullChecks": true,
     "incremental": true,
-    "newLine": "LF"
+    "newLine": "LF",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
     "node_modules"
