@@ -24,6 +24,8 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformReport is used when a report of function invocation is received.
+	PlatformReport EventType = Platform + ".report"
 	// Function invocation started.
 	PlatformStart EventType = Platform + ".start"
 	// The runtime finished processing an event with either success or failure.
@@ -95,3 +97,15 @@ type Event struct {
 	Type   string         `json:"type"`
 	Record map[string]any `json:"record"`
 }
+
+// MetricType represents the type of metric in the platform.report event
+// see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#ReportMetrics
+type MetricType string
+
+const (
+	MetricBilledDurationMs MetricType = "billedDurationMs"
+	MetricDurationMs       MetricType = "durationMs"
+	MetricMaxMemoryUsedMB  MetricType = "maxMemoryUsedMB"
+	MetricMemorySizeMB     MetricType = "memorySizeMB"
+	MetricInitDurationMs   MetricType = "initDurationMs"
+)
