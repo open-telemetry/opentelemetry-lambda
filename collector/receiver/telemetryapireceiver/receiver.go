@@ -337,6 +337,11 @@ func newTelemetryAPIReceiver(
 		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
 	}
 
+	serviceInstanceID, ok := set.Resource.Attributes().Get(semconv.AttributeServiceInstanceID)
+	if ok {
+		r.Attributes().PutStr(semconv.AttributeServiceInstanceID, serviceInstanceID.Str())
+	}
+
 	if val, ok := os.LookupEnv("OTEL_SERVICE_NAME"); ok {
 		r.Attributes().PutStr(semconv.AttributeServiceName, val)
 	}
