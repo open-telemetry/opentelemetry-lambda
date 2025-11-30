@@ -76,7 +76,16 @@ export function registerLoader() {
   }
 }
 
-if (_isHandlerAnESModule()) {
+function _getNodeRuntimeVersion() {
+  const executionEnv = process.env.AWS_EXECUTION_ENV || '';
+  const match = executionEnv.match(/nodejs(\d+)\.x/);
+  if (!match) {
+    return undefined;
+  }
+  return Number(match[1]);
+}
+
+if (_isHandlerAnESModule() || _getNodeRuntimeVersion() >= 24) {
   /*
   We could activate ESM loader hook of the "import-in-the-middle" library,
   - by "--loader=import-in-the-middle/hook.mjs" Node CLI option, but "--loader" option has been deprecated
