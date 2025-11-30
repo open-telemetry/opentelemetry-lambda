@@ -48,6 +48,8 @@ import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
 const defaultInstrumentationList = [
+  'aws-lambda',
+  'aws-sdk',
   'dns',
   'express',
   'graphql',
@@ -309,21 +311,41 @@ async function defaultConfigureInstrumentations() {
 }
 
 async function createInstrumentations() {
-  return [
-    new AwsInstrumentation(
-      typeof configureAwsInstrumentation === 'function'
-        ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
-        : { suppressInternalInstrumentation: true },
-    ),
-    new AwsLambdaInstrumentation(
-      typeof configureLambdaInstrumentation === 'function'
-        ? configureLambdaInstrumentation({})
-        : {},
-    ),
+  const activeInstrumentations = getActiveInstumentations();
+  const instrumentations = [];
+
+  // Conditionally load AWS SDK instrumentation
+  if (activeInstrumentations.has('aws-sdk')) {
+    instrumentations.push(
+      new AwsInstrumentation(
+        typeof configureAwsInstrumentation === 'function'
+          ? configureAwsInstrumentation({
+              suppressInternalInstrumentation: true,
+            })
+          : { suppressInternalInstrumentation: true },
+      ),
+    );
+  }
+
+  // Conditionally load AWS Lambda instrumentation
+  if (activeInstrumentations.has('aws-lambda')) {
+    instrumentations.push(
+      new AwsLambdaInstrumentation(
+        typeof configureLambdaInstrumentation === 'function'
+          ? configureLambdaInstrumentation({})
+          : {},
+      ),
+    );
+  }
+
+  // Load other instrumentations
+  instrumentations.push(
     ...(typeof configureInstrumentations === 'function'
       ? configureInstrumentations()
       : await defaultConfigureInstrumentations()),
-  ];
+  );
+
+  return instrumentations;
 }
 
 function getPropagator(): TextMapPropagator {
@@ -465,13 +487,26 @@ async function initializeMeterProvider(
     '@opentelemetry/exporter-metrics-otlp-http'
   );
 
-  // Configure default meter provider (doesn't export metrics)
+  // Configure default meter provider with configurable export interval
   const metricExporter = new OTLPMetricExporter();
+
+  // Respect OTEL_METRIC_EXPORT_INTERVAL for Lambda serverless environments
+  // Default 60s is too long for Lambda (functions finish in ~5s and freeze)
+  const exportIntervalMillis = process.env.OTEL_METRIC_EXPORT_INTERVAL
+    ? parseInt(process.env.OTEL_METRIC_EXPORT_INTERVAL, 10)
+    : 60000;
+
+  const exportTimeoutMillis = process.env.OTEL_METRIC_EXPORT_TIMEOUT
+    ? parseInt(process.env.OTEL_METRIC_EXPORT_TIMEOUT, 10)
+    : 30000;
+
   let meterConfig: unknown = {
     resource,
     readers: [
       new PeriodicExportingMetricReader({
         exporter: metricExporter,
+        exportIntervalMillis,
+        exportTimeoutMillis,
       }),
     ],
   };
