@@ -24,17 +24,62 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-collections/go-datastructures/queue"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
-func WithEnv(t *testing.T, key, value string) {
+func withEnv(t *testing.T, key, value string) {
 	t.Helper()
 	require.NoError(t, os.Setenv(key, value))
 	t.Cleanup(func() {
 		require.NoError(t, os.Unsetenv(key))
 	})
+}
+
+func setupListener(t *testing.T) (*Listener, string) {
+	t.Helper()
+	withEnv(t, "AWS_SAM_LOCAL", "true")
+	logger := zaptest.NewLogger(t)
+	listener := NewListener(logger)
+
+	address, err := listener.Start()
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		listener.Shutdown()
+	})
+
+	return listener, address
+}
+
+func submitEvents(t *testing.T, address string, events []Event) {
+	t.Helper()
+	body, err := json.Marshal(events)
+	require.NoError(t, err)
+
+	resp, err := http.Post(address, "application/json", bytes.NewReader(body))
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+}
+
+func assertWaitBlocks(t *testing.T, waitDone <-chan error, timeout time.Duration) {
+	t.Helper()
+	select {
+	case err := <-waitDone:
+		t.Fatalf("Wait() unexpectedly completed with error: %v", err)
+	case <-time.After(timeout):
+	}
+}
+
+func assertWaitCompletes(t *testing.T, waitDone <-chan error, timeout time.Duration) {
+	t.Helper()
+	select {
+	case err := <-waitDone:
+		require.NoError(t, err)
+	case <-time.After(timeout):
+		t.Fatal("Wait() timed out")
+	}
 }
 
 type TestEventBuilder struct {
@@ -87,21 +132,10 @@ func TestNewListener(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	listener := NewListener(logger)
 
-	if listener == nil {
-		t.Fatal("NewListener returned nil")
-	}
-
-	if listener.httpServer != nil {
-		t.Error("httpServer should initialized to nil")
-	}
-
-	if listener.logger == nil {
-		t.Error("logger should not be nil")
-	}
-
-	if listener.queue == nil {
-		t.Error("queue should not be nil")
-	}
+	require.NotNil(t, listener, "NewListener() returned nil listener")
+	require.Nil(t, listener.httpServer, "httpServer should be initially nil")
+	require.NotNil(t, listener.logger, "logger should not be nil")
+	require.NotNil(t, listener.queue, "queue should not be nil")
 }
 
 func TestListenOnAddress(t *testing.T) {
@@ -148,15 +182,7 @@ func TestListenOnAddress(t *testing.T) {
 }
 
 func TestListener_StartAndShutdown(t *testing.T) {
-	WithEnv(t, "AWS_SAM_LOCAL", "true")
-	logger := zaptest.NewLogger(t)
-	listener := NewListener(logger)
-
-	address, err := listener.Start()
-	if err != nil {
-		t.Fatalf("Failed to start listener: %v", err)
-	}
-
+	listener, address := setupListener(t)
 	require.NotEqual(t, address, "", "Start() should not return an empty address")
 	require.True(t, strings.HasPrefix(address, "http://"), "Address should start with http://")
 	require.NotNil(t, listener.httpServer, "httpServer should not be nil")
@@ -175,26 +201,17 @@ func TestListener_StartAndShutdown(t *testing.T) {
 func TestListener_Shutdown_NotStarted(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 	listener := NewListener(logger)
-
 	listener.Shutdown()
-
 	require.Nil(t, listener.httpServer, "httpServer should be nil after Shutdown()")
 }
 
 func TestListener_httpHandler(t *testing.T) {
-	WithEnv(t, "AWS_SAM_LOCAL", "true")
-	logger := zaptest.NewLogger(t)
-	listener := NewListener(logger)
-
-	address, err := listener.Start()
-	require.NoError(t, err, "Failed to start listener: %v", err)
-	defer listener.Shutdown()
 	eventBuilder := NewTestEventBuilder("test-request")
 
 	testCases := []struct {
 		name          string
 		events        []Event
-		expectedCount int
+		expectedCount int64
 	}{
 		{
 			name: "single event",
@@ -223,32 +240,17 @@ func TestListener_httpHandler(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
-			listener.queue.Dispose()
-			listener.queue = queue.New(initialQueueSize)
-
-			body, err := json.Marshal(test.events)
-			require.NoError(t, err, "Failed to marshal events: %v", err)
-
-			resp, err := http.Post(address, "application/json", bytes.NewReader(body))
-			require.NoError(t, err, "Failed to post events: %v", err)
-			require.NoError(t, resp.Body.Close())
-
-			deadline := time.Now().Add(1 * time.Second)
-			for time.Now().Before(deadline) {
-				queueLen := listener.queue.Len()
-				if queueLen == int64(test.expectedCount) {
-					return
-				}
-				time.Sleep(10 * time.Millisecond)
-			}
-			queueLen := listener.queue.Len()
-			require.Equal(t, test.expectedCount, queueLen, "Event queue length does not match")
+			listener, address := setupListener(t)
+			submitEvents(t, address, test.events)
+			require.EventuallyWithT(t, func(c *assert.CollectT) {
+				require.Equal(c, test.expectedCount, listener.queue.Len())
+			}, 1*time.Second, 50*time.Millisecond)
 		})
 	}
 }
 
 func TestListener_httpHandler_InvalidJSON(t *testing.T) {
-	WithEnv(t, "AWS_SAM_LOCAL", "true")
+	withEnv(t, "AWS_SAM_LOCAL", "true")
 	logger := zaptest.NewLogger(t)
 	listener := NewListener(logger)
 
@@ -266,66 +268,58 @@ func TestListener_httpHandler_InvalidJSON(t *testing.T) {
 }
 
 func TestListener_Wait_Success(t *testing.T) {
-	WithEnv(t, "AWS_SAM_LOCAL", "true")
-	logger := zaptest.NewLogger(t)
-	listener := NewListener(logger)
-
-	address, err := listener.Start()
-	require.NoError(t, err, "Failed to start listener: %v", err)
-	defer listener.Shutdown()
 	eventBuilder := NewTestEventBuilder("target-request")
 
-	events := []Event{
-		eventBuilder.PlatformStart(),
-		eventBuilder.FunctionLog("INFO", "Received request"),
-		eventBuilder.FunctionLog("INFO", "Processing request"),
-		eventBuilder.FunctionLog("INFO", "Finished processing request"),
-		eventBuilder.PlatformRuntimeDone(),
+	testCases := []struct {
+		name   string
+		events []Event
+	}{
+		{
+			name: "simple request",
+			events: []Event{
+				eventBuilder.PlatformStart(),
+				eventBuilder.FunctionLog("INFO", "Received request"),
+				eventBuilder.FunctionLog("INFO", "Processing request"),
+				eventBuilder.FunctionLog("INFO", "Finished processing request"),
+				eventBuilder.PlatformRuntimeDone(),
+			},
+		},
+		{
+			name: "skips wrong request id",
+			events: []Event{
+				NewTestEventBuilder("other-request-1").PlatformRuntimeDone(),
+				eventBuilder.PlatformStart(),
+				eventBuilder.FunctionLog("INFO", "Received request"),
+				NewTestEventBuilder("other-request-2").PlatformRuntimeDone(),
+				eventBuilder.FunctionLog("INFO", "Processing request"),
+				eventBuilder.FunctionLog("INFO", "Finished processing request"),
+				NewTestEventBuilder("other-request-3").PlatformRuntimeDone(),
+				eventBuilder.PlatformRuntimeDone(),
+			},
+		},
 	}
 
-	body, err := json.Marshal(events)
-	require.NoError(t, err, "Failed to marshal events: %v", err)
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			listener, address := setupListener(t)
 
-	resp, err := http.Post(address, "application/json", bytes.NewReader(body))
-	require.NoError(t, err, "Failed to post events: %v", err)
-	require.NoError(t, resp.Body.Close())
+			waitDone := make(chan error, 1)
+			go func() {
+				ctx := context.Background()
+				waitDone <- listener.Wait(ctx, "target-request")
+			}()
 
-	ctx := context.Background()
-	waitErr := listener.Wait(ctx, "target-request")
-	require.NoError(t, waitErr, "Failed to wait for target-req")
-}
-
-func TestListener_Wait_SkipsWrongRequestId(t *testing.T) {
-	WithEnv(t, "AWS_SAM_LOCAL", "true")
-	logger := zaptest.NewLogger(t)
-	listener := NewListener(logger)
-
-	address, err := listener.Start()
-	require.NoError(t, err, "Failed to start listener: %v", err)
-	defer listener.Shutdown()
-	eventBuilder := NewTestEventBuilder("target-request")
-
-	events := []Event{
-		NewTestEventBuilder("other-request-1").PlatformRuntimeDone(),
-		eventBuilder.PlatformStart(),
-		eventBuilder.FunctionLog("INFO", "Received request"),
-		NewTestEventBuilder("other-request-2").PlatformRuntimeDone(),
-		eventBuilder.FunctionLog("INFO", "Processing request"),
-		eventBuilder.FunctionLog("INFO", "Finished processing request"),
-		NewTestEventBuilder("other-request-3").PlatformRuntimeDone(),
-		eventBuilder.PlatformRuntimeDone(),
+			assertWaitBlocks(t, waitDone, 50*time.Millisecond)
+			for i, event := range test.events {
+				submitEvents(t, address, []Event{event})
+				if i < len(test.events)-1 {
+					assertWaitBlocks(t, waitDone, 50*time.Millisecond)
+				} else {
+					assertWaitCompletes(t, waitDone, 1*time.Second)
+				}
+			}
+		})
 	}
-
-	body, err := json.Marshal(events)
-	require.NoError(t, err, "Failed to marshal events: %v", err)
-
-	resp, err := http.Post(address, "application/json", bytes.NewReader(body))
-	require.NoError(t, err, "Failed to post events: %v", err)
-	require.NoError(t, resp.Body.Close())
-
-	ctx := context.Background()
-	waitErr := listener.Wait(ctx, "target-request")
-	require.NoError(t, waitErr, "Failed to wait for target-request")
 }
 
 func TestListener_Wait_ContextCanceled(t *testing.T) {
