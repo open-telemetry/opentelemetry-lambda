@@ -253,8 +253,6 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 						if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
 							logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
 							logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-						} else {
-							continue
 						}
 					}
 				}
