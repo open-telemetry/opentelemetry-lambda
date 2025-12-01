@@ -17,14 +17,11 @@ package telemetryapi
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
 	"net/http"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/golang-collections/go-datastructures/queue"
@@ -33,16 +30,7 @@ import (
 
 const (
 	initialQueueSize = 5
-	maxRetries       = 5
-	// Define ephemeral port range (typical range is 49152-65535)
-	minPort = 49152
-	maxPort = 65535
 )
-
-// getRandomPort returns a random port number within the ephemeral range
-func getRandomPort() string {
-	return fmt.Sprintf("%d", rand.Intn(maxPort-minPort)+minPort)
-}
 
 // Listener is used to listen to the Telemetry API
 type Listener struct {
@@ -60,46 +48,39 @@ func NewListener(logger *zap.Logger) *Listener {
 	}
 }
 
-func (s *Listener) tryBindPort() (net.Listener, string, error) {
-	for i := 0; i < maxRetries; i++ {
-		port := getRandomPort()
-		address := listenOnAddress(port)
-
-		l, err := net.Listen("tcp", address)
-		if err != nil {
-			if errors.Is(err, syscall.EADDRINUSE) {
-				s.logger.Debug("Port in use, trying another",
-					zap.String("address", address))
-				continue
-			}
-			return nil, "", err
-		}
-		return l, address, nil
+func (s *Listener) bindListener() (net.Listener, string, error) {
+	listenerAddr := listenOnAddress()
+	l, err := net.Listen("tcp", listenerAddr+":0")
+	if err != nil {
+		return nil, "", err
 	}
-
-	return nil, "", fmt.Errorf("failed to find available port after %d attempts", maxRetries)
+	addr := fmt.Sprintf("%s:%d", listenerAddr, l.Addr().(*net.TCPAddr).Port)
+	return l, addr, nil
 }
 
-func listenOnAddress(port string) string {
+func listenOnAddress() string {
 	envAwsLocal, ok := os.LookupEnv("AWS_SAM_LOCAL")
-	var addr string
 	if ok && envAwsLocal == "true" {
-		addr = ":" + port
+		return ""
 	} else {
-		addr = "sandbox.localdomain:" + port
+		return "sandbox.localdomain"
 	}
-	return addr
 }
 
 // Start the server in a goroutine where the log events will be sent
 func (s *Listener) Start() (string, error) {
-	listener, address, err := s.tryBindPort()
+	listener, address, err := s.bindListener()
 	if err != nil {
 		return "", fmt.Errorf("failed to find available port: %w", err)
 	}
 	s.logger.Info("Listening for requests", zap.String("address", address))
-	s.httpServer = &http.Server{Addr: address}
-	http.HandleFunc("/", s.httpHandler)
+	mux := http.NewServeMux()
+	s.httpServer = &http.Server{
+		Addr:    address,
+		Handler: mux,
+	}
+	mux.HandleFunc("/", s.httpHandler)
+
 	go func() {
 		err := s.httpServer.Serve(listener)
 		if err != http.ErrServerClosed {
