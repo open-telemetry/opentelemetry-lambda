@@ -17,7 +17,7 @@ require (
 	go.opentelemetry.io/collector/processor v1.44.0
 	go.opentelemetry.io/collector/processor/processorhelper v0.138.0
 	go.opentelemetry.io/collector/processor/processortest v0.138.0
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 )
 
 require (
