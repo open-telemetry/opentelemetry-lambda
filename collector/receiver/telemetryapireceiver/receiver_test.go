@@ -1224,8 +1224,8 @@ func TestCreatePlatformMessage(t *testing.T) {
 			functionVersion: "",
 			eventType:       "platform.logsDropped",
 			record: map[string]interface{}{
-				"droppedRecords": int64(10),
-				"droppedBytes":   int64(1024),
+				"droppedRecords": float64(10),
+				"droppedBytes":   float64(1024),
 				"reason":         "Consumer is too slow",
 			},
 			expected: "LOGS_DROPPED DroppedRecords: 10 DroppedBytes: 1024 Reason: Consumer is too slow",
