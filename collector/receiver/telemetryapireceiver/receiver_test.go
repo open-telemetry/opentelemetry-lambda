@@ -174,23 +174,26 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 func TestCreateLogs(t *testing.T) {
 	t.Parallel()
 
+	type logInfo struct {
+		logType           string
+		timestamp         string
+		body              string
+		severityText      string
+		containsRequestId bool
+		requestId         string
+		severityNumber    plog.SeverityNumber
+	}
+
 	testCases := []struct {
-		desc                      string
-		slice                     []event
-		expectedLogRecords        int
-		expectedType              string
-		expectedTimestamp         string
-		expectedBody              string
-		expectedSeverityText      string
-		expectedContainsRequestId bool
-		expectedRequestId         string
-		expectedSeverityNumber    plog.SeverityNumber
-		expectError               bool
+		desc         string
+		slice        []event
+		expectedLogs []logInfo
+		expectError  bool
 	}{
 		{
-			desc:               "no slice",
-			expectedLogRecords: 0,
-			expectError:        false,
+			desc:         "no slice",
+			expectedLogs: []logInfo{},
+			expectError:  false,
 		},
 		{
 			desc: "Invalid Timestamp",
@@ -212,14 +215,16 @@ func TestCreateLogs(t *testing.T) {
 					Record: "[INFO] Hello world, I am an extension!",
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: false,
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "function text with requestId",
@@ -242,15 +247,33 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.start",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+				{
+					logType:           "platform.runtimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "function json",
@@ -266,15 +289,18 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am a function!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
-			expectedSeverityText:      "Info",
-			expectedSeverityNumber:    plog.SeverityNumberInfo,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am a function!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension text",
@@ -285,14 +311,16 @@ func TestCreateLogs(t *testing.T) {
 					Record: "[INFO] Hello world, I am an extension!",
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: false,
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension json",
@@ -308,15 +336,18 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
-			expectedSeverityText:      "Info",
-			expectedSeverityNumber:    plog.SeverityNumberInfo,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension json anything",
@@ -332,18 +363,21 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
-			expectedSeverityText:      "Unspecified",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+					severityText:      "Unspecified",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initStart anything",
+			desc: "platform.initStart",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -351,11 +385,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initStart",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initRuntimeDone anything",
+			desc: "platform.initRuntimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -363,11 +405,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initRuntimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initReport anything",
+			desc: "platform.initReport",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -375,11 +425,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initReport",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.start anything",
+			desc: "platform.start",
 			slice: []event{
 				{
 					Time: "2022-10-12T00:03:50.000Z",
@@ -389,11 +447,20 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.start",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "test-id",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.runtimeDone anything",
+			desc: "platform.runtimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -401,11 +468,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.runtimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.report anything",
+			desc: "platform.report",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -413,11 +488,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.report",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreStart anything",
+			desc: "platform.restoreStart",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -425,11 +508,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreStart",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreRuntimeDone anything",
+			desc: "platform.restoreRuntimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -437,23 +528,39 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreRuntimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreReport anything",
+			desc: "platform.restoreReport",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
-					Type:   "platform.restoreStart",
+					Type:   "platform.restoreReport",
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreReport",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.telemetrySubscription anything",
+			desc: "platform.telemetrySubscription",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -461,11 +568,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.telemetrySubscription",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.logsDropped anything",
+			desc: "platform.logsDropped",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -473,10 +588,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.logsDropped",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 	}
+
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
@@ -487,30 +611,36 @@ func TestCreateLogs(t *testing.T) {
 			log, err := r.createLogs(tc.slice)
 			if tc.expectError {
 				require.Error(t, err)
-			} else {
-				require.Equal(t, 1, log.ResourceLogs().Len())
-				resourceLog := log.ResourceLogs().At(0)
-				require.Equal(t, 1, resourceLog.ScopeLogs().Len())
-				scopeLog := resourceLog.ScopeLogs().At(0)
-				require.Equal(t, scopeName, scopeLog.Scope().Name())
-				require.Equal(t, tc.expectedLogRecords, scopeLog.LogRecords().Len())
-				if scopeLog.LogRecords().Len() > 0 {
-					logRecord := scopeLog.LogRecords().At(0)
-					attr, ok := logRecord.Attributes().Get("type")
-					require.True(t, ok)
-					require.Equal(t, tc.expectedType, attr.Str())
-					expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
-					require.NoError(t, err)
-					require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
-					requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
-					require.Equal(t, tc.expectedContainsRequestId, ok)
-					if ok {
-						require.Equal(t, tc.expectedRequestId, requestId.Str())
-					}
-					require.Equal(t, tc.expectedSeverityText, logRecord.SeverityText())
-					require.Equal(t, tc.expectedSeverityNumber, logRecord.SeverityNumber())
-					require.Equal(t, tc.expectedBody, logRecord.Body().Str())
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, 1, log.ResourceLogs().Len())
+			resourceLog := log.ResourceLogs().At(0)
+			require.Equal(t, 1, resourceLog.ScopeLogs().Len())
+			scopeLog := resourceLog.ScopeLogs().At(0)
+			require.Equal(t, scopeName, scopeLog.Scope().Name())
+			require.Equal(t, len(tc.expectedLogs), scopeLog.LogRecords().Len())
+
+			for i, expected := range tc.expectedLogs {
+				logRecord := scopeLog.LogRecords().At(i)
+
+				attr, ok := logRecord.Attributes().Get("type")
+				require.True(t, ok)
+				require.Equal(t, expected.logType, attr.Str())
+
+				expectedTime, err := time.Parse(time.RFC3339, expected.timestamp)
+				require.NoError(t, err)
+				require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
+
+				requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
+				require.Equal(t, expected.containsRequestId, ok)
+				if ok {
+					require.Equal(t, expected.requestId, requestId.Str())
 				}
+
+				require.Equal(t, expected.severityText, logRecord.SeverityText())
+				require.Equal(t, expected.severityNumber, logRecord.SeverityNumber())
+				require.Equal(t, expected.body, logRecord.Body().Str())
 			}
 		})
 	}
@@ -520,15 +650,15 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		desc                      string
-		slice                     []event
-		logReport                 bool
-		expectedLogRecords        int
-		expectedType              string
-		expectedTimestamp         string
-		expectedBody              string
-		expectedAttributes        map[string]interface{}
-		expectError               bool
+		desc               string
+		slice              []event
+		logReport          bool
+		expectedLogRecords int
+		expectedType       string
+		expectedTimestamp  string
+		expectedBody       string
+		expectedAttributes map[string]interface{}
+		expectError        bool
 	}{
 		{
 			desc: "platform.report with logReport enabled - valid metrics",
@@ -662,8 +792,11 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 				},
 			},
 			logReport:          true,
-			expectedLogRecords: 0,
+			expectedLogRecords: 1,
 			expectError:        false,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "invalid record format",
 		},
 		{
 			desc: "platform.report with logReport enabled - with initDurationMs",
@@ -719,7 +852,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
-				&Config{LogReport: tc.logReport},
+				&Config{LogReport: &tc.logReport},
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
