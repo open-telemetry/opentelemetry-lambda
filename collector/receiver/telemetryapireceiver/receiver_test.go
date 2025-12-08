@@ -1236,8 +1236,8 @@ func TestCreatePlatformMessage(t *testing.T) {
 			functionVersion: "",
 			eventType:       "platform.logsDropped",
 			record: map[string]interface{}{
-				"droppedRecords": int32(10),
-				"droppedBytes":   int32(1024),
+				"droppedRecords": float64(10),
+				"droppedBytes":   float64(1024),
 				"reason":         "",
 			},
 			expected: "",

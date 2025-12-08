@@ -354,8 +354,8 @@ func createPlatformMessage(requestId string, functionVersion string, eventType s
 			return fmt.Sprintf(platformExtensionLogFmt, name, state, events)
 		}
 	case string(telemetryapi.PlatformLogsDropped):
-		droppedRecords, _ := record["droppedRecords"].(int32)
-		droppedBytes, _ := record["droppedBytes"].(int32)
+		droppedRecords, _ := record["droppedRecords"].(float64)
+		droppedBytes, _ := record["droppedBytes"].(float64)
 		reason, _ := record["reason"].(string)
 		if reason != "" {
 			return fmt.Sprintf(platformLogsDroppedLogFmt, int(droppedRecords), int(droppedBytes), reason)
