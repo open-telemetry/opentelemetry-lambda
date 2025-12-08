@@ -204,10 +204,10 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 	scopeLog := resourceLog.ScopeLogs().AppendEmpty()
 	scopeLog.Scope().SetName(scopeName)
 	for _, el := range slice {
-		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		if !r.logReport && el.Type == string(telemetryapi.PlatformReport) {
 			continue
 		}
+		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
 		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
