@@ -205,6 +205,9 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 	scopeLog.Scope().SetName(scopeName)
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
+		if !r.logReport && el.Type == string(telemetryapi.PlatformReport) {
+			continue
+		}
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
 		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
@@ -215,6 +218,17 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 			return plog.Logs{}, err
 		}
 		if record, ok := el.Record.(map[string]interface{}); ok {
+			requestId := r.getRecordRequestId(record)
+			if requestId != "" {
+				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
+
+				// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
+				// set the current invocation id to this request id.
+				if el.Type == string(telemetryapi.PlatformStart) {
+					r.currentFaasInvocationID = requestId
+				}
+			}
+
 			// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 			if timestamp, ok := record["timestamp"].(string); ok {
 				if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
@@ -229,24 +243,13 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				logRecord.SetSeverityText(logRecord.SeverityNumber().String())
 			}
 
-			requestId := r.getRecordRequestId(record)
-			if requestId != "" {
-				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
-
-				// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
-				// set the current invocation id to this request id.
-				if el.Type == string(telemetryapi.PlatformStart) {
-					r.currentFaasInvocationID = requestId
-				}
-			}
-
-			if line, ok := record["message"].(string); ok {
-				logRecord.Body().SetStr(line)
-			} else if el.Type == string(telemetryapi.PlatformReport) {
+			if el.Type == string(telemetryapi.PlatformReport) {
 				platformReportMessage := createPlatformReportMessage(requestId, record)
 				if platformReportMessage != "" {
 					logRecord.Body().SetStr(platformReportMessage)
 				}
+			} else if line, ok := record["message"].(string); ok {
+				logRecord.Body().SetStr(line)
 			}
 		} else {
 			if r.currentFaasInvocationID != "" {
@@ -406,7 +409,7 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
-	subscribedTypes := []telemetryapi.EventType{}
+	var subscribedTypes []telemetryapi.EventType
 	for _, val := range cfg.Types {
 		switch val {
 		case "platform":
@@ -418,6 +421,11 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
+	logReport := true
+	if cfg.LogReport != nil {
+		logReport = *cfg.LogReport
+	}
+
 	return &telemetryAPIReceiver{
 		logger:      set.Logger,
 		queue:       queue.New(initialQueueSize),
@@ -425,7 +433,7 @@ func newTelemetryAPIReceiver(
 		port:        cfg.Port,
 		types:       subscribedTypes,
 		resource:    r,
-		logReport:   cfg.LogReport,
+		logReport:   logReport,
 	}, nil
 }
 
