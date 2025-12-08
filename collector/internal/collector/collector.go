@@ -69,17 +69,22 @@ func getConfig(logger *zap.Logger) string {
 	return defaultVal
 }
 
-func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string) *Collector {
+func NewCollector(logger *zap.Logger, factories otelcol.Factories, version string, customConverters []confmap.ConverterFactory) *Collector {
 	l := logger.Named("NewCollector")
+
+	// Combine built-in converters with custom converters
+	converters := []confmap.ConverterFactory{
+		confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
+			return disablequeuedretryconverter.New()
+		}),
+	}
+	converters = append(converters, customConverters...)
+
 	cfgSet := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:              []string{getConfig(l)},
 			ProviderFactories: []confmap.ProviderFactory{fileprovider.NewFactory(), envprovider.NewFactory(), yamlprovider.NewFactory(), httpsprovider.NewFactory(), httpprovider.NewFactory(), s3provider.NewFactory(), secretsmanagerprovider.NewFactory()},
-			ConverterFactories: []confmap.ConverterFactory{
-				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
-					return disablequeuedretryconverter.New()
-				}),
-			},
+			ConverterFactories: converters,
 		},
 	}
 
