@@ -24,15 +24,29 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
+	// PlatformInitReport is used when a report of function initialization is received.
+	PlatformInitReport EventType = Platform + ".initReport"
+	// PlatformStart is used when function invocation started.
+	PlatformStart EventType = Platform + ".start"
+	// PlatformRuntimeDone is used when the runtime finished processing an event with either success or failure.
+	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
 	// PlatformReport is used when a report of function invocation is received.
 	PlatformReport EventType = Platform + ".report"
-	// Function invocation started.
-	PlatformStart EventType = Platform + ".start"
-	// The runtime finished processing an event with either success or failure.
-	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
+	// PlatformRestoreStart is used when runtime restore started.
+	PlatformRestoreStart EventType = Platform + ".restoreStart"
+	// PlatformRestoreRuntimeDone is used when runtime restore completed.
+	PlatformRestoreRuntimeDone EventType = Platform + ".restoreRuntimeDone"
+	// PlatformRestoreReport is used when a report of runtime restore is received.
+	PlatformRestoreReport EventType = Platform + ".restoreReport"
+	// PlatformExtension is used for extension state events.
+	PlatformExtension EventType = Platform + ".extension"
+	// PlatformTelemetrySubscription is used when the extension subscribed to the Telemetry API.
+	PlatformTelemetrySubscription EventType = Platform + ".telemetrySubscription"
+	// PlatformLogsDropped is used when Lambda dropped log entries.
+	PlatformLogsDropped EventType = Platform + ".logsDropped"
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
-	// Extension is used is to receive log events emitted by the extension
+	// Extension is used to receive log events emitted by the extension
 	Extension EventType = "extension"
 )
 

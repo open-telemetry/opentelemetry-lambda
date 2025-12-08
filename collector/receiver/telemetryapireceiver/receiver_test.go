@@ -887,6 +887,387 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 	}
 }
 
+func TestCreatePlatformMessage(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		desc            string
+		requestId       string
+		functionVersion string
+		eventType       string
+		record          map[string]interface{}
+		expected        string
+	}{
+		{
+			desc:            "platform.start with requestId and functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "START RequestId: test-request-id Version: $LATEST",
+		},
+		{
+			desc:            "platform.start with empty requestId",
+			requestId:       "",
+			functionVersion: "$LATEST",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.start with empty functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.runtimeDone with requestId and functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "v1.0.0",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "END RequestId: test-request-id Version: v1.0.0",
+		},
+		{
+			desc:            "platform.runtimeDone with empty requestId",
+			requestId:       "",
+			functionVersion: "v1.0.0",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.runtimeDone with empty functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.report with valid metrics",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with missing metrics",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initStart with runtimeVersion and runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersion":    "python:3.9",
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:python:3.9",
+			},
+			expected: "INIT_START Runtime Version: python:3.9 Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:python:3.9",
+		},
+		{
+			desc:            "platform.initStart with only runtimeVersion",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersion": "nodejs:18",
+			},
+			expected: "INIT_START Runtime Version: nodejs:18 Runtime Version ARN: ",
+		},
+		{
+			desc:            "platform.initStart with only runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:go:1.x",
+			},
+			expected: "INIT_START Runtime Version:  Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:go:1.x",
+		},
+		{
+			desc:            "platform.initStart with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initRuntimeDone with status success",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "success",
+			},
+			expected: "INIT_RUNTIME_DONE Status: success",
+		},
+		{
+			desc:            "platform.initRuntimeDone with status failure",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "failure",
+			},
+			expected: "INIT_RUNTIME_DONE Status: failure",
+		},
+		{
+			desc:            "platform.initRuntimeDone with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.initRuntimeDone with missing status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initReport with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "on-demand",
+				"phase":              "init",
+				"status":             "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 250.75,
+				},
+			},
+			expected: "INIT_REPORT Initialization Type: on-demand Phase: init Status: success Duration: 250.75 ms",
+		},
+		{
+			desc:            "platform.initReport with provisioned-concurrency",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "provisioned-concurrency",
+				"phase":              "init",
+				"status":             "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 100.0,
+				},
+			},
+			expected: "INIT_REPORT Initialization Type: provisioned-concurrency Phase: init Status: success Duration: 100.00 ms",
+		},
+		{
+			desc:            "platform.initReport with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initReport with only initType",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "on-demand",
+			},
+			expected: "INIT_REPORT Initialization Type: on-demand Phase:  Status:  Duration: 0.00 ms",
+		},
+		{
+			desc:            "platform.restoreStart with runtimeVersion and runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreStart",
+			record: map[string]interface{}{
+				"runtimeVersion":    "python:3.9",
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:python:3.9",
+			},
+			expected: "RESTORE_START Runtime Version: python:3.9 Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:python:3.9",
+		},
+		{
+			desc:            "platform.restoreStart with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreStart",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.restoreRuntimeDone with status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreRuntimeDone",
+			record: map[string]interface{}{
+				"status": "success",
+			},
+			expected: "RESTORE_RUNTIME_DONE Status: success",
+		},
+		{
+			desc:            "platform.restoreRuntimeDone with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreRuntimeDone",
+			record: map[string]interface{}{
+				"status": "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.restoreReport with status and duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 50.25,
+				},
+			},
+			expected: "RESTORE_REPORT Status: success Duration: 50.25 ms",
+		},
+		{
+			desc:            "platform.restoreReport with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "",
+				"metrics": map[string]interface{}{
+					"durationMs": 50.25,
+				},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.restoreReport with zero duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 0.0,
+				},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.telemetrySubscription with name and types",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.telemetrySubscription",
+			record: map[string]interface{}{
+				"name":  "my-extension",
+				"types": []interface{}{"platform", "function"},
+			},
+			expected: "TELEMETRY: my-extension Subscribed Types: [platform function]",
+		},
+		{
+			desc:            "platform.telemetrySubscription with empty name",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.telemetrySubscription",
+			record: map[string]interface{}{
+				"name":  "",
+				"types": []interface{}{"platform"},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.extension with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.extension",
+			record: map[string]interface{}{
+				"name":   "my-extension",
+				"state":  "Ready",
+				"events": []interface{}{"INVOKE", "SHUTDOWN"},
+			},
+			expected: "EXTENSION Name: my-extension State: Ready Events: [INVOKE SHUTDOWN]",
+		},
+		{
+			desc:            "platform.extension with empty name",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.extension",
+			record: map[string]interface{}{
+				"name":   "",
+				"state":  "Ready",
+				"events": []interface{}{"INVOKE"},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.logsDropped with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.logsDropped",
+			record: map[string]interface{}{
+				"droppedRecords": int64(10),
+				"droppedBytes":   int64(1024),
+				"reason":         "Consumer is too slow",
+			},
+			expected: "LOGS_DROPPED DroppedRecords: 10 DroppedBytes: 1024 Reason: Consumer is too slow",
+		},
+		{
+			desc:            "platform.logsDropped with empty reason",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.logsDropped",
+			record: map[string]interface{}{
+				"droppedRecords": int64(10),
+				"droppedBytes":   int64(1024),
+				"reason":         "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "unknown event type",
+			requestId:       "test-id",
+			functionVersion: "v1",
+			eventType:       "platform.unknown",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "function event type",
+			requestId:       "test-id",
+			functionVersion: "v1",
+			eventType:       "function",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result := createPlatformMessage(tc.requestId, tc.functionVersion, tc.eventType, tc.record)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestSeverityTextToNumber(t *testing.T) {
 	t.Parallel()
 
