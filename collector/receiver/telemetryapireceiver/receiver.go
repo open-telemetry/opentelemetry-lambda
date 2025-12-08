@@ -233,9 +233,9 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 			if requestId != "" {
 				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
 
-				// If this is the first event in the invocation with a request id (typically "platform.start"),
+				// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
 				// set the current invocation id to this request id.
-				if r.currentFaasInvocationID == "" {
+				if el.Type == string(telemetryapi.PlatformStart) {
 					r.currentFaasInvocationID = requestId
 				}
 			}
