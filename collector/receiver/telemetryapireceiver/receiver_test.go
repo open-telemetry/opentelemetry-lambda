@@ -161,7 +161,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
-			td, err := r.createPlatformInitSpan(tc.start, tc.end)
+			td, err := r.createPlatformInitSpan(make(map[string]any), tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
