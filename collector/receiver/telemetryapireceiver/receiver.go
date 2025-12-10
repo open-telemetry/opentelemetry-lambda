@@ -238,7 +238,8 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 
 		switch el.Type {
 		case string(telemetryapi.PlatformInitStart):
-			r.faaSMetricBuilders.coldstartsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+			r.faaSMetricBuilders.coldstartsMetric.Add(1)
+			r.faaSMetricBuilders.coldstartsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 		case string(telemetryapi.PlatformInitReport):
 			metrics, ok := record["metrics"].(map[string]any)
 			if !ok {
@@ -247,9 +248,11 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 
 			status, _ := metrics["status"].(string)
 			if status == telemetryFailureStatus || status == telemetryErrorStatus {
-				r.faaSMetricBuilders.errorsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+				r.faaSMetricBuilders.errorsMetric.Add(1)
+				r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			} else if status == telemetryTimeoutStatus {
-				r.faaSMetricBuilders.timeoutsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+				r.faaSMetricBuilders.timeoutsMetric.Add(1)
+				r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			}
 
 			durationMs, ok := metrics["durationMs"].(float64)
@@ -257,7 +260,8 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 				continue
 			}
 
-			r.faaSMetricBuilders.initDurationMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), durationMs/1000.0)
+			r.faaSMetricBuilders.initDurationMetric.Record(durationMs / 1000.0)
+			r.faaSMetricBuilders.initDurationMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 		case string(telemetryapi.PlatformReport):
 			metrics, ok := record["metrics"].(map[string]any)
 			if !ok {
@@ -266,17 +270,21 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 
 			maxMemoryUsedMb, ok := metrics["maxMemoryUsedMB"].(float64)
 			if ok {
-				r.faaSMetricBuilders.memUsageMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), maxMemoryUsedMb*1000000.0)
+				r.faaSMetricBuilders.memUsageMetric.Record(maxMemoryUsedMb * 1000000.0)
+				r.faaSMetricBuilders.memUsageMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			}
 		case string(telemetryapi.PlatformRuntimeDone):
 			status, _ := record["status"].(string)
 
 			if status == telemetrySuccessStatus {
-				r.faaSMetricBuilders.invocationsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+				r.faaSMetricBuilders.invocationsMetric.Add(1)
+				r.faaSMetricBuilders.invocationsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			} else if status == telemetryFailureStatus || status == telemetryErrorStatus {
-				r.faaSMetricBuilders.errorsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+				r.faaSMetricBuilders.errorsMetric.Add(1)
+				r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			} else if status == telemetryTimeoutStatus {
-				r.faaSMetricBuilders.timeoutsMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), 1)
+				r.faaSMetricBuilders.timeoutsMetric.Add(1)
+				r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			}
 
 			metrics, ok := record["metrics"].(map[string]any)
@@ -286,7 +294,8 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 
 			durationMs, ok := metrics["durationMs"].(float64)
 			if ok {
-				r.faaSMetricBuilders.invokeDurationMetric.AppendDataPoint(scopeMetric, pcommon.NewTimestampFromTime(ts), durationMs/1000.0)
+				r.faaSMetricBuilders.invokeDurationMetric.Record(durationMs / 1000.0)
+				r.faaSMetricBuilders.invokeDurationMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			}
 		}
 	}
@@ -514,6 +523,22 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(record map[string]any, sta
 	return traceData, nil
 }
 
+func getMetricsTemporality(cfg *Config) pmetric.AggregationTemporality {
+	temporality := strings.ToLower(cfg.MetricsTemporality)
+	if temporality == "" {
+		temporality = os.Getenv("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE")
+	}
+
+	switch temporality {
+	case "delta":
+		return pmetric.AggregationTemporalityDelta
+	case "cumulative":
+		return pmetric.AggregationTemporalityCumulative
+	default:
+		return pmetric.AggregationTemporalityUnspecified
+	}
+}
+
 func newTelemetryAPIReceiver(
 	cfg *Config,
 	set receiver.Settings,
@@ -562,7 +587,7 @@ func newTelemetryAPIReceiver(
 		types:              subscribedTypes,
 		resource:           r,
 		logReport:          cfg.LogReport,
-		faaSMetricBuilders: NewFaaSMetricBuilders(pcommon.NewTimestampFromTime(time.Now())),
+		faaSMetricBuilders: NewFaaSMetricBuilders(pcommon.NewTimestampFromTime(time.Now()), getMetricsTemporality(cfg)),
 	}, nil
 }
 
