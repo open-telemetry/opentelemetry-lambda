@@ -161,7 +161,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
-			td, err := r.createPlatformInitSpan(tc.start, tc.end)
+			td, err := r.createPlatformInitSpan(make(map[string]any), tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
@@ -520,15 +520,15 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		desc                      string
-		slice                     []event
-		logReport                 bool
-		expectedLogRecords        int
-		expectedType              string
-		expectedTimestamp         string
-		expectedBody              string
-		expectedAttributes        map[string]interface{}
-		expectError               bool
+		desc               string
+		slice              []event
+		logReport          bool
+		expectedLogRecords int
+		expectedType       string
+		expectedTimestamp  string
+		expectedBody       string
+		expectedAttributes map[string]interface{}
+		expectError        bool
 	}{
 		{
 			desc: "platform.report with logReport enabled - valid metrics",
