@@ -22,8 +22,12 @@ import (
 	semconv2 "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
+const MiB = float64(1 << 20)
+const GiB = float64(1 << 30)
+
 var DefaultHistogramBounds = []float64{0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 750.0, 1000.0, 2500.0, 5000.0, 7500.0, 10000.0}
 var DurationHistogramBounds = []float64{0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10}
+var MemUsageHistogramBounds = []float64{16 * MiB, 32 * MiB, 64 * MiB, 128 * MiB, 256 * MiB, 512 * MiB, 768 * MiB, 1 * GiB, 2 * GiB, 3 * GiB, 4 * GiB, 6 * GiB, 8 * GiB}
 
 type HistogramMetricBuilder struct {
 	name        string
@@ -37,10 +41,15 @@ type HistogramMetricBuilder struct {
 	temporality pmetric.AggregationTemporality
 }
 
-func NewHistogramMetricBuilder(name string, description string, unit string, bounds []float64, startTime pcommon.Timestamp) *HistogramMetricBuilder {
+func NewHistogramMetricBuilder(name string, description string, unit string, bounds []float64, startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	b := bounds
 	if bounds == nil {
 		b = DefaultHistogramBounds
+	}
+
+	temp := temporality
+	if temporality == pmetric.AggregationTemporalityUnspecified {
+		temp = pmetric.AggregationTemporalityCumulative
 	}
 
 	counts := make([]uint64, len(b)+1)
@@ -51,31 +60,14 @@ func NewHistogramMetricBuilder(name string, description string, unit string, bou
 		bounds:      b,
 		counts:      counts,
 		startTime:   startTime,
-		temporality: pmetric.AggregationTemporalityCumulative,
+		temporality: temp,
 	}
 }
 
-func (h *HistogramMetricBuilder) AppendDataPoint(scopeMetrics pmetric.ScopeMetrics, timestamp pcommon.Timestamp, value float64) {
-	metric := scopeMetrics.Metrics().AppendEmpty()
-	metric.SetName(h.name)
-	metric.SetDescription(h.description)
-	metric.SetUnit(h.unit)
-
-	hist := metric.SetEmptyHistogram()
-	hist.SetAggregationTemporality(h.temporality)
-
+func (h *HistogramMetricBuilder) Record(value float64) {
 	h.sum += value
 	h.total++
 	h.counts[sort.SearchFloat64s(h.bounds, value)]++
-
-	dp := hist.DataPoints().AppendEmpty()
-	dp.SetStartTimestamp(h.startTime)
-	dp.SetTimestamp(timestamp)
-	dp.SetSum(h.sum)
-	dp.SetCount(h.total)
-
-	dp.BucketCounts().FromRaw(h.counts)
-	dp.ExplicitBounds().FromRaw(h.bounds)
 }
 
 func (h *HistogramMetricBuilder) Reset(timestamp pcommon.Timestamp) {
@@ -85,6 +77,30 @@ func (h *HistogramMetricBuilder) Reset(timestamp pcommon.Timestamp) {
 
 	for i := range h.counts {
 		h.counts[i] = 0
+	}
+}
+
+func (h *HistogramMetricBuilder) AppendDataPoints(scopeMetrics pmetric.ScopeMetrics, timestamp pcommon.Timestamp) {
+	metric := scopeMetrics.Metrics().AppendEmpty()
+	metric.SetName(h.name)
+	metric.SetDescription(h.description)
+	metric.SetUnit(h.unit)
+
+	hist := metric.SetEmptyHistogram()
+	hist.SetAggregationTemporality(h.temporality)
+
+	dp := hist.DataPoints().AppendEmpty()
+	dp.Attributes()
+	dp.SetStartTimestamp(h.startTime)
+	dp.SetTimestamp(timestamp)
+	dp.SetSum(h.sum)
+	dp.SetCount(h.total)
+
+	dp.BucketCounts().FromRaw(h.counts)
+	dp.ExplicitBounds().FromRaw(h.bounds)
+
+	if h.temporality == pmetric.AggregationTemporalityDelta {
+		h.Reset(timestamp)
 	}
 }
 
@@ -98,18 +114,32 @@ type CounterMetricBuilder struct {
 	startTime   pcommon.Timestamp
 }
 
-func NewCounterMetricBuilder(name string, description string, unit string, isMonotonic bool, startTime pcommon.Timestamp) *CounterMetricBuilder {
+func NewCounterMetricBuilder(name string, description string, unit string, isMonotonic bool, startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
+	temp := temporality
+	if temporality == pmetric.AggregationTemporalityUnspecified {
+		temp = pmetric.AggregationTemporalityCumulative
+	}
+
 	return &CounterMetricBuilder{
 		name:        name,
 		description: description,
 		unit:        unit,
 		isMonotonic: isMonotonic,
-		temporality: pmetric.AggregationTemporalityCumulative,
+		temporality: temp,
 		startTime:   startTime,
 	}
 }
 
-func (c *CounterMetricBuilder) AppendDataPoint(scopeMetrics pmetric.ScopeMetrics, timestamp pcommon.Timestamp, value int64) {
+func (c *CounterMetricBuilder) Add(value int64) {
+	c.total += value
+}
+
+func (c *CounterMetricBuilder) Reset(timestamp pcommon.Timestamp) {
+	c.startTime = timestamp
+	c.total = 0
+}
+
+func (c *CounterMetricBuilder) AppendDataPoints(scopeMetrics pmetric.ScopeMetrics, timestamp pcommon.Timestamp) {
 	metric := scopeMetrics.Metrics().AppendEmpty()
 	metric.SetName(c.name)
 	metric.SetDescription(c.description)
@@ -119,86 +149,90 @@ func (c *CounterMetricBuilder) AppendDataPoint(scopeMetrics pmetric.ScopeMetrics
 	sum.SetAggregationTemporality(c.temporality)
 	sum.SetIsMonotonic(c.isMonotonic)
 
-	c.total += value
-
 	dp := sum.DataPoints().AppendEmpty()
 	dp.SetStartTimestamp(c.startTime)
 	dp.SetTimestamp(timestamp)
 	dp.SetIntValue(c.total)
+
+	if c.temporality == pmetric.AggregationTemporalityDelta {
+		c.Reset(timestamp)
+	}
 }
 
-func (c *CounterMetricBuilder) Reset(timestamp pcommon.Timestamp) {
-	c.startTime = timestamp
-	c.total = 0
-}
-
-func NewFasSInvokeDurationMetricBuilder(startTime pcommon.Timestamp) *HistogramMetricBuilder {
+func NewFasSInvokeDurationMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
 		semconv2.FaaSInvokeDurationName,
 		semconv2.FaaSInvokeDurationDescription,
 		semconv2.FaaSInvokeDurationUnit,
 		DurationHistogramBounds,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFasSInitDurationMetricBuilder(startTime pcommon.Timestamp) *HistogramMetricBuilder {
+func NewFasSInitDurationMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
 		semconv2.FaaSInitDurationName,
 		semconv2.FaaSInitDurationDescription,
 		semconv2.FaaSInitDurationUnit,
 		DurationHistogramBounds,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFaaSMemUsageMetricBuilder(startTime pcommon.Timestamp) *HistogramMetricBuilder {
+func NewFaaSMemUsageMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
 		semconv2.FaaSMemUsageName,
 		semconv2.FaaSMemUsageDescription,
 		semconv2.FaaSMemUsageUnit,
-		DefaultHistogramBounds,
+		MemUsageHistogramBounds,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFaaSColdstartsMetricBuilder(startTime pcommon.Timestamp) *CounterMetricBuilder {
+func NewFaaSColdstartsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
 		semconv2.FaaSColdstartsName,
 		semconv2.FaaSColdstartsDescription,
 		semconv2.FaaSColdstartsUnit,
 		true,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFaaSErrorsMetricBuilder(startTime pcommon.Timestamp) *CounterMetricBuilder {
+func NewFaaSErrorsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
 		semconv2.FaaSErrorsName,
 		semconv2.FaaSErrorsDescription,
 		semconv2.FaaSErrorsUnit,
 		true,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFaaSInvocationsMetricBuilder(startTime pcommon.Timestamp) *CounterMetricBuilder {
+func NewFaaSInvocationsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
 		semconv2.FaaSInvocationsName,
 		semconv2.FaaSInvocationsDescription,
 		semconv2.FaaSInvocationsUnit,
 		true,
 		startTime,
+		temporality,
 	)
 }
 
-func NewFaaSTimeoutsMetricBuilder(startTime pcommon.Timestamp) *CounterMetricBuilder {
+func NewFaaSTimeoutsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
 		semconv2.FaaSTimeoutsName,
 		semconv2.FaaSTimeoutsDescription,
 		semconv2.FaaSTimeoutsUnit,
 		true,
 		startTime,
+		temporality,
 	)
 }
 
@@ -212,14 +246,14 @@ type FaaSMetricBuilders struct {
 	timeoutsMetric       *CounterMetricBuilder
 }
 
-func NewFaaSMetricBuilders(startTime pcommon.Timestamp) *FaaSMetricBuilders {
+func NewFaaSMetricBuilders(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *FaaSMetricBuilders {
 	return &FaaSMetricBuilders{
-		invokeDurationMetric: NewFasSInvokeDurationMetricBuilder(startTime),
-		initDurationMetric:   NewFasSInitDurationMetricBuilder(startTime),
-		memUsageMetric:       NewFaaSMemUsageMetricBuilder(startTime),
-		coldstartsMetric:     NewFaaSColdstartsMetricBuilder(startTime),
-		errorsMetric:         NewFaaSErrorsMetricBuilder(startTime),
-		invocationsMetric:    NewFaaSInvocationsMetricBuilder(startTime),
-		timeoutsMetric:       NewFaaSTimeoutsMetricBuilder(startTime),
+		invokeDurationMetric: NewFasSInvokeDurationMetricBuilder(startTime, temporality),
+		initDurationMetric:   NewFasSInitDurationMetricBuilder(startTime, temporality),
+		memUsageMetric:       NewFaaSMemUsageMetricBuilder(startTime, temporality),
+		coldstartsMetric:     NewFaaSColdstartsMetricBuilder(startTime, temporality),
+		errorsMetric:         NewFaaSErrorsMetricBuilder(startTime, temporality),
+		invocationsMetric:    NewFaaSInvocationsMetricBuilder(startTime, temporality),
+		timeoutsMetric:       NewFaaSTimeoutsMetricBuilder(startTime, temporality),
 	}
 }
