@@ -48,9 +48,6 @@ def modify_module_name(module_name):
 class HandlerError(Exception):
     pass
 
-
-AwsLambdaInstrumentor().instrument()
-
 path = os.environ.get("ORIG_HANDLER")
 
 if path is None:
