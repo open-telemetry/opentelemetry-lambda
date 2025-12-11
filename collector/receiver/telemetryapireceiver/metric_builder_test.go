@@ -36,19 +36,19 @@ func TestHistogramMetricBuilder_AppendDataPoint(t *testing.T) {
 	}{
 		{
 			name:           "FaaS invoke duration - small value",
-			builder:        NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
+			builder:        NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
 			value:          0.007,
 			expectedBucket: 1,
 		},
 		{
 			name:           "FaaS invoke duration - middle value",
-			builder:        NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
+			builder:        NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
 			value:          0.5,
 			expectedBucket: 7,
 		},
 		{
 			name:           "FaaS invoke duration - large value",
-			builder:        NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
+			builder:        NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative),
 			value:          15.0,
 			expectedBucket: 14,
 		},
@@ -201,7 +201,7 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 	startTime := pcommon.NewTimestampFromTime(time.Now())
 
 	t.Run("NewFasSInvokeDurationMetricBuilder", func(t *testing.T) {
-		builder := NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+		builder := NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 		assert.Equal(t, semconv2.FaaSInvokeDurationName, builder.name)
 		assert.Equal(t, semconv2.FaaSInvokeDurationDescription, builder.description)
 		assert.Equal(t, semconv2.FaaSInvokeDurationUnit, builder.unit)
@@ -211,7 +211,7 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 	})
 
 	t.Run("NewFasSInitDurationMetricBuilder", func(t *testing.T) {
-		builder := NewFasSInitDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+		builder := NewFaaSInitDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 		assert.Equal(t, semconv2.FaaSInitDurationName, builder.name)
 		assert.Equal(t, semconv2.FaaSInitDurationDescription, builder.description)
 		assert.Equal(t, semconv2.FaaSInitDurationUnit, builder.unit)
@@ -395,7 +395,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 		{
 			name: "two data points accumulate correctly",
 			builderFn: func() *HistogramMetricBuilder {
-				return NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+				return NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 			},
 			values:        []float64{0.1, 0.2},
 			expectedCount: 2,
@@ -404,7 +404,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 		{
 			name: "multiple data points across different buckets",
 			builderFn: func() *HistogramMetricBuilder {
-				return NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+				return NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 			},
 			values:        []float64{0.001, 0.05, 0.5, 1.0, 5.0},
 			expectedCount: 5,
@@ -413,7 +413,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 		{
 			name: "same bucket receives multiple values",
 			builderFn: func() *HistogramMetricBuilder {
-				return NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+				return NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 			},
 			values:              []float64{0.3, 0.35, 0.4, 0.45},
 			expectedCount:       4,
@@ -425,7 +425,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 		{
 			name: "zero values accumulate correctly",
 			builderFn: func() *HistogramMetricBuilder {
-				return NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+				return NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 			},
 			values:              []float64{0.0, 0.0, 0.0, 0.0, 0.0},
 			expectedCount:       5,
@@ -437,7 +437,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 		{
 			name: "large values in overflow bucket",
 			builderFn: func() *HistogramMetricBuilder {
-				return NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+				return NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 			},
 			values:              []float64{15.0, 20.0, 100.0},
 			expectedCount:       3,
@@ -492,7 +492,7 @@ func TestHistogramMetricBuilder_CumulativeDataPoints(t *testing.T) {
 	}
 
 	t.Run("start timestamp remains constant across data points", func(t *testing.T) {
-		builder := NewFasSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
+		builder := NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
 
 		metrics := pmetric.NewMetrics()
 		rm := metrics.ResourceMetrics().AppendEmpty()
