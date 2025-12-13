@@ -17,8 +17,9 @@
 package receiver
 
 import (
-	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 	"go.opentelemetry.io/collector/receiver"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
 func init() {
