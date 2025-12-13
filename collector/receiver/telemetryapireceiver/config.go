@@ -16,14 +16,16 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Config defines the configuration for the various elements of the receiver agent.
 type Config struct {
-	extensionID string
-	Port        int      `mapstructure:"port"`
-	Types       []string `mapstructure:"types"`
-	LogReport   bool     `mapstructure:"log_report"`
+	extensionID        string
+	Port               int      `mapstructure:"port"`
+	Types              []string `mapstructure:"types"`
+	LogReport          bool     `mapstructure:"log_report"`
+	MetricsTemporality string   `mapstructure:"metrics_temporality"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
@@ -31,6 +33,12 @@ func (cfg *Config) Validate() error {
 	for _, t := range cfg.Types {
 		if t != platform && t != function && t != extension {
 			return fmt.Errorf("unknown extension type: %s", t)
+		}
+	}
+	if cfg.MetricsTemporality != "" {
+		temporality := strings.ToLower(cfg.MetricsTemporality)
+		if temporality != "delta" && temporality != "cumulative" {
+			return fmt.Errorf("unknown metrics temporality: %s", cfg.MetricsTemporality)
 		}
 	}
 	return nil
