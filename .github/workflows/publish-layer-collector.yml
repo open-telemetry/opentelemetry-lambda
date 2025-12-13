@@ -112,7 +112,7 @@ jobs:
           fi
           aws_regions=''
           if [ ${{ github.event.inputs.aws-region }} == 'all' ]; then
-            aws_regions='["ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
+            aws_regions='["ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "ca-west-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
           else
             aws_regions='["${{ github.event.inputs.aws-region }}"]'
           fi
