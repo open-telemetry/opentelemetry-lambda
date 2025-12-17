@@ -178,7 +178,6 @@ func TestListenOnAddress(t *testing.T) {
 
 func TestListener_StartAndShutdown(t *testing.T) {
 	listener, address := setupListener(t)
-	defer listener.Shutdown()
 	require.NotEqual(t, address, "", "Start() should not return an empty address")
 	require.True(t, strings.HasPrefix(address, "http://"), "Address should start with http://")
 	require.NotNil(t, listener.httpServer, "httpServer should not be nil")
@@ -190,6 +189,7 @@ func TestListener_StartAndShutdown(t *testing.T) {
 		require.NoError(t, resp.Body.Close())
 	}
 
+	listener.Shutdown()
 	require.Nil(t, listener.httpServer, "httpServer should be nil after Shutdown()")
 }
 
