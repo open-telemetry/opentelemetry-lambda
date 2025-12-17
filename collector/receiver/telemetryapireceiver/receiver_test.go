@@ -852,7 +852,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
-				&Config{LogReport: &tc.logReport},
+				&Config{LogReport: tc.logReport},
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)

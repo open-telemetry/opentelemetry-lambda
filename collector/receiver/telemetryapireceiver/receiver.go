@@ -518,11 +518,6 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
-	logReport := true
-	if cfg.LogReport != nil {
-		logReport = *cfg.LogReport
-	}
-
 	return &telemetryAPIReceiver{
 		logger:      set.Logger,
 		queue:       queue.New(initialQueueSize),
@@ -530,7 +525,7 @@ func newTelemetryAPIReceiver(
 		port:        cfg.Port,
 		types:       subscribedTypes,
 		resource:    r,
-		logReport:   logReport,
+		logReport:   cfg.LogReport,
 	}, nil
 }
 

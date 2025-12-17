@@ -189,7 +189,6 @@ func TestListener_StartAndShutdown(t *testing.T) {
 	} else {
 		require.NoError(t, resp.Body.Close())
 	}
-	listener.Shutdown()
 
 	require.Nil(t, listener.httpServer, "httpServer should be nil after Shutdown()")
 }

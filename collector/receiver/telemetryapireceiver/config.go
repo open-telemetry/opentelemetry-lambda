@@ -23,7 +23,7 @@ type Config struct {
 	extensionID string
 	Port        int      `mapstructure:"port"`
 	Types       []string `mapstructure:"types"`
-	LogReport   *bool    `mapstructure:"log_report"`
+	LogReport   bool     `mapstructure:"log_report"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
