@@ -45,11 +45,6 @@ func setupListener(t *testing.T) (*Listener, string) {
 
 	address, err := listener.Start()
 	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		listener.Shutdown()
-	})
-
 	return listener, address
 }
 
@@ -193,8 +188,8 @@ func TestListener_StartAndShutdown(t *testing.T) {
 	} else {
 		require.NoError(t, resp.Body.Close())
 	}
-	listener.Shutdown()
 
+	listener.Shutdown()
 	require.Nil(t, listener.httpServer, "httpServer should be nil after Shutdown()")
 }
 
@@ -241,6 +236,7 @@ func TestListener_httpHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			listener, address := setupListener(t)
+			defer listener.Shutdown()
 			submitEvents(t, address, test.events)
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
 				require.Equal(c, test.expectedCount, listener.queue.Len())
@@ -302,6 +298,7 @@ func TestListener_Wait_Success(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			listener, address := setupListener(t)
+			defer listener.Shutdown()
 
 			waitDone := make(chan error, 1)
 			go func() {

@@ -42,9 +42,20 @@ import (
 )
 
 const (
-	initialQueueSize = 5
-	scopeName        = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
-	logReportFmt     = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %.0f ms Memory Size: %.0f MB Max Memory Used: %.0f MB"
+	initialQueueSize                    = 5
+	scopeName                           = "github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapi"
+	platformReportLogFmt                = "REPORT RequestId: %s Duration: %.2f ms Billed Duration: %.0f ms Memory Size: %.0f MB Max Memory Used: %.0f MB"
+	platformStartLogFmt                 = "START RequestId: %s Version: %s"
+	platformRuntimeDoneLogFmt           = "END RequestId: %s Version: %s"
+	platformInitStartLogFmt             = "INIT_START Runtime Version: %s Runtime Version ARN: %s"
+	platformInitRuntimeDoneLogFmt       = "INIT_RUNTIME_DONE Status: %s"
+	platformInitReportLogFmt            = "INIT_REPORT Initialization Type: %s Phase: %s Status: %s Duration: %.2f ms"
+	platformRestoreStartLogFmt          = "RESTORE_START Runtime Version: %s Runtime Version ARN: %s"
+	platformRestoreRuntimeDoneLogFmt    = "RESTORE_RUNTIME_DONE Status: %s"
+	platformRestoreReportLogFmt         = "RESTORE_REPORT Status: %s Duration: %.2f ms"
+	platformTelemetrySubscriptionLogFmt = "TELEMETRY: %s Subscribed Types: %v"
+	platformExtensionLogFmt             = "EXTENSION Name: %s State: %s Events: %v"
+	platformLogsDroppedLogFmt           = "LOGS_DROPPED DroppedRecords: %.0f DroppedBytes: %.0f Reason: %s"
 )
 
 type telemetryAPIReceiver struct {
@@ -59,6 +70,7 @@ type telemetryAPIReceiver struct {
 	port                    int
 	types                   []telemetryapi.EventType
 	resource                pcommon.Resource
+	faasFunctionVersion     string
 	currentFaasInvocationID string
 	logReport               bool
 }
@@ -188,6 +200,15 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	slice = nil
 }
 
+func (r *telemetryAPIReceiver) getRecordRequestId(record map[string]interface{}) string {
+	if requestId, ok := record["requestId"].(string); ok {
+		return requestId
+	} else if r.currentFaasInvocationID != "" {
+		return r.currentFaasInvocationID
+	}
+	return ""
+}
+
 func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 	log := plog.NewLogs()
 	resourceLog := log.ResourceLogs().AppendEmpty()
@@ -195,93 +216,180 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 	scopeLog := resourceLog.ScopeLogs().AppendEmpty()
 	scopeLog.Scope().SetName(scopeName)
 	for _, el := range slice {
+		if !r.logReport && el.Type == string(telemetryapi.PlatformReport) {
+			continue
+		}
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
-		if el.Type == string(telemetryapi.Function) || el.Type == string(telemetryapi.Extension) {
-			logRecord := scopeLog.LogRecords().AppendEmpty()
-			logRecord.Attributes().PutStr("type", el.Type)
-			if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
-				logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-				logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-			} else {
-				r.logger.Error("error parsing time", zap.Error(err))
-				return plog.Logs{}, err
-			}
-			if record, ok := el.Record.(map[string]interface{}); ok {
-				// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
-				if timestamp, ok := record["timestamp"].(string); ok {
-					if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
-						logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-					} else {
-						r.logger.Error("error parsing time", zap.Error(err))
-						return plog.Logs{}, err
-					}
-				}
-				if level, ok := record["level"].(string); ok {
-					logRecord.SetSeverityNumber(severityTextToNumber(strings.ToUpper(level)))
-					logRecord.SetSeverityText(logRecord.SeverityNumber().String())
-				}
-				if requestId, ok := record["requestId"].(string); ok {
-					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
-				} else if r.currentFaasInvocationID != "" {
-					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
-				}
-				if line, ok := record["message"].(string); ok {
-					logRecord.Body().SetStr(line)
-				}
-			} else {
-				if r.currentFaasInvocationID != "" {
-					logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
-				}
-				// in plain text https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
-				if line, ok := el.Record.(string); ok {
-					logRecord.Body().SetStr(line)
+		logRecord := scopeLog.LogRecords().AppendEmpty()
+		logRecord.Attributes().PutStr("type", el.Type)
+		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
+			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+		} else {
+			r.logger.Error("error parsing time", zap.Error(err))
+			return plog.Logs{}, err
+		}
+		if record, ok := el.Record.(map[string]interface{}); ok {
+			requestId := r.getRecordRequestId(record)
+			if requestId != "" {
+				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
+
+				// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
+				// set the current invocation id to this request id.
+				if el.Type == string(telemetryapi.PlatformStart) {
+					r.currentFaasInvocationID = requestId
 				}
 			}
-		} else { // platform events, if subscribed to
-			if el.Type == string(telemetryapi.PlatformStart) {
-				if record, ok := el.Record.(map[string]interface{}); ok {
-					if requestId, ok := record["requestId"].(string); ok {
-						r.currentFaasInvocationID = requestId
-					}
-				}
-			} else if el.Type == string(telemetryapi.PlatformRuntimeDone) {
-				r.currentFaasInvocationID = ""
-			} else if el.Type == string(telemetryapi.PlatformReport) && r.logReport {
-				if record, ok := el.Record.(map[string]interface{}); ok {
-					if logRecord := createReportLogRecord(&scopeLog, record); logRecord != nil {
-						logRecord.Attributes().PutStr("type", el.Type)
-						if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
-							logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-							logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-						}
-					}
+
+			// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
+			if timestamp, ok := record["timestamp"].(string); ok {
+				if t, err := time.Parse(time.RFC3339, timestamp); err == nil {
+					logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+				} else {
+					r.logger.Error("error parsing time", zap.Error(err))
+					return plog.Logs{}, err
 				}
 			}
+			if level, ok := record["level"].(string); ok {
+				logRecord.SetSeverityNumber(severityTextToNumber(strings.ToUpper(level)))
+				logRecord.SetSeverityText(logRecord.SeverityNumber().String())
+			}
+
+			if strings.HasPrefix(el.Type, platform) {
+				if el.Type == string(telemetryapi.PlatformInitStart) {
+					functionVersion, _ := record["functionVersion"].(string)
+					if functionVersion != "" {
+						r.faasFunctionVersion = functionVersion
+					}
+				}
+
+				message := createPlatformMessage(requestId, r.faasFunctionVersion, el.Type, record)
+				if message != "" {
+					logRecord.Body().SetStr(message)
+				}
+			} else if line, ok := record["message"].(string); ok {
+				logRecord.Body().SetStr(line)
+			}
+		} else {
+			if r.currentFaasInvocationID != "" {
+				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
+			}
+			// in plain text https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
+			if line, ok := el.Record.(string); ok {
+				logRecord.Body().SetStr(line)
+			}
+		}
+		if el.Type == string(telemetryapi.PlatformRuntimeDone) {
+			r.currentFaasInvocationID = ""
 		}
 	}
 	return log, nil
 }
 
-// createReportLogRecord creates a log record for the platform.report event
-// returns the log record if successful, otherwise nil
-func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface{}) *plog.LogRecord {
+func createPlatformMessage(requestId string, functionVersion string, eventType string, record map[string]interface{}) string {
+	switch eventType {
+	case string(telemetryapi.PlatformStart):
+		if requestId != "" && functionVersion != "" {
+			return fmt.Sprintf(platformStartLogFmt, requestId, functionVersion)
+		}
+	case string(telemetryapi.PlatformRuntimeDone):
+		if requestId != "" && functionVersion != "" {
+			return fmt.Sprintf(platformRuntimeDoneLogFmt, requestId, functionVersion)
+		}
+	case string(telemetryapi.PlatformReport):
+		return createPlatformReportMessage(requestId, record)
+	case string(telemetryapi.PlatformInitStart):
+		runtimeVersion, _ := record["runtimeVersion"].(string)
+		runtimeVersionArn, _ := record["runtimeVersionArn"].(string)
+		if runtimeVersion != "" || runtimeVersionArn != "" {
+			return fmt.Sprintf(platformInitStartLogFmt, runtimeVersion, runtimeVersionArn)
+		}
+	case string(telemetryapi.PlatformInitRuntimeDone):
+		status, _ := record["status"].(string)
+		if status != "" {
+			return fmt.Sprintf(platformInitRuntimeDoneLogFmt, status)
+		}
+	case string(telemetryapi.PlatformInitReport):
+		initType, _ := record["initializationType"].(string)
+		phase, _ := record["phase"].(string)
+		status, _ := record["status"].(string)
+		var durationMs float64
+		durationOk := false
+		if metrics, ok := record["metrics"].(map[string]interface{}); ok {
+			durationMs, durationOk = metrics["durationMs"].(float64)
+		}
+		if initType != "" || phase != "" || status != "" || durationOk {
+			return fmt.Sprintf(platformInitReportLogFmt, initType, phase, status, durationMs)
+		}
+	case string(telemetryapi.PlatformRestoreStart):
+		runtimeVersion, _ := record["runtimeVersion"].(string)
+		runtimeVersionArn, _ := record["runtimeVersionArn"].(string)
+		if runtimeVersion != "" || runtimeVersionArn != "" {
+			return fmt.Sprintf(platformRestoreStartLogFmt, runtimeVersion, runtimeVersionArn)
+		}
+	case string(telemetryapi.PlatformRestoreRuntimeDone):
+		status, _ := record["status"].(string)
+		if status != "" {
+			return fmt.Sprintf(platformRestoreRuntimeDoneLogFmt, status)
+		}
+	case string(telemetryapi.PlatformRestoreReport):
+		status, _ := record["status"].(string)
+		var durationMs float64
+		durationOk := false
+		if metrics, ok := record["metrics"].(map[string]interface{}); ok {
+			durationMs, durationOk = metrics["durationMs"].(float64)
+		}
+		if status != "" && durationOk {
+			return fmt.Sprintf(platformRestoreReportLogFmt, status, durationMs)
+		}
+	case string(telemetryapi.PlatformTelemetrySubscription):
+		name, _ := record["name"].(string)
+		types, _ := record["types"].([]interface{})
+		if name != "" {
+			return fmt.Sprintf(platformTelemetrySubscriptionLogFmt, name, types)
+		}
+	case string(telemetryapi.PlatformExtension):
+		name, _ := record["name"].(string)
+		state, _ := record["state"].(string)
+		events, _ := record["events"].([]interface{})
+		if name != "" {
+			return fmt.Sprintf(platformExtensionLogFmt, name, state, events)
+		}
+	case string(telemetryapi.PlatformLogsDropped):
+		droppedRecords, ok := record["droppedRecords"].(float64)
+		if !ok {
+			return ""
+		}
+		droppedBytes, ok := record["droppedBytes"].(float64)
+		if !ok {
+			return ""
+		}
+		reason, _ := record["reason"].(string)
+		if reason != "" {
+			return fmt.Sprintf(platformLogsDroppedLogFmt, droppedRecords, droppedBytes, reason)
+		}
+	}
+	return ""
+}
+
+func createPlatformReportMessage(requestId string, record map[string]interface{}) string {
 	// gathering metrics
 	metrics, ok := record["metrics"].(map[string]interface{})
 	if !ok {
-		return nil
+		return ""
 	}
 	var durationMs, billedDurationMs, memorySizeMB, maxMemoryUsedMB float64
 	if durationMs, ok = metrics[string(telemetryapi.MetricDurationMs)].(float64); !ok {
-		return nil
+		return ""
 	}
 	if billedDurationMs, ok = metrics[string(telemetryapi.MetricBilledDurationMs)].(float64); !ok {
-		return nil
+		return ""
 	}
 	if memorySizeMB, ok = metrics[string(telemetryapi.MetricMemorySizeMB)].(float64); !ok {
-		return nil
+		return ""
 	}
 	if maxMemoryUsedMB, ok = metrics[string(telemetryapi.MetricMaxMemoryUsedMB)].(float64); !ok {
-		return nil
+		return ""
 	}
 
 	// optionally gather information about cold start time
@@ -292,19 +400,8 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 		}
 	}
 
-	// gathering requestId
-	requestId := ""
-	if requestId, ok = record["requestId"].(string); !ok {
-		return nil
-	}
-
-	// we have all information available, we can create the log record
-	logRecord := scopeLog.LogRecords().AppendEmpty()
-	logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
-
-	// building the body of the log record, optionally adding the init duration
-	body := fmt.Sprintf(
-		logReportFmt,
+	message := fmt.Sprintf(
+		platformReportLogFmt,
 		requestId,
 		durationMs,
 		billedDurationMs,
@@ -312,11 +409,10 @@ func createReportLogRecord(scopeLog *plog.ScopeLogs, record map[string]interface
 		maxMemoryUsedMB,
 	)
 	if initDurationMs > 0 {
-		body += fmt.Sprintf(" Init Duration: %.2f ms", initDurationMs)
+		message += fmt.Sprintf(" Init Duration: %.2f ms", initDurationMs)
 	}
-	logRecord.Body().SetStr(body)
 
-	return &logRecord
+	return message
 }
 
 func severityTextToNumber(severityText string) plog.SeverityNumber {
@@ -418,7 +514,7 @@ func newTelemetryAPIReceiver(
 		}
 	}
 
-	subscribedTypes := []telemetryapi.EventType{}
+	var subscribedTypes []telemetryapi.EventType
 	for _, val := range cfg.Types {
 		switch val {
 		case "platform":
