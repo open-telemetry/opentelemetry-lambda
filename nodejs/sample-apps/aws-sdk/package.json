@@ -7,12 +7,9 @@
   "types": "build/src/index.d.ts",
   "repository": "open-telemetry/opentelemetry-lambda",
   "scripts": {
-    "clean": "rimraf build/*",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts",
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts --fix",
-    "build": "npm run clean && npm run compile && npm run postcompile",
-    "compile": "tsc -p .",
-    "postcompile": "copyfiles 'package*.json' build/lambda/ && npm install --production --ignore-scripts --prefix build/lambda/ && cd build/lambda && bestzip ../function.zip *"
+    "esbuild": "esbuild"
   },
   "keywords": [
     "opentelemetry",
@@ -37,11 +34,20 @@
   "devDependencies": {
     "@aws-sdk/client-sts": "^3.826.0",
     "@types/node": "24.10.1",
-    "aws-cdk-lib": "^2.201.0",
-    "bestzip": "2.2.1",
-    "copyfiles": "2.4.1",
-    "rimraf": "6.1.2",
+    "aws-cdk-lib": "^2.232.2",
+    "esbuild": "^0.27.1",
     "ts-node": "10.9.2",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.2.0",
+    "@opentelemetry/instrumentation": "^0.208.0",
+    "@opentelemetry/instrumentation-aws-lambda": "^0.61.1",
+    "@opentelemetry/instrumentation-aws-sdk": "^0.64.1",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-trace-base": "^2.2.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
+    "aws-cdk": "^2.1100.1"
   }
 }
