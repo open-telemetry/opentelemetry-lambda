@@ -1,39 +1,40 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as path from 'path';
-
-const AWS_ACCOUNT_ID = '184161586896'; // Replace with your AWS account ID if you want to use a specific layer
-const NODEJS_LAYER_VERSION = '0_14_0'; // Update with the latest version if needed
-const COLLECTOR_LAYER_VERSION = '0_15_0'; // Update with the latest version if needed
+import {NodejsFunction} from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export class OtelSampleLambdaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const region = cdk.Stack.of(this).region;
     const architecture = lambda.Architecture.ARM_64;
-    const collectorLayerArn = `arn:aws:lambda:${region}:${AWS_ACCOUNT_ID}:layer:opentelemetry-collector-${architecture}-${COLLECTOR_LAYER_VERSION}:1`;
-    const nodejsInstrumentationLayerArn = `arn:aws:lambda:${region}:${AWS_ACCOUNT_ID}:layer:opentelemetry-nodejs-${NODEJS_LAYER_VERSION}:1`;
+    const target = 'node24';
+    new NodejsFunction(this, 'MyLambdaFunction', {
+      functionName: 'instrumentation-test-handler',
 
-    new lambda.Function(this, 'MyLambdaFunction', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../build/lambda')),
-      layers: [
-        lambda.LayerVersion.fromLayerVersionArn(this, 'OtelCollectorLayer', collectorLayerArn),
-        lambda.LayerVersion.fromLayerVersionArn(this, 'NodeJsInstrumentationLayer', nodejsInstrumentationLayerArn)
-      ],
+      entry: './lambda/index.ts',
+      bundling: {
+        forceDockerBundling: false,
+        minify: true,
+        sourceMap: true,
+        target,
+        tsconfig: 'tsconfig.json',
+        commandHooks: {
+          beforeBundling: (_: string, outputDir: string) => [
+            // the lambda wrapper which is registered via NODE_OPTIONS for OpenTelemetry instrumentation needs to find its way into the bundle
+            `npx esbuild --bundle lambda/lambda-wrapper.ts --outfile=${outputDir}/lambda-wrapper.js --minify --platform=node --tsconfig='tsconfig.json' --target=${target}`,
+          ],
+          beforeInstall: () => [],
+          afterBundling: () => [],
+        }
+      },
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       architecture,
       environment: {
-        OTEL_EXPORTER_OTLP_ENDPOINT: 'http://localhost:4318/',
-        OTEL_TRACES_EXPORTER: 'console',
-        OTEL_METRICS_EXPORTER: 'console',
-        OTEL_LOG_LEVEL: 'DEBUG',
-        OTEL_TRACES_SAMPLER: 'always_on',
-        AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
+        NODE_OPTIONS: '--enable-source-maps --require lambda-wrapper',
       },
     });
   }

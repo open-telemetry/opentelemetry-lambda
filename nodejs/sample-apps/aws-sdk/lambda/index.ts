@@ -8,10 +8,10 @@ import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 
 const sts = new STSClient({});
 
-export const handler = async (
+export async function handler(
   event: APIGatewayProxyEvent,
   _context: Context,
-): Promise<APIGatewayProxyResult> => {
+): Promise<APIGatewayProxyResult> {
   console.log('Received event:', JSON.stringify(event, null, 2));
   console.log('Received context:', JSON.stringify(_context, null, 2));
 
@@ -38,3 +38,5 @@ export const handler = async (
     };
   }
 };
+
+module.exports = { handler };
