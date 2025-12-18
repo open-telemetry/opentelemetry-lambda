@@ -55,7 +55,7 @@ const (
 	platformRestoreReportLogFmt         = "RESTORE_REPORT Status: %s Duration: %.2f ms"
 	platformTelemetrySubscriptionLogFmt = "TELEMETRY: %s Subscribed Types: %v"
 	platformExtensionLogFmt             = "EXTENSION Name: %s State: %s Events: %v"
-	platformLogsDroppedLogFmt           = "LOGS_DROPPED DroppedRecords: %d DroppedBytes: %d Reason: %s"
+	platformLogsDroppedLogFmt           = "LOGS_DROPPED DroppedRecords: %.0f DroppedBytes: %.0f Reason: %s"
 )
 
 type telemetryAPIReceiver struct {
@@ -314,10 +314,11 @@ func createPlatformMessage(requestId string, functionVersion string, eventType s
 		phase, _ := record["phase"].(string)
 		status, _ := record["status"].(string)
 		var durationMs float64
+		durationOk := false
 		if metrics, ok := record["metrics"].(map[string]interface{}); ok {
-			durationMs, _ = metrics["durationMs"].(float64)
+			durationMs, durationOk = metrics["durationMs"].(float64)
 		}
-		if initType != "" || phase != "" || status != "" || durationMs != 0 {
+		if initType != "" || phase != "" || status != "" || durationOk {
 			return fmt.Sprintf(platformInitReportLogFmt, initType, phase, status, durationMs)
 		}
 	case string(telemetryapi.PlatformRestoreStart):
@@ -334,10 +335,11 @@ func createPlatformMessage(requestId string, functionVersion string, eventType s
 	case string(telemetryapi.PlatformRestoreReport):
 		status, _ := record["status"].(string)
 		var durationMs float64
+		durationOk := false
 		if metrics, ok := record["metrics"].(map[string]interface{}); ok {
-			durationMs, _ = metrics["durationMs"].(float64)
+			durationMs, durationOk = metrics["durationMs"].(float64)
 		}
-		if status != "" && durationMs != 0 {
+		if status != "" && durationOk {
 			return fmt.Sprintf(platformRestoreReportLogFmt, status, durationMs)
 		}
 	case string(telemetryapi.PlatformTelemetrySubscription):
@@ -354,11 +356,17 @@ func createPlatformMessage(requestId string, functionVersion string, eventType s
 			return fmt.Sprintf(platformExtensionLogFmt, name, state, events)
 		}
 	case string(telemetryapi.PlatformLogsDropped):
-		droppedRecords, _ := record["droppedRecords"].(float64)
-		droppedBytes, _ := record["droppedBytes"].(float64)
+		droppedRecords, ok := record["droppedRecords"].(float64)
+		if !ok {
+			return ""
+		}
+		droppedBytes, ok := record["droppedBytes"].(float64)
+		if !ok {
+			return ""
+		}
 		reason, _ := record["reason"].(string)
 		if reason != "" {
-			return fmt.Sprintf(platformLogsDroppedLogFmt, int(droppedRecords), int(droppedBytes), reason)
+			return fmt.Sprintf(platformLogsDroppedLogFmt, droppedRecords, droppedBytes, reason)
 		}
 	}
 	return ""

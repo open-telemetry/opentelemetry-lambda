@@ -1172,6 +1172,17 @@ func TestCreatePlatformMessage(t *testing.T) {
 					"durationMs": 0.0,
 				},
 			},
+			expected: "RESTORE_REPORT Status: success Duration: 0.00 ms",
+		},
+		{
+			desc:            "platform.restoreReport with no duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status":  "success",
+				"metrics": map[string]interface{}{},
+			},
 			expected: "",
 		},
 		{
