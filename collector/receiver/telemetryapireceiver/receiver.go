@@ -251,12 +251,16 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 
 			// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
 			// set the current invocation id to this request id.
-			if requestId != "" && el.Type == string(telemetryapi.PlatformReport) {
+			if requestId != "" && el.Type == string(telemetryapi.PlatformStart) {
 				r.updateCurrentRequestId(requestId)
 			}
 
 			if requestId == "" {
 				requestId = r.getCurrentRequestId()
+			}
+
+			if requestId != "" {
+				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
 			}
 
 			// in JSON format https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
@@ -422,8 +426,8 @@ func createPlatformReportMessage(requestId string, record map[string]interface{}
 		message += fmt.Sprintf(" Memory Size: %.0f MB", memorySizeMB)
 	}
 
-	if memoryUsedMB, ok := metrics["memoryUsedMB"].(float64); ok {
-		message += fmt.Sprintf(" Memory Used: %.0f MB", memoryUsedMB)
+	if maxMemoryUsedMB, ok := metrics["maxMemoryUsedMB"].(float64); ok {
+		message += fmt.Sprintf(" Max Memory Used: %.0f MB", maxMemoryUsedMB)
 	}
 
 	if initDurationMs, ok := metrics["initDurationMs"].(float64); ok {
