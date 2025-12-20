@@ -17,6 +17,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"go.opentelemetry.io/collector/confmap"
 
 	"github.com/google/go-cmp/cmp"
@@ -149,5 +150,40 @@ func TestConvert(t *testing.T) {
 				t.Errorf("Convert() mismatch: (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestConvert_LambdaManagedInstances(t *testing.T) {
+	t.Setenv(lambdalifecycle.InitTypeEnvVar, lambdalifecycle.LambdaManagedInstances.String())
+
+	// Config that would normally have decouple appended
+	input := confmap.NewFromStringMap(map[string]interface{}{
+		"service": map[string]interface{}{
+			"pipelines": map[string]interface{}{
+				"traces": map[string]interface{}{
+					"processors": []interface{}{"batch"},
+				},
+			},
+		},
+	})
+
+	// Expected to remain unchanged
+	expected := confmap.NewFromStringMap(map[string]interface{}{
+		"service": map[string]interface{}{
+			"pipelines": map[string]interface{}{
+				"traces": map[string]interface{}{
+					"processors": []interface{}{"batch"},
+				},
+			},
+		},
+	})
+
+	c := New()
+	err := c.Convert(context.Background(), input)
+	if err != nil {
+		t.Errorf("unexpected error converting: %v", err)
+	}
+	if diff := cmp.Diff(expected.ToStringMap(), input.ToStringMap()); diff != "" {
+		t.Errorf("Convert() mismatch: (-want +got):\n%s", diff)
 	}
 }

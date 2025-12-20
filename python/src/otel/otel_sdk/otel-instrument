@@ -146,21 +146,18 @@ else
     export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES,$OTEL_RESOURCE_ATTRIBUTES";
 fi
 
-
-# - Uses the default `OTEL_PROPAGATORS` which is set to `tracecontext,baggage`
-
-# - Use a wrapper because AWS Lambda's `python3 /var/runtime/bootstrap.py` will
-#   use `imp.load_module` to load the function from the `_HANDLER` environment
-#   variable. This RELOADS the module and REMOVES any instrumentation patching
-#   done earlier. So we delay instrumentation until `bootstrap.py` imports
-#   `otel_wrapper.py` at which we know the patching will be picked up.
+# Redirect Lambda to load the `otel_wrapper.py` wrapper script instead of the
+# user's handler. The wrapper initializes OpenTelemetry instrumentation at module
+# load time and then delegates to the original handler.
 #
-#   See more:
-#   https://docs.python.org/3/library/imp.html#imp.load_module
-
+# _HANDLER is a reserved environment variable used by AWS Lambda containing the
+# application handler path (e.g., "mymodule.handler"). We save it to ORIG_HANDLER
+# to allow the `otel_wrapper.py` wrapper script to retrieve it later so it
+# can delegate to the original handler.
+# see: https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
 export ORIG_HANDLER=$_HANDLER;
 export _HANDLER="otel_wrapper.lambda_handler";
 
-# - Call the upstream auto instrumentation script
-
-exec python3 $LAMBDA_LAYER_PKGS_DIR/bin/opentelemetry-instrument "$@"
+# Handoff to the Lambda bootstrap process with _HANDLER set to
+# `otel_wrapper.lambda_handler`
+exec "$@"
