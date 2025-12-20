@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"go.opentelemetry.io/collector/confmap"
 )
 
@@ -43,6 +44,14 @@ func New() confmap.Converter {
 }
 
 func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
+	initType := lambdalifecycle.InitTypeFromEnv(lambdalifecycle.InitTypeEnvVar)
+
+	// Do not append decouple processors for Lambda Managed Instances
+	// see: https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-execution-environment.html
+	if initType == lambdalifecycle.LambdaManagedInstances {
+		return nil
+	}
+
 	serviceVal := conf.Get(serviceKey)
 	service, ok := serviceVal.(map[string]interface{})
 	if !ok {

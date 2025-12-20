@@ -56,11 +56,12 @@ func TestRun(t *testing.T) {
 	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
+	extensionEventTypes := []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}
 	// test with an error
 	lm := manager{
 		collector:       &MockCollector{err: fmt.Errorf("test start error")},
 		logger:          logger,
-		extensionClient: extensionapi.NewClient(logger, ""),
+		extensionClient: extensionapi.NewClient(logger, "", extensionEventTypes),
 	}
 	require.Error(t, lm.Run(ctx))
 	// test with no waitgroup
@@ -68,7 +69,7 @@ func TestRun(t *testing.T) {
 		collector:       &MockCollector{},
 		logger:          logger,
 		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host),
+		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
 	}
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
@@ -76,7 +77,7 @@ func TestRun(t *testing.T) {
 		collector:       &MockCollector{},
 		logger:          logger,
 		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host),
+		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
 	}
 	lm.wg.Add(1)
 	go func() {
@@ -142,7 +143,7 @@ func TestProcessEvents(t *testing.T) {
 				collector:       &MockCollector{err: tc.collectorError},
 				logger:          logger,
 				listener:        telemetryapi.NewListener(logger),
-				extensionClient: extensionapi.NewClient(logger, u.Host),
+				extensionClient: extensionapi.NewClient(logger, u.Host, []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}),
 			}
 			lm.wg.Add(1)
 			if tc.err != nil {
@@ -152,7 +153,6 @@ func TestProcessEvents(t *testing.T) {
 			} else {
 				require.NoError(t, lm.processEvents(ctx))
 			}
-
 		})
 	}
 
