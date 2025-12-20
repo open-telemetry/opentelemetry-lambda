@@ -29,7 +29,7 @@ func TestInitType_String(t *testing.T) {
 		{OnDemand, "on-demand"},
 		{ProvisionedConcurrency, "provisioned-concurrency"},
 		{SnapStart, "snap-start"},
-		{LambdaManagedInstances, "lambda-managed-instance"},
+		{LambdaManagedInstances, "lambda-managed-instances"},
 		{Unknown, "unknown"},
 		{InitType(99), "unknown"},
 	}
