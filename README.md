@@ -136,6 +136,7 @@ For more information about the maintainer role, see the [community repository](h
 
 - [Ivan Santos](https://github.com/pragmaticivan)
 - [Maxime David](https://github.com/maxday)
+- [Lukas Hering](https://github.com/herin049)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
