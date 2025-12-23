@@ -35,8 +35,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
-	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
-	semconv2 "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
@@ -240,7 +239,7 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 	r.resource.CopyTo(resourceMetric.Resource())
 	scopeMetric := resourceMetric.ScopeMetrics().AppendEmpty()
 	scopeMetric.Scope().SetName(scopeName)
-	scopeMetric.SetSchemaUrl(semconv2.SchemaURL)
+	scopeMetric.SetSchemaUrl(semconv.SchemaURL)
 
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
@@ -342,7 +341,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 		if record, ok := el.Record.(map[string]interface{}); ok {
 			requestId := r.getRecordRequestId(record)
 			if requestId != "" {
-				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, requestId)
+				logRecord.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), requestId)
 
 				// If this is the first event in the invocation with a request id (i.e. the "platform.start" event),
 				// set the current invocation id to this request id.
@@ -382,7 +381,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 			}
 		} else {
 			if r.currentFaasInvocationID != "" {
-				logRecord.Attributes().PutStr(semconv.AttributeFaaSInvocationID, r.currentFaasInvocationID)
+				logRecord.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), r.currentFaasInvocationID)
 			}
 			// in plain text https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#telemetry-api-function
 			if line, ok := el.Record.(string); ok {
@@ -586,7 +585,7 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(record map[string]any, sta
 	span.SetSpanID(newSpanID())
 	span.SetName(fmt.Sprintf("init %s", r.faasName))
 	span.SetKind(ptrace.SpanKindInternal)
-	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+	span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 	startTime, err := time.Parse(time.RFC3339, start)
 	if err != nil {
 		return ptrace.Traces{}, err
@@ -603,9 +602,9 @@ func (r *telemetryAPIReceiver) createPlatformInitSpan(record map[string]any, sta
 		span.Status().SetCode(ptrace.StatusCodeError)
 		errorType, _ := record["errorType"].(string)
 		if errorType != "" {
-			span.Attributes().PutStr(semconv.AttributeErrorType, errorType)
+			span.Attributes().PutStr(string(semconv.ErrorTypeKey), errorType)
 		} else {
-			span.Attributes().PutStr(semconv.AttributeErrorType, status)
+			span.Attributes().PutStr(string(semconv.ErrorTypeKey), status)
 		}
 	}
 	return traceData, nil
@@ -632,21 +631,21 @@ func newTelemetryAPIReceiver(
 	set receiver.Settings,
 ) (*telemetryAPIReceiver, error) {
 	envResourceMap := map[string]string{
-		"AWS_LAMBDA_FUNCTION_MEMORY_SIZE": semconv.AttributeFaaSMaxMemory,
-		"AWS_LAMBDA_FUNCTION_VERSION":     semconv.AttributeFaaSVersion,
-		"AWS_REGION":                      semconv.AttributeFaaSInvokedRegion,
+		"AWS_LAMBDA_FUNCTION_MEMORY_SIZE": string(semconv.FaaSMaxMemoryKey),
+		"AWS_LAMBDA_FUNCTION_VERSION":     string(semconv.FaaSVersionKey),
+		"AWS_REGION":                      string(semconv.FaaSInvokedRegionKey),
 	}
 	r := pcommon.NewResource()
-	r.Attributes().PutStr(semconv.AttributeFaaSInvokedProvider, semconv.AttributeFaaSInvokedProviderAWS)
+	r.Attributes().PutStr(string(semconv.FaaSInvokedProviderKey), semconv.FaaSInvokedProviderAWS.Value.AsString())
 	if val, ok := os.LookupEnv("AWS_LAMBDA_FUNCTION_NAME"); ok {
-		r.Attributes().PutStr(semconv.AttributeServiceName, val)
-		r.Attributes().PutStr(semconv.AttributeFaaSName, val)
+		r.Attributes().PutStr(string(semconv.ServiceNameKey), val)
+		r.Attributes().PutStr(string(semconv.FaaSNameKey), val)
 	} else {
-		r.Attributes().PutStr(semconv.AttributeServiceName, "unknown_service")
+		r.Attributes().PutStr(string(semconv.ServiceNameKey), "unknown_service")
 	}
 
 	if val, ok := os.LookupEnv("OTEL_SERVICE_NAME"); ok {
-		r.Attributes().PutStr(semconv.AttributeServiceName, val)
+		r.Attributes().PutStr(string(semconv.ServiceNameKey), val)
 	}
 
 	for env, resourceAttribute := range envResourceMap {

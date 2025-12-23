@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	semconv2 "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 func TestHistogramMetricBuilder_AppendDataPoint(t *testing.T) {
@@ -202,9 +202,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFasSInvokeDurationMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSInvokeDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSInvokeDurationName, builder.name)
-		assert.Equal(t, semconv2.FaaSInvokeDurationDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSInvokeDurationUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSInvokeDurationName, builder.name)
+		assert.Equal(t, semconv.FaaSInvokeDurationDescription, builder.description)
+		assert.Equal(t, semconv.FaaSInvokeDurationUnit, builder.unit)
 		assert.Equal(t, DurationHistogramBounds, builder.bounds)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -212,9 +212,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFasSInitDurationMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSInitDurationMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSInitDurationName, builder.name)
-		assert.Equal(t, semconv2.FaaSInitDurationDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSInitDurationUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSInitDurationName, builder.name)
+		assert.Equal(t, semconv.FaaSInitDurationDescription, builder.description)
+		assert.Equal(t, semconv.FaaSInitDurationUnit, builder.unit)
 		assert.Equal(t, DurationHistogramBounds, builder.bounds)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -222,9 +222,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFaaSMemUsageMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSMemUsageMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSMemUsageName, builder.name)
-		assert.Equal(t, semconv2.FaaSMemUsageDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSMemUsageUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSMemUsageName, builder.name)
+		assert.Equal(t, semconv.FaaSMemUsageDescription, builder.description)
+		assert.Equal(t, semconv.FaaSMemUsageUnit, builder.unit)
 		assert.Equal(t, MemUsageHistogramBounds, builder.bounds)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -232,9 +232,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFaaSColdstartsMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSColdstartsMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSColdstartsName, builder.name)
-		assert.Equal(t, semconv2.FaaSColdstartsDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSColdstartsUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSColdstartsName, builder.name)
+		assert.Equal(t, semconv.FaaSColdstartsDescription, builder.description)
+		assert.Equal(t, semconv.FaaSColdstartsUnit, builder.unit)
 		assert.True(t, builder.isMonotonic)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -242,9 +242,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFaaSErrorsMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSErrorsMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSErrorsName, builder.name)
-		assert.Equal(t, semconv2.FaaSErrorsDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSErrorsUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSErrorsName, builder.name)
+		assert.Equal(t, semconv.FaaSErrorsDescription, builder.description)
+		assert.Equal(t, semconv.FaaSErrorsUnit, builder.unit)
 		assert.True(t, builder.isMonotonic)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -252,9 +252,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFaaSInvocationsMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSInvocationsMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSInvocationsName, builder.name)
-		assert.Equal(t, semconv2.FaaSInvocationsDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSInvocationsUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSInvocationsName, builder.name)
+		assert.Equal(t, semconv.FaaSInvocationsDescription, builder.description)
+		assert.Equal(t, semconv.FaaSInvocationsUnit, builder.unit)
 		assert.True(t, builder.isMonotonic)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -262,9 +262,9 @@ func TestFaaSMetricBuilderFactories(t *testing.T) {
 
 	t.Run("NewFaaSTimeoutsMetricBuilder", func(t *testing.T) {
 		builder := NewFaaSTimeoutsMetricBuilder(startTime, pmetric.AggregationTemporalityCumulative)
-		assert.Equal(t, semconv2.FaaSTimeoutsName, builder.name)
-		assert.Equal(t, semconv2.FaaSTimeoutsDescription, builder.description)
-		assert.Equal(t, semconv2.FaaSTimeoutsUnit, builder.unit)
+		assert.Equal(t, semconv.FaaSTimeoutsName, builder.name)
+		assert.Equal(t, semconv.FaaSTimeoutsDescription, builder.description)
+		assert.Equal(t, semconv.FaaSTimeoutsUnit, builder.unit)
 		assert.True(t, builder.isMonotonic)
 		assert.Equal(t, pmetric.AggregationTemporalityCumulative, builder.temporality)
 		assert.Equal(t, startTime, builder.startTime)
@@ -284,13 +284,13 @@ func TestNewFaaSMetricBuilders(t *testing.T) {
 	require.NotNil(t, builders.invocationsMetric)
 	require.NotNil(t, builders.timeoutsMetric)
 
-	assert.Equal(t, semconv2.FaaSInvokeDurationName, builders.invokeDurationMetric.name)
-	assert.Equal(t, semconv2.FaaSInitDurationName, builders.initDurationMetric.name)
-	assert.Equal(t, semconv2.FaaSMemUsageName, builders.memUsageMetric.name)
-	assert.Equal(t, semconv2.FaaSColdstartsName, builders.coldstartsMetric.name)
-	assert.Equal(t, semconv2.FaaSErrorsName, builders.errorsMetric.name)
-	assert.Equal(t, semconv2.FaaSInvocationsName, builders.invocationsMetric.name)
-	assert.Equal(t, semconv2.FaaSTimeoutsName, builders.timeoutsMetric.name)
+	assert.Equal(t, semconv.FaaSInvokeDurationName, builders.invokeDurationMetric.name)
+	assert.Equal(t, semconv.FaaSInitDurationName, builders.initDurationMetric.name)
+	assert.Equal(t, semconv.FaaSMemUsageName, builders.memUsageMetric.name)
+	assert.Equal(t, semconv.FaaSColdstartsName, builders.coldstartsMetric.name)
+	assert.Equal(t, semconv.FaaSErrorsName, builders.errorsMetric.name)
+	assert.Equal(t, semconv.FaaSInvocationsName, builders.invocationsMetric.name)
+	assert.Equal(t, semconv.FaaSTimeoutsName, builders.timeoutsMetric.name)
 }
 
 func TestDefaultHistogramBounds(t *testing.T) {
