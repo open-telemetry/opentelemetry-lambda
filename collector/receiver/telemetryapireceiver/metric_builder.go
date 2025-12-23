@@ -20,7 +20,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	semconv2 "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 const MiB = float64(1 << 20)
@@ -285,9 +285,9 @@ func (c *CounterMetricBuilder) AppendDataPoints(scopeMetrics pmetric.ScopeMetric
 
 func NewFaaSInvokeDurationMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
-		semconv2.FaaSInvokeDurationName,
-		semconv2.FaaSInvokeDurationDescription,
-		semconv2.FaaSInvokeDurationUnit,
+		semconv.FaaSInvokeDurationName,
+		semconv.FaaSInvokeDurationDescription,
+		semconv.FaaSInvokeDurationUnit,
 		DurationHistogramBounds,
 		startTime,
 		temporality,
@@ -296,9 +296,9 @@ func NewFaaSInvokeDurationMetricBuilder(startTime pcommon.Timestamp, temporality
 
 func NewFaaSInitDurationMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
-		semconv2.FaaSInitDurationName,
-		semconv2.FaaSInitDurationDescription,
-		semconv2.FaaSInitDurationUnit,
+		semconv.FaaSInitDurationName,
+		semconv.FaaSInitDurationDescription,
+		semconv.FaaSInitDurationUnit,
 		DurationHistogramBounds,
 		startTime,
 		temporality,
@@ -307,9 +307,9 @@ func NewFaaSInitDurationMetricBuilder(startTime pcommon.Timestamp, temporality p
 
 func NewFaaSMemUsageMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *HistogramMetricBuilder {
 	return NewHistogramMetricBuilder(
-		semconv2.FaaSMemUsageName,
-		semconv2.FaaSMemUsageDescription,
-		semconv2.FaaSMemUsageUnit,
+		semconv.FaaSMemUsageName,
+		semconv.FaaSMemUsageDescription,
+		semconv.FaaSMemUsageUnit,
 		MemUsageHistogramBounds,
 		startTime,
 		temporality,
@@ -318,9 +318,9 @@ func NewFaaSMemUsageMetricBuilder(startTime pcommon.Timestamp, temporality pmetr
 
 func NewFaaSColdstartsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
-		semconv2.FaaSColdstartsName,
-		semconv2.FaaSColdstartsDescription,
-		semconv2.FaaSColdstartsUnit,
+		semconv.FaaSColdstartsName,
+		semconv.FaaSColdstartsDescription,
+		semconv.FaaSColdstartsUnit,
 		true,
 		startTime,
 		temporality,
@@ -329,9 +329,9 @@ func NewFaaSColdstartsMetricBuilder(startTime pcommon.Timestamp, temporality pme
 
 func NewFaaSErrorsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
-		semconv2.FaaSErrorsName,
-		semconv2.FaaSErrorsDescription,
-		semconv2.FaaSErrorsUnit,
+		semconv.FaaSErrorsName,
+		semconv.FaaSErrorsDescription,
+		semconv.FaaSErrorsUnit,
 		true,
 		startTime,
 		temporality,
@@ -340,9 +340,9 @@ func NewFaaSErrorsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric
 
 func NewFaaSInvocationsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
-		semconv2.FaaSInvocationsName,
-		semconv2.FaaSInvocationsDescription,
-		semconv2.FaaSInvocationsUnit,
+		semconv.FaaSInvocationsName,
+		semconv.FaaSInvocationsDescription,
+		semconv.FaaSInvocationsUnit,
 		true,
 		startTime,
 		temporality,
@@ -351,9 +351,9 @@ func NewFaaSInvocationsMetricBuilder(startTime pcommon.Timestamp, temporality pm
 
 func NewFaaSTimeoutsMetricBuilder(startTime pcommon.Timestamp, temporality pmetric.AggregationTemporality) *CounterMetricBuilder {
 	return NewCounterMetricBuilder(
-		semconv2.FaaSTimeoutsName,
-		semconv2.FaaSTimeoutsDescription,
-		semconv2.FaaSTimeoutsUnit,
+		semconv.FaaSTimeoutsName,
+		semconv.FaaSTimeoutsDescription,
+		semconv.FaaSTimeoutsUnit,
 		true,
 		startTime,
 		temporality,
