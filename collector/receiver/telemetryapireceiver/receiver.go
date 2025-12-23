@@ -35,7 +35,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
