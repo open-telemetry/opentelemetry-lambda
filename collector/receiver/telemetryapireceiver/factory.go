@@ -27,7 +27,7 @@ import (
 const (
 	typeStr     = "telemetryapi"
 	stability   = component.StabilityLevelDevelopment
-	defaultPort = 4325
+	defaultPort = 0
 	platform    = "platform"
 	function    = "function"
 	extension   = "extension"
