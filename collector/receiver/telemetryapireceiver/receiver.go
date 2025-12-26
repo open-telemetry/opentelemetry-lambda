@@ -26,6 +26,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-collections/go-datastructures/queue"
@@ -62,6 +63,7 @@ type telemetryAPIReceiver struct {
 	httpServer              *http.Server
 	logger                  *zap.Logger
 	queue                   *queue.Queue // queue is a synchronous queue and is used to put the received log events to be dispatched later
+	mu                      sync.Mutex
 	nextTraces              consumer.Traces
 	nextLogs                consumer.Logs
 	lastPlatformStartTime   string
@@ -137,6 +139,9 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		r.logger.Error("error unmarshalling body", zap.Error(err))
 		return
 	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	for _, el := range slice {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
