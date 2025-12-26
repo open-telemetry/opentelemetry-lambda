@@ -17,11 +17,9 @@ package telemetryapireceiver // import "github.com/open-telemetry/opentelemetry-
 import (
 	"context"
 	crand "crypto/rand"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -104,20 +102,14 @@ func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
 }
 
 func newSpanID() pcommon.SpanID {
-	var rngSeed int64
-	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
-	randSource := rand.New(rand.NewSource(rngSeed))
 	sid := pcommon.SpanID{}
-	_, _ = randSource.Read(sid[:])
+	_, _ = crand.Read(sid[:])
 	return sid
 }
 
 func newTraceID() pcommon.TraceID {
-	var rngSeed int64
-	_ = binary.Read(crand.Reader, binary.LittleEndian, &rngSeed)
-	randSource := rand.New(rand.NewSource(rngSeed))
 	tid := pcommon.TraceID{}
-	_, _ = randSource.Read(tid[:])
+	_, _ = crand.Read(tid[:])
 	return tid
 }
 
