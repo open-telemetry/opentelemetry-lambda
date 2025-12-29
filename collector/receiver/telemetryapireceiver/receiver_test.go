@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 func TestListenOnAddress(t *testing.T) {
@@ -161,7 +161,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
-			td, err := r.createPlatformInitSpan(tc.start, tc.end)
+			td, err := r.createPlatformInitSpan(make(map[string]any), tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
@@ -634,7 +634,7 @@ func TestCreateLogs(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
 
-				requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
+				requestId, ok := logRecord.Attributes().Get(string(semconv.FaaSInvocationIDKey))
 				require.Equal(t, expected.containsRequestId, ok)
 				if ok {
 					require.Equal(t, expected.requestId, requestId.Str())
