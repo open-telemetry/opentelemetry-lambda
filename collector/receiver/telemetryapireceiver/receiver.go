@@ -257,18 +257,18 @@ func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, er
 			r.faaSMetricBuilders.coldstartsMetric.Add(1)
 			r.faaSMetricBuilders.coldstartsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 		case string(telemetryapi.PlatformInitReport):
-			metrics, ok := record["metrics"].(map[string]any)
-			if !ok {
-				continue
-			}
-
-			status, _ := metrics["status"].(string)
+			status, _ := record["status"].(string)
 			if status == telemetryFailureStatus || status == telemetryErrorStatus {
 				r.faaSMetricBuilders.errorsMetric.Add(1)
 				r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
 			} else if status == telemetryTimeoutStatus {
 				r.faaSMetricBuilders.timeoutsMetric.Add(1)
 				r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, pcommon.NewTimestampFromTime(ts))
+			}
+
+			metrics, ok := record["metrics"].(map[string]any)
+			if !ok {
+				continue
 			}
 
 			durationMs, ok := metrics["durationMs"].(float64)
