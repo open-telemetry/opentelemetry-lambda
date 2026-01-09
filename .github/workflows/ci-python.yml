@@ -42,6 +42,13 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
 
+      - name: Run ruff lint
+        working-directory: python/src/otel
+        run: |
+          uv sync --group dev
+          uv run ruff check .
+          uv run ruff format --check .
+
       - name: Run tests
         working-directory: python/src/otel
         run: |
