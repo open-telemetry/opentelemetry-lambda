@@ -19,7 +19,6 @@ Following patterns from the Node.js layer tests.
 
 import os
 import unittest
-from unittest import mock
 
 
 class TestLambdaHandler(unittest.TestCase):
@@ -38,16 +37,16 @@ class TestLambdaHandler(unittest.TestCase):
         """Test that ORIG_HANDLER environment variable is required."""
         # ORIG_HANDLER should be set for proper handler loading
         os.environ.pop("ORIG_HANDLER", None)
-        
+
         with self.assertRaises(KeyError):
             # Should raise error when ORIG_HANDLER is not set
-            handler = os.environ["ORIG_HANDLER"]
+            _ = os.environ["ORIG_HANDLER"]
 
     def test_handler_path_parsing(self):
         """Test parsing of handler path (module.function format)."""
         handler_path = "lambda_function.handler"
         os.environ["ORIG_HANDLER"] = handler_path
-        
+
         # Split into module and function
         parts = handler_path.rsplit(".", 1)
         self.assertEqual(len(parts), 2)
@@ -58,7 +57,7 @@ class TestLambdaHandler(unittest.TestCase):
         """Test parsing of nested module handler path."""
         handler_path = "handlers.main.lambda_handler"
         os.environ["ORIG_HANDLER"] = handler_path
-        
+
         parts = handler_path.rsplit(".", 1)
         self.assertEqual(len(parts), 2)
         self.assertEqual(parts[0], "handlers.main")
@@ -70,7 +69,7 @@ class TestLambdaHandler(unittest.TestCase):
         file_path = "handlers/main"
         module_path = ".".join(file_path.split("/"))
         self.assertEqual(module_path, "handlers.main")
-        
+
         # Test nested paths
         file_path = "src/handlers/api/main"
         module_path = ".".join(file_path.split("/"))
@@ -80,14 +79,14 @@ class TestLambdaHandler(unittest.TestCase):
         """Test AWS Lambda function name environment variable."""
         function_name = "test-function"
         os.environ["AWS_LAMBDA_FUNCTION_NAME"] = function_name
-        
+
         self.assertEqual(os.environ["AWS_LAMBDA_FUNCTION_NAME"], function_name)
 
     def test_lambda_task_root(self):
         """Test LAMBDA_TASK_ROOT environment variable."""
         task_root = "/var/task"
         os.environ["LAMBDA_TASK_ROOT"] = task_root
-        
+
         self.assertEqual(os.environ["LAMBDA_TASK_ROOT"], task_root)
 
 
@@ -107,21 +106,23 @@ class TestAwsLambdaInstrumentation(unittest.TestCase):
         """Test Lambda runtime API environment variables."""
         runtime_api = "127.0.0.1:9001"
         os.environ["AWS_LAMBDA_RUNTIME_API"] = runtime_api
-        
+
         self.assertEqual(os.environ["AWS_LAMBDA_RUNTIME_API"], runtime_api)
 
     def test_xray_trace_header(self):
         """Test X-Ray trace header environment variable."""
-        trace_header = "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1"
+        trace_header = (
+            "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1"
+        )
         os.environ["_X_AMZN_TRACE_ID"] = trace_header
-        
+
         self.assertEqual(os.environ["_X_AMZN_TRACE_ID"], trace_header)
 
     def test_lambda_handler_environment(self):
         """Test _HANDLER environment variable (internal Lambda runtime variable)."""
         handler = "lambda_function.handler"
         os.environ["_HANDLER"] = handler
-        
+
         self.assertEqual(os.environ["_HANDLER"], handler)
 
 

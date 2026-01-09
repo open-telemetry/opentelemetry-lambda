@@ -22,11 +22,9 @@ Following patterns from the Node.js layer tests:
 
 import os
 import unittest
-from unittest import mock
 
-from opentelemetry import propagate, trace
+from opentelemetry import propagate
 from opentelemetry.propagators.aws.aws_xray_propagator import AwsXRayPropagator
-from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
@@ -53,12 +51,12 @@ class TestPropagatorConfiguration(unittest.TestCase):
     def test_xray_propagator_configuration(self):
         """Test X-Ray propagator configuration via environment variable."""
         os.environ["OTEL_PROPAGATORS"] = "xray"
-        
+
         # We need to simulate the propagator configuration that happens in otel_wrapper
         # In actual usage, this would be configured during wrapper initialization
-        from opentelemetry.propagators.aws.aws_xray_propagator import AwsXRayPropagator
+
         propagate.set_global_textmap(AwsXRayPropagator())
-        
+
         propagator = propagate.get_global_textmap()
         fields = propagator.fields
         # X-Amzn-Trace-Id is case-sensitive
@@ -67,10 +65,9 @@ class TestPropagatorConfiguration(unittest.TestCase):
     def test_tracecontext_propagator_configuration(self):
         """Test W3C TraceContext propagator configuration."""
         os.environ["OTEL_PROPAGATORS"] = "tracecontext"
-        
-        from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
         propagate.set_global_textmap(TraceContextTextMapPropagator())
-        
+
         propagator = propagate.get_global_textmap()
         fields = propagator.fields
         self.assertIn("traceparent", fields)
@@ -79,14 +76,15 @@ class TestPropagatorConfiguration(unittest.TestCase):
     def test_composite_propagator_configuration(self):
         """Test configuration with multiple propagators."""
         os.environ["OTEL_PROPAGATORS"] = "tracecontext,xray"
-        
-        from opentelemetry.propagators.composite import CompositePropagator
-        from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
         from opentelemetry.propagators.aws.aws_xray_propagator import AwsXRayPropagator
-        
-        composite = CompositePropagator([TraceContextTextMapPropagator(), AwsXRayPropagator()])
+        from opentelemetry.propagators.composite import CompositePropagator
+
+        composite = CompositePropagator(
+            [TraceContextTextMapPropagator(), AwsXRayPropagator()]
+        )
         propagate.set_global_textmap(composite)
-        
+
         propagator = propagate.get_global_textmap()
         fields = propagator.fields
         # Should have fields from both propagators
@@ -157,7 +155,9 @@ class TestInstrumentationConfiguration(unittest.TestCase):
     def test_disabled_instrumentations_parsing(self):
         """Test parsing of OTEL_PYTHON_DISABLED_INSTRUMENTATIONS."""
         os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = "django,flask"
-        disabled = os.environ.get("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", "").split(",")
+        disabled = os.environ.get("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", "").split(
+            ","
+        )
         self.assertEqual(len(disabled), 2)
         self.assertIn("django", disabled)
         self.assertIn("flask", disabled)
@@ -185,7 +185,7 @@ class TestResourceConfiguration(unittest.TestCase):
         """Test service name configuration."""
         test_service_name = "my-lambda-function"
         os.environ["OTEL_SERVICE_NAME"] = test_service_name
-        
+
         service_name = os.environ.get("OTEL_SERVICE_NAME")
         self.assertEqual(service_name, test_service_name)
 
@@ -194,17 +194,18 @@ class TestResourceConfiguration(unittest.TestCase):
         function_name = "test-lambda-function"
         os.environ["AWS_LAMBDA_FUNCTION_NAME"] = function_name
         os.environ.pop("OTEL_SERVICE_NAME", None)
-        
+
         # Service name should fall back to function name
-        service_name = os.environ.get("OTEL_SERVICE_NAME", 
-                                      os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+        service_name = os.environ.get(
+            "OTEL_SERVICE_NAME", os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+        )
         self.assertEqual(service_name, function_name)
 
     def test_resource_attributes_configuration(self):
         """Test resource attributes configuration."""
         attributes = "key1=value1,key2=value2"
         os.environ["OTEL_RESOURCE_ATTRIBUTES"] = attributes
-        
+
         resource_attrs = os.environ.get("OTEL_RESOURCE_ATTRIBUTES")
         self.assertEqual(resource_attrs, attributes)
 
