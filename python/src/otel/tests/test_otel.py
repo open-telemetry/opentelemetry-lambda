@@ -24,6 +24,7 @@ import sys
 from importlib import import_module, reload
 from shutil import which
 from unittest import mock
+
 from opentelemetry import propagate
 from opentelemetry.environment_variables import OTEL_PROPAGATORS
 from opentelemetry.instrumentation.aws_lambda import (
@@ -46,9 +47,7 @@ from opentelemetry.trace.propagation.tracecontext import (
 
 AWS_LAMBDA_EXEC_WRAPPER = "AWS_LAMBDA_EXEC_WRAPPER"
 AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME"
-INIT_OTEL_SCRIPTS_DIR = os.path.join(
-    *(os.path.dirname(__file__), "..", "otel_sdk")
-)
+INIT_OTEL_SCRIPTS_DIR = os.path.join(*(os.path.dirname(__file__), "..", "otel_sdk"))
 TOX_PYTHON_DIRECTORY = os.path.dirname(os.path.dirname(which("python3")))
 
 
@@ -68,9 +67,7 @@ MOCK_XRAY_TRACE_ID_STR = f"{MOCK_XRAY_TRACE_ID:x}"
 MOCK_XRAY_PARENT_SPAN_ID = 0x3328B8445A6DBAD2
 MOCK_XRAY_TRACE_CONTEXT_COMMON = f"Root={TRACE_ID_VERSION}-{MOCK_XRAY_TRACE_ID_STR[:TRACE_ID_FIRST_PART_LENGTH]}-{MOCK_XRAY_TRACE_ID_STR[TRACE_ID_FIRST_PART_LENGTH:]};Parent={MOCK_XRAY_PARENT_SPAN_ID:x}"
 MOCK_XRAY_TRACE_CONTEXT_SAMPLED = f"{MOCK_XRAY_TRACE_CONTEXT_COMMON};Sampled=1"
-MOCK_XRAY_TRACE_CONTEXT_NOT_SAMPLED = (
-    f"{MOCK_XRAY_TRACE_CONTEXT_COMMON};Sampled=0"
-)
+MOCK_XRAY_TRACE_CONTEXT_NOT_SAMPLED = f"{MOCK_XRAY_TRACE_CONTEXT_COMMON};Sampled=0"
 
 # See more:
 # https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
@@ -221,7 +218,7 @@ class TestAwsLambdaInstrumentor(TestBase):
                 **os.environ,
                 # Using Active tracing
                 _X_AMZN_TRACE_ID: MOCK_XRAY_TRACE_CONTEXT_SAMPLED,
-                OTEL_PROPAGATORS: "xray-lambda"
+                OTEL_PROPAGATORS: "xray-lambda",
             },
         )
         test_env_patch.start()
@@ -261,9 +258,7 @@ class TestAwsLambdaInstrumentor(TestBase):
         # self.assertEqual(resource_atts[ResourceAttributes.FAAS_VERSION], os.environ["AWS_LAMBDA_FUNCTION_VERSION"])
 
         parent_context = span.parent
-        self.assertEqual(
-            parent_context.trace_id, span.get_span_context().trace_id
-        )
+        self.assertEqual(parent_context.trace_id, span.get_span_context().trace_id)
         self.assertEqual(parent_context.span_id, MOCK_XRAY_PARENT_SPAN_ID)
         self.assertTrue(parent_context.is_remote)
 
@@ -303,9 +298,7 @@ class TestAwsLambdaInstrumentor(TestBase):
         self.assertEqual(span.get_span_context().trace_id, MOCK_W3C_TRACE_ID)
 
         parent_context = span.parent
-        self.assertEqual(
-            parent_context.trace_id, span.get_span_context().trace_id
-        )
+        self.assertEqual(parent_context.trace_id, span.get_span_context().trace_id)
         self.assertEqual(parent_context.span_id, MOCK_W3C_PARENT_SPAN_ID)
         self.assertEqual(len(parent_context.trace_state), 3)
         self.assertEqual(
