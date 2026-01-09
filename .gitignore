@@ -13,8 +13,10 @@ terraform.*
 .DS_Store
 
 .tox
-__pycache__/*
-.pyc
+.venv
+.pytest_cache/
+__pycache__/
+*.pyc
 build.toml
 
 *.zip
