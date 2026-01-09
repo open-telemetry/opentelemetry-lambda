@@ -34,7 +34,7 @@ with mock.patch.dict(os.environ, {"ORIG_HANDLER": "mocks.lambda_function.handler
 
 
 class TestLambdaHandler(unittest.TestCase):
-    """Test Lambda handler wrapping and execution."""
+    """Test Lambda handler functions from otel_wrapper.py."""
 
     def setUp(self):
         """Store original environment."""
@@ -45,8 +45,8 @@ class TestLambdaHandler(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self.old_env)
 
-    def test_handler_error_when_missing(self):
-        """Test that HandlerError is raised when ORIG_HANDLER is not set."""
+    def test_handler_error_class_exists(self):
+        """Test that HandlerError class is properly defined."""
         # This validates the error handling in otel_wrapper.py
         self.assertIsNotNone(HandlerError)
 
@@ -55,91 +55,14 @@ class TestLambdaHandler(unittest.TestCase):
         self.assertIsInstance(error, Exception)
         self.assertEqual(str(error), "test error")
 
-    def test_handler_path_parsing_valid(self):
-        """Test parsing of valid handler path (module.function format)."""
-        handler_path = "lambda_function.handler"
+    def test_handler_error_message_formatting(self):
+        """Test HandlerError message formatting."""
+        error = HandlerError("ORIG_HANDLER is not defined.")
+        self.assertEqual(str(error), "ORIG_HANDLER is not defined.")
 
-        # Test the parsing logic used in otel_wrapper.py
-        try:
-            mod_name, handler_name = handler_path.rsplit(".", 1)
-            self.assertEqual(mod_name, "lambda_function")
-            self.assertEqual(handler_name, "handler")
-        except ValueError:
-            self.fail("Valid handler path should not raise ValueError")
-
-    def test_handler_path_parsing_invalid(self):
-        """Test that invalid handler paths raise IndexError when accessing second element."""
-        invalid_paths = [
-            "lambda_function",  # No dot separator
-            "",  # Empty string
-        ]
-
-        for invalid_path in invalid_paths:
-            with self.subTest(path=invalid_path), self.assertRaises(IndexError):
-                # This is the parsing logic from otel_wrapper.py
-                # rsplit returns a list, and [1] will raise IndexError if no second element
-                invalid_path.rsplit(".", 1)[1]
-
-    def test_handler_path_with_nested_module(self):
-        """Test parsing of nested module handler path."""
-        handler_path = "handlers.main.lambda_handler"
-
-        try:
-            mod_name, handler_name = handler_path.rsplit(".", 1)
-            self.assertEqual(mod_name, "handlers.main")
-            self.assertEqual(handler_name, "lambda_handler")
-        except ValueError:
-            self.fail("Valid nested handler path should not raise ValueError")
-
-    def test_aws_lambda_function_name(self):
-        """Test AWS Lambda function name environment variable."""
-        function_name = "test-function"
-        os.environ["AWS_LAMBDA_FUNCTION_NAME"] = function_name
-
-        self.assertEqual(os.environ["AWS_LAMBDA_FUNCTION_NAME"], function_name)
-
-    def test_lambda_task_root(self):
-        """Test LAMBDA_TASK_ROOT environment variable."""
-        task_root = "/var/task"
-        os.environ["LAMBDA_TASK_ROOT"] = task_root
-
-        self.assertEqual(os.environ["LAMBDA_TASK_ROOT"], task_root)
-
-
-class TestAwsLambdaInstrumentation(unittest.TestCase):
-    """Test AWS Lambda instrumentation."""
-
-    def setUp(self):
-        """Store original environment."""
-        self.old_env = os.environ.copy()
-
-    def tearDown(self):
-        """Restore original environment."""
-        os.environ.clear()
-        os.environ.update(self.old_env)
-
-    def test_lambda_runtime_api_environment(self):
-        """Test Lambda runtime API environment variables."""
-        runtime_api = "127.0.0.1:9001"
-        os.environ["AWS_LAMBDA_RUNTIME_API"] = runtime_api
-
-        self.assertEqual(os.environ["AWS_LAMBDA_RUNTIME_API"], runtime_api)
-
-    def test_xray_trace_header(self):
-        """Test X-Ray trace header environment variable."""
-        trace_header = (
-            "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1"
-        )
-        os.environ["_X_AMZN_TRACE_ID"] = trace_header
-
-        self.assertEqual(os.environ["_X_AMZN_TRACE_ID"], trace_header)
-
-    def test_lambda_handler_environment(self):
-        """Test _HANDLER environment variable (internal Lambda runtime variable)."""
-        handler = "lambda_function.handler"
-        os.environ["_HANDLER"] = handler
-
-        self.assertEqual(os.environ["_HANDLER"], handler)
+        error2 = HandlerError("Bad path 'invalid' for ORIG_HANDLER: no dot found")
+        self.assertIn("Bad path", str(error2))
+        self.assertIn("ORIG_HANDLER", str(error2))
 
 
 class TestModuleNameModification(unittest.TestCase):

@@ -14,25 +14,27 @@
 
 """
 Tests for the OpenTelemetry Lambda wrapper configuration.
-Following patterns from the Node.js layer tests:
-- Test propagator configuration
-- Test exporter configuration
-- Test instrumentation configuration
+Tests actual functions from otel_wrapper.py.
 """
 
 import os
+import sys
 import unittest
+from pathlib import Path
+from unittest import mock
 
-from opentelemetry import propagate
-from opentelemetry.propagators.aws.aws_xray_propagator import AwsXRayPropagator
-from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+# Mock environment to allow importing otel_wrapper
+with mock.patch.dict(os.environ, {"ORIG_HANDLER": "mocks.lambda_function.handler"}):
+    otel_sdk_path = Path(__file__).parent.parent / "otel_sdk"
+    sys.path.insert(0, str(otel_sdk_path))
+    from otel_wrapper import _get_active_instrumentations
 
 
-class TestPropagatorConfiguration(unittest.TestCase):
-    """Test propagator configuration via OTEL_PROPAGATORS environment variable."""
+class TestInstrumentationConfiguration(unittest.TestCase):
+    """Test the _get_active_instrumentations function from otel_wrapper.py."""
 
     def setUp(self):
-        """Reset propagator before each test."""
+        """Store original environment."""
         self.old_env = os.environ.copy()
 
     def tearDown(self):
@@ -40,199 +42,61 @@ class TestPropagatorConfiguration(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self.old_env)
 
-    def test_default_propagator_configuration(self):
-        """Test that the default propagator is configured (tracecontext, baggage)."""
-        # Default propagators should be W3C TraceContext and Baggage
-        propagator = propagate.get_global_textmap()
-        # The default should have traceparent, tracestate, and possibly baggage fields
-        fields = propagator.fields
-        self.assertIn("traceparent", fields)
+    def test_default_instrumentations_empty(self):
+        """Test that by default no instrumentations are enabled (except botocore/aws-lambda)."""
+        os.environ.pop("OTEL_PYTHON_ENABLED_INSTRUMENTATIONS", None)
+        os.environ.pop("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", None)
 
-    def test_xray_propagator_configuration(self):
-        """Test X-Ray propagator configuration via environment variable."""
-        os.environ["OTEL_PROPAGATORS"] = "xray"
+        active = _get_active_instrumentations()
+        # Should be empty set by default (botocore and aws-lambda are loaded separately)
+        self.assertIsInstance(active, set)
+        self.assertEqual(len(active), 0)
 
-        # We need to simulate the propagator configuration that happens in otel_wrapper
-        # In actual usage, this would be configured during wrapper initialization
+    def test_enabled_instrumentations_parsing(self):
+        """Test the real _get_active_instrumentations function with OTEL_PYTHON_ENABLED_INSTRUMENTATIONS."""
+        os.environ["OTEL_PYTHON_ENABLED_INSTRUMENTATIONS"] = "requests,psycopg2,redis"
 
-        propagate.set_global_textmap(AwsXRayPropagator())
+        active = _get_active_instrumentations()
+        self.assertIsInstance(active, set)
+        self.assertEqual(len(active), 3)
+        self.assertIn("requests", active)
+        self.assertIn("psycopg2", active)
+        self.assertIn("redis", active)
 
-        propagator = propagate.get_global_textmap()
-        fields = propagator.fields
-        # X-Amzn-Trace-Id is case-sensitive
-        self.assertIn("X-Amzn-Trace-Id", fields)
-
-    def test_tracecontext_propagator_configuration(self):
-        """Test W3C TraceContext propagator configuration."""
-        os.environ["OTEL_PROPAGATORS"] = "tracecontext"
-
-        propagate.set_global_textmap(TraceContextTextMapPropagator())
-
-        propagator = propagate.get_global_textmap()
-        fields = propagator.fields
-        self.assertIn("traceparent", fields)
-        self.assertIn("tracestate", fields)
-
-    def test_composite_propagator_configuration(self):
-        """Test configuration with multiple propagators."""
-        os.environ["OTEL_PROPAGATORS"] = "tracecontext,xray"
-
-        from opentelemetry.propagators.aws.aws_xray_propagator import AwsXRayPropagator
-        from opentelemetry.propagators.composite import CompositePropagator
-
-        composite = CompositePropagator(
-            [TraceContextTextMapPropagator(), AwsXRayPropagator()]
+    def test_disabled_instrumentations_removes_from_enabled(self):
+        """Test that OTEL_PYTHON_DISABLED_INSTRUMENTATIONS removes items from enabled set."""
+        os.environ["OTEL_PYTHON_ENABLED_INSTRUMENTATIONS"] = (
+            "requests,psycopg2,redis,django"
         )
-        propagate.set_global_textmap(composite)
+        os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = "django,psycopg2"
 
-        propagator = propagate.get_global_textmap()
-        fields = propagator.fields
-        # Should have fields from both propagators
-        self.assertIn("traceparent", fields)
-        # X-Amzn-Trace-Id is case-sensitive
-        self.assertIn("X-Amzn-Trace-Id", fields)
+        active = _get_active_instrumentations()
+        self.assertIn("requests", active)
+        self.assertIn("redis", active)
+        self.assertNotIn("django", active)
+        self.assertNotIn("psycopg2", active)
+
+    def test_disabled_with_no_enabled_does_nothing(self):
+        """Test that disabling instrumentations with no enabled list has no effect."""
+        os.environ.pop("OTEL_PYTHON_ENABLED_INSTRUMENTATIONS", None)
+        os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = "django,flask"
+
+        active = _get_active_instrumentations()
+        # Should still be empty since nothing was enabled
+        self.assertEqual(len(active), 0)
+
+    def test_empty_enabled_instrumentations_string(self):
+        """Test behavior with empty enabled instrumentations string."""
+        os.environ["OTEL_PYTHON_ENABLED_INSTRUMENTATIONS"] = ""
+
+        active = _get_active_instrumentations()
+        # Empty string split returns [''], so we should get one empty string in the set
+        # This tests the actual behavior
+        self.assertIsInstance(active, set)
 
 
 class TestExporterConfiguration(unittest.TestCase):
     """Test exporter configuration via environment variables."""
-
-    def setUp(self):
-        """Store original environment."""
-        self.old_env = os.environ.copy()
-
-    def tearDown(self):
-        """Restore original environment."""
-        os.environ.clear()
-        os.environ.update(self.old_env)
-
-    def test_default_otlp_exporter(self):
-        """Test that OTLP is the default exporter."""
-        # Default should be OTLP
-        exporter_name = os.environ.get("OTEL_TRACES_EXPORTER", "otlp")
-        self.assertEqual(exporter_name, "otlp")
-
-    def test_console_exporter_configuration(self):
-        """Test console exporter configuration."""
-        os.environ["OTEL_TRACES_EXPORTER"] = "console"
-        exporter_name = os.environ.get("OTEL_TRACES_EXPORTER")
-        self.assertEqual(exporter_name, "console")
-
-    def test_none_exporter_configuration(self):
-        """Test that 'none' disables tracing."""
-        os.environ["OTEL_TRACES_EXPORTER"] = "none"
-        exporter_name = os.environ.get("OTEL_TRACES_EXPORTER")
-        self.assertEqual(exporter_name, "none")
-
-    def test_multiple_exporters_configuration(self):
-        """Test configuration with multiple exporters."""
-        os.environ["OTEL_TRACES_EXPORTER"] = "console,otlp"
-        exporter_names = os.environ.get("OTEL_TRACES_EXPORTER", "").split(",")
-        self.assertIn("console", exporter_names)
-        self.assertIn("otlp", exporter_names)
-
-
-class TestInstrumentationConfiguration(unittest.TestCase):
-    """Test instrumentation loading configuration."""
-
-    def setUp(self):
-        """Store original environment."""
-        self.old_env = os.environ.copy()
-
-    def tearDown(self):
-        """Restore original environment."""
-        os.environ.clear()
-        os.environ.update(self.old_env)
-
-    def test_enabled_instrumentations_parsing(self):
-        """Test parsing of OTEL_PYTHON_ENABLED_INSTRUMENTATIONS."""
-        os.environ["OTEL_PYTHON_ENABLED_INSTRUMENTATIONS"] = "requests,psycopg2,redis"
-        enabled = os.environ.get("OTEL_PYTHON_ENABLED_INSTRUMENTATIONS", "").split(",")
-        self.assertEqual(len(enabled), 3)
-        self.assertIn("requests", enabled)
-        self.assertIn("psycopg2", enabled)
-        self.assertIn("redis", enabled)
-
-    def test_disabled_instrumentations_parsing(self):
-        """Test parsing of OTEL_PYTHON_DISABLED_INSTRUMENTATIONS."""
-        os.environ["OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"] = "django,flask"
-        disabled = os.environ.get("OTEL_PYTHON_DISABLED_INSTRUMENTATIONS", "").split(
-            ","
-        )
-        self.assertEqual(len(disabled), 2)
-        self.assertIn("django", disabled)
-        self.assertIn("flask", disabled)
-
-    def test_empty_enabled_instrumentations(self):
-        """Test behavior with empty enabled instrumentations."""
-        # When not set, should return empty string
-        enabled = os.environ.get("OTEL_PYTHON_ENABLED_INSTRUMENTATIONS", "")
-        self.assertEqual(enabled, "")
-
-
-class TestResourceConfiguration(unittest.TestCase):
-    """Test resource configuration."""
-
-    def setUp(self):
-        """Store original environment."""
-        self.old_env = os.environ.copy()
-
-    def tearDown(self):
-        """Restore original environment."""
-        os.environ.clear()
-        os.environ.update(self.old_env)
-
-    def test_service_name_configuration(self):
-        """Test service name configuration."""
-        test_service_name = "my-lambda-function"
-        os.environ["OTEL_SERVICE_NAME"] = test_service_name
-
-        service_name = os.environ.get("OTEL_SERVICE_NAME")
-        self.assertEqual(service_name, test_service_name)
-
-    def test_service_name_from_function_name(self):
-        """Test service name defaults to AWS_LAMBDA_FUNCTION_NAME."""
-        function_name = "test-lambda-function"
-        os.environ["AWS_LAMBDA_FUNCTION_NAME"] = function_name
-        os.environ.pop("OTEL_SERVICE_NAME", None)
-
-        # Service name should fall back to function name
-        service_name = os.environ.get(
-            "OTEL_SERVICE_NAME", os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
-        )
-        self.assertEqual(service_name, function_name)
-
-    def test_resource_attributes_configuration(self):
-        """Test resource attributes configuration."""
-        attributes = "key1=value1,key2=value2"
-        os.environ["OTEL_RESOURCE_ATTRIBUTES"] = attributes
-
-        resource_attrs = os.environ.get("OTEL_RESOURCE_ATTRIBUTES")
-        self.assertEqual(resource_attrs, attributes)
-
-
-class TestLogConfiguration(unittest.TestCase):
-    """Test logging configuration."""
-
-    def setUp(self):
-        """Store original environment."""
-        self.old_env = os.environ.copy()
-
-    def tearDown(self):
-        """Restore original environment."""
-        os.environ.clear()
-        os.environ.update(self.old_env)
-
-    def test_log_level_configuration(self):
-        """Test log level configuration."""
-        os.environ["OTEL_LOG_LEVEL"] = "DEBUG"
-        log_level = os.environ.get("OTEL_LOG_LEVEL")
-        self.assertEqual(log_level, "DEBUG")
-
-    def test_default_log_level(self):
-        """Test default log level."""
-        os.environ.pop("OTEL_LOG_LEVEL", None)
-        log_level = os.environ.get("OTEL_LOG_LEVEL", "INFO")
-        self.assertEqual(log_level, "INFO")
 
 
 if __name__ == "__main__":
