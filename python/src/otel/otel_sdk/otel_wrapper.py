@@ -354,9 +354,8 @@ def _configure_meter_provider():
     Sets up metrics export with Lambda resource detection and configured exporters.
     """
     provider = metrics.get_meter_provider()
-    is_proxy = isinstance(provider, metrics.ProxyMeterProvider)
-
-    if not is_proxy:
+    # Check if provider is already configured (not the default NoOpMeterProvider)
+    if isinstance(provider, MeterProvider):
         logger.debug("MeterProvider already configured.")
         return
 
