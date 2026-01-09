@@ -69,9 +69,8 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Default instrumentations for Lambda
-# Following the Node.js layer pattern, only core network instrumentations are defaults
-# dns, http, net in Node.js -> no exact Python equivalent (http is at framework level)
-# AWS SDK is always loaded (not part of defaults in Node.js either, it's added separately)
+# Empty by design - instrumentations are loaded based on environment variables
+# AWS SDK (botocore) is always loaded separately as it's essential for Lambda
 DEFAULT_INSTRUMENTATIONS = []
 
 
@@ -80,9 +79,8 @@ def _get_active_instrumentations():
 
     Respects OTEL_PYTHON_ENABLED_INSTRUMENTATIONS and OTEL_PYTHON_DISABLED_INSTRUMENTATIONS.
 
-    Note: Unlike explicit defaults, botocore and aws-lambda instrumentations are
-    always loaded as they are essential for Lambda operation (similar to how Node.js
-    layer always loads AwsInstrumentation and AwsLambdaInstrumentation).
+    Note: botocore and aws-lambda instrumentations are always loaded as they are
+    essential for Lambda operation.
     """
     enabled = os.environ.get("OTEL_PYTHON_ENABLED_INSTRUMENTATIONS")
     # If explicitly enabled, only load those; otherwise use defaults
@@ -100,9 +98,9 @@ def _get_active_instrumentations():
 def _load_instrumentations():
     """Load and configure instrumentations for Lambda functions.
 
-    Similar to Node.js createInstrumentations() pattern:
-    - AwsInstrumentation (botocore) is always loaded
-    - AwsLambdaInstrumentation is always loaded
+    Core instrumentations:
+    - botocore (AWS SDK) is always loaded
+    - aws-lambda instrumentation is always loaded
     - Additional instrumentations can be enabled via environment variables
 
     Conditionally loads instrumentations based on environment variables:
@@ -194,7 +192,7 @@ def _load_instrumentations():
         "dbapi": ("opentelemetry.instrumentation.dbapi", "trace_integration"),
     }
 
-    # botocore (AWS SDK) - ALWAYS loaded for Lambda (like Node.js AwsInstrumentation)
+    # botocore (AWS SDK) - ALWAYS loaded for Lambda
     try:
         from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 
@@ -418,7 +416,7 @@ _configure_meter_provider()
 # Load instrumentations - botocore (AWS SDK) is always loaded
 _load_instrumentations()
 
-# Instrument Lambda Handler - ALWAYS loaded (like Node.js AwsLambdaInstrumentation)
+# Instrument Lambda Handler - ALWAYS loaded for Lambda operation
 # This must be called after tracer provider configuration
 AwsLambdaInstrumentor().instrument()
 
