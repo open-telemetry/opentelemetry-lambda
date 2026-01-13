@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents
 
-go 1.24.4
+go 1.24.11
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.143.0

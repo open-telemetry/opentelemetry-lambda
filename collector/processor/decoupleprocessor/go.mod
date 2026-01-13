@@ -2,7 +2,7 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoup
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle => ../../lambdalifecycle
 
-go 1.24.4
+go 1.24.11
 
 require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000

@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 
-go 1.24.4
+go 1.24.11
 
 require (
 	github.com/client9/misspell v0.3.4
