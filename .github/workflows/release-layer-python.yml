@@ -37,8 +37,8 @@ jobs:
       - name: Save PYTHON_OPENTELEMETRY_SDK_VERSION
         id: save-python-opentelemetry-sdk-version
         run: |
-          cd python/src
-          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$(cat otel/otel_sdk/requirements.txt | grep opentelemetry-sdk | sed 's/.*==\([^ ]*\).*/\1/')" >> $GITHUB_ENV
+          cd python/src/otel
+          echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$(grep 'opentelemetry-sdk' pyproject.toml | sed 's/.*==\([^"]*\).*/\1/')" >> $GITHUB_ENV
           echo "PYTHON_OPENTELEMETRY_SDK_VERSION=$PYTHON_OPENTELEMETRY_SDK_VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
@@ -78,7 +78,7 @@ jobs:
     needs: build-layer
     strategy:
       matrix:
-        aws_region: 
+        aws_region:
           - ap-northeast-1
           - ap-northeast-2
           - ap-south-1

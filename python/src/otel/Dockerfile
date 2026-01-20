@@ -6,13 +6,13 @@ ADD . /workspace
 
 WORKDIR /workspace
 
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+  export PATH="/root/.local/bin:$PATH"
+
 RUN mkdir -p /build && \
-  python3 -m pip install -r otel_sdk/requirements.txt -t /build/python && \
-  python3 -m pip install -r otel_sdk/nodeps-requirements.txt -t /build/tmp --no-deps && \
-  # We need to use a `/build/tmp/` folder otherwise the instrumentation packages
-  # do not get fully downloaded to the `opentelemetry/instrumentation/` path.
-  cp -r /build/tmp/* /build/python/ && \
-  rm -rf /build/tmp && \
+  /root/.local/bin/uv venv /build/.venv && \
+  /root/.local/bin/uv pip install --python /build/.venv/bin/python '.[instrumentation]' --target /build/python && \
   mv otel_sdk/otel_wrapper.py /build/python && \
   mv otel_sdk/otel-instrument /build && \
   mv otel_sdk/otel-handler /build && \
