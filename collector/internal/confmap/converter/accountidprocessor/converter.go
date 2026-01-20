@@ -19,17 +19,16 @@ package accountidprocessor
 
 import (
 	"context"
-	"fmt"
 
 	"go.opentelemetry.io/collector/confmap"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
 
 const (
-	serviceKey       = "service"
-	pipelinesKey     = "pipelines"
-	processorsKey    = "processors"
-	resourceProc     = "resource/aws-account-id"
-	accountIDAttrKey = "cloud.account.id"
+	serviceKey    = "service"
+	pipelinesKey  = "pipelines"
+	processorsKey = "processors"
+	resourceProc  = "resource/aws-account-id"
 )
 
 type converter struct {
@@ -41,63 +40,49 @@ func New(accountID string) confmap.Converter {
 	return &converter{accountID: accountID}
 }
 
-func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
+func (c *converter) Convert(_ context.Context, conf *confmap.Conf) error {
 	if c.accountID == "" {
-		return nil // Skip if no account ID
+		return nil
 	}
 
-	// Navigate to service.pipelines
-	serviceVal := conf.Get(serviceKey)
-	service, ok := serviceVal.(map[string]interface{})
+	service, ok := conf.Get(serviceKey).(map[string]any)
 	if !ok {
 		return nil
 	}
 
-	pipelinesVal, ok := service[pipelinesKey]
+	pipelines, ok := service[pipelinesKey].(map[string]any)
 	if !ok {
 		return nil
 	}
 
-	pipelines, ok := pipelinesVal.(map[string]interface{})
-	if !ok {
-		return nil
-	}
+	updates := make(map[string]any)
 
-	updates := make(map[string]interface{})
-
-	// For each pipeline, add resource processor to beginning
-	for telemetryType, pipelineVal := range pipelines {
-		pipeline, ok := pipelineVal.(map[string]interface{})
+	for pipelineName, pipelineVal := range pipelines {
+		pipeline, ok := pipelineVal.(map[string]any)
 		if !ok {
 			continue
 		}
 
 		processorsVal, _ := pipeline[processorsKey]
-		processors, ok := processorsVal.([]interface{})
-		if !ok {
-			processors = []interface{}{}
+		processors, _ := processorsVal.([]any)
+
+		// Idempotency: skip if already prepended
+		if len(processors) > 0 && processors[0] == resourceProc {
+			continue
 		}
 
-		// Prepend resource/aws-account-id processor
-		processors = append([]interface{}{resourceProc}, processors...)
-		updates[fmt.Sprintf("%s::%s::%s::%s", serviceKey, pipelinesKey, telemetryType, processorsKey)] = processors
+		processors = append([]any{resourceProc}, processors...)
+		updates[serviceKey+"::"+pipelinesKey+"::"+pipelineName+"::"+processorsKey] = processors
 	}
 
-	// Configure the resource processor with cloud.account.id attribute
-	updates[fmt.Sprintf("processors::%s::attributes", resourceProc)] = []map[string]interface{}{
+	// Add the resource processor definition
+	updates["processors::"+resourceProc+"::attributes"] = []map[string]any{
 		{
-			"key":    accountIDAttrKey,
+			"key":    string(semconv.CloudAccountIDKey),
 			"value":  c.accountID,
 			"action": "insert",
 		},
 	}
 
-	// Apply all updates
-	if len(updates) > 0 {
-		if err := conf.Merge(confmap.NewFromStringMap(updates)); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return conf.Merge(confmap.NewFromStringMap(updates))
 }

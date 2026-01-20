@@ -66,11 +66,11 @@ const (
 )
 
 const (
-	extensionNameHeader         = "Lambda-Extension-Name"
-	extensionIdentiferHeader    = "Lambda-Extension-Identifier"
-	extensionErrorType          = "Lambda-Extension-Function-Error-Type"
+	extensionNameHeader          = "Lambda-Extension-Name"
+	extensionIdentiferHeader     = "Lambda-Extension-Identifier"
+	extensionErrorType           = "Lambda-Extension-Function-Error-Type"
 	extensionAcceptFeatureHeader = "Lambda-Extension-Accept-Feature"
-	accountIdFeature            = "accountId"
+	accountIdFeature             = "accountId"
 )
 
 // Client is a simple client for the Lambda Extensions API.
