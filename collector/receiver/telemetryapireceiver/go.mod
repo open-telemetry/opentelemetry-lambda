@@ -6,6 +6,7 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.143.0
 	github.com/open-telemetry/opentelemetry-lambda/collector v0.98.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.49.0
@@ -16,7 +17,6 @@ require (
 	go.opentelemetry.io/collector/pdata v1.49.0
 	go.opentelemetry.io/collector/receiver v1.49.0
 	go.opentelemetry.io/collector/receiver/receivertest v0.143.0
-	go.opentelemetry.io/collector/semconv v0.128.0
 	go.uber.org/zap v1.27.1
 )
 
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/collector/pdata/pprofile v0.143.0 // indirect
 	go.opentelemetry.io/collector/pipeline v1.49.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.143.0 // indirect
-	go.opentelemetry.io/otel v1.39.0 // indirect
+	go.opentelemetry.io/otel v1.39.0
 	go.opentelemetry.io/otel/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.39.0 // indirect
