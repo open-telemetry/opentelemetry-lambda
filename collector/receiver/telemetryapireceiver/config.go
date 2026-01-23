@@ -26,10 +26,14 @@ type Config struct {
 	Types              []string `mapstructure:"types"`
 	LogReport          bool     `mapstructure:"log_report"`
 	MetricsTemporality string   `mapstructure:"metrics_temporality"`
+	ExportInterval     int      `mapstructure:"export_interval_ms"`
 }
 
 // Validate validates the configuration by checking for missing or invalid fields
 func (cfg *Config) Validate() error {
+	if cfg.ExportInterval < 0 {
+		return fmt.Errorf("export_interval_ms must be non-negative: %d", cfg.ExportInterval)
+	}
 	for _, t := range cfg.Types {
 		if t != platform && t != function && t != extension {
 			return fmt.Errorf("unknown extension type: %s", t)
