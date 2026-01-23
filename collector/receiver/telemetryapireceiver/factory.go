@@ -25,12 +25,13 @@ import (
 )
 
 const (
-	typeStr     = "telemetryapi"
-	stability   = component.StabilityLevelDevelopment
-	defaultPort = 4325
-	platform    = "platform"
-	function    = "function"
-	extension   = "extension"
+	typeStr               = "telemetryapi"
+	stability             = component.StabilityLevelDevelopment
+	defaultPort           = 4325
+	defaultExportInterval = 60000
+	platform              = "platform"
+	function              = "function"
+	extension             = "extension"
 )
 
 var (
@@ -44,9 +45,10 @@ func NewFactory(extensionID string) receiver.Factory {
 		Type,
 		func() component.Config {
 			return &Config{
-				extensionID: extensionID,
-				Port:        defaultPort,
-				Types:       []string{platform, function, extension},
+				extensionID:    extensionID,
+				Port:           defaultPort,
+				Types:          []string{platform, function, extension},
+				ExportInterval: defaultExportInterval,
 			}
 		},
 		receiver.WithTraces(createTracesReceiver, stability),
