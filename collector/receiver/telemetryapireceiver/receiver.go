@@ -81,6 +81,9 @@ type telemetryAPIReceiver struct {
 	faaSMetricBuilders      *FaaSMetricBuilders
 	currentFaasInvocationID string
 	logReport               bool
+	exportInterval          time.Duration
+	stopCh                  chan struct{}
+	wg                      sync.WaitGroup
 }
 
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
@@ -94,6 +97,11 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 		_ = r.httpServer.ListenAndServe()
 	}()
 
+	if r.exportInterval > 0 {
+		r.wg.Add(1)
+		go r.startMetricsExporter()
+	}
+
 	telemetryClient := telemetryapi.NewClient(r.logger)
 	if len(r.types) > 0 {
 		_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
@@ -106,7 +114,55 @@ func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) e
 }
 
 func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
+	close(r.stopCh)
+	r.wg.Wait()
+	if r.exportInterval > 0 {
+		r.flushMetrics(ctx)
+	}
 	return nil
+}
+
+func (r *telemetryAPIReceiver) startMetricsExporter() {
+	defer r.wg.Done()
+	ticker := time.NewTicker(r.exportInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			r.flushMetrics(context.Background())
+		case <-r.stopCh:
+			return
+		}
+	}
+}
+
+func (r *telemetryAPIReceiver) flushMetrics(ctx context.Context) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	metric := pmetric.NewMetrics()
+	resourceMetric := metric.ResourceMetrics().AppendEmpty()
+	r.resource.CopyTo(resourceMetric.Resource())
+	scopeMetric := resourceMetric.ScopeMetrics().AppendEmpty()
+	scopeMetric.Scope().SetName(scopeName)
+	scopeMetric.SetSchemaUrl(semconv.SchemaURL)
+
+	ts := pcommon.NewTimestampFromTime(time.Now())
+	r.faaSMetricBuilders.coldstartsMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.initDurationMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.memUsageMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.invocationsMetric.AppendDataPoints(scopeMetric, ts)
+	r.faaSMetricBuilders.invokeDurationMetric.AppendDataPoints(scopeMetric, ts)
+
+	if metric.MetricCount() > 0 {
+		err := r.nextMetrics.ConsumeMetrics(ctx, metric)
+		if err != nil {
+			r.logger.Error("error flushing metrics", zap.Error(err))
+		}
+	}
 }
 
 func newSpanID() pcommon.SpanID {
@@ -198,11 +254,15 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	}
 	// Metrics
 	if r.nextMetrics != nil {
-		if metrics, err := r.createMetrics(slice); err == nil {
-			if metrics.MetricCount() > 0 {
-				err := r.nextMetrics.ConsumeMetrics(context.Background(), metrics)
-				if err != nil {
-					r.logger.Error("error receiving metrics", zap.Error(err))
+		if r.exportInterval > 0 {
+			r.recordMetrics(slice)
+		} else {
+			if metrics, err := r.createMetrics(slice); err == nil {
+				if metrics.MetricCount() > 0 {
+					err := r.nextMetrics.ConsumeMetrics(context.Background(), metrics)
+					if err != nil {
+						r.logger.Error("error receiving metrics", zap.Error(err))
+					}
 				}
 			}
 		}
@@ -231,6 +291,69 @@ func (r *telemetryAPIReceiver) getRecordRequestId(record map[string]interface{})
 		return r.currentFaasInvocationID
 	}
 	return ""
+}
+
+func (r *telemetryAPIReceiver) recordMetrics(slice []event) {
+	for _, el := range slice {
+		record, ok := el.Record.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		switch el.Type {
+		case string(telemetryapi.PlatformInitStart):
+			r.faaSMetricBuilders.coldstartsMetric.Add(1)
+		case string(telemetryapi.PlatformInitReport):
+			status, _ := record["status"].(string)
+			if status == telemetryFailureStatus || status == telemetryErrorStatus {
+				r.faaSMetricBuilders.errorsMetric.Add(1)
+			} else if status == telemetryTimeoutStatus {
+				r.faaSMetricBuilders.timeoutsMetric.Add(1)
+			}
+
+			metrics, ok := record["metrics"].(map[string]any)
+			if !ok {
+				continue
+			}
+
+			durationMs, ok := metrics["durationMs"].(float64)
+			if !ok {
+				continue
+			}
+
+			r.faaSMetricBuilders.initDurationMetric.Record(durationMs / 1000.0)
+		case string(telemetryapi.PlatformReport):
+			metrics, ok := record["metrics"].(map[string]any)
+			if !ok {
+				continue
+			}
+
+			maxMemoryUsedMb, ok := metrics["maxMemoryUsedMB"].(float64)
+			if ok {
+				r.faaSMetricBuilders.memUsageMetric.Record(maxMemoryUsedMb * 1000000.0)
+			}
+		case string(telemetryapi.PlatformRuntimeDone):
+			status, _ := record["status"].(string)
+
+			if status == telemetrySuccessStatus {
+				r.faaSMetricBuilders.invocationsMetric.Add(1)
+			} else if status == telemetryFailureStatus || status == telemetryErrorStatus {
+				r.faaSMetricBuilders.errorsMetric.Add(1)
+			} else if status == telemetryTimeoutStatus {
+				r.faaSMetricBuilders.timeoutsMetric.Add(1)
+			}
+
+			metrics, ok := record["metrics"].(map[string]any)
+			if !ok {
+				continue
+			}
+
+			durationMs, ok := metrics["durationMs"].(float64)
+			if ok {
+				r.faaSMetricBuilders.invokeDurationMetric.Record(durationMs / 1000.0)
+			}
+		}
+	}
 }
 
 func (r *telemetryAPIReceiver) createMetrics(slice []event) (pmetric.Metrics, error) {
@@ -675,6 +798,8 @@ func newTelemetryAPIReceiver(
 		resource:           r,
 		faaSMetricBuilders: NewFaaSMetricBuilders(pcommon.NewTimestampFromTime(time.Now()), getMetricsTemporality(cfg)),
 		logReport:          cfg.LogReport,
+		exportInterval:     time.Duration(cfg.ExportInterval) * time.Millisecond,
+		stopCh:             make(chan struct{}),
 	}, nil
 }
 
