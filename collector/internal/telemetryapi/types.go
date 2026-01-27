@@ -123,3 +123,16 @@ const (
 	MetricMemorySizeMB     MetricType = "memorySizeMB"
 	MetricInitDurationMs   MetricType = "initDurationMs"
 )
+
+// PlatformReportStatus is the status field found on Telemetry API `platform.report` events.
+//
+// Valid status values – success|failure|error|timeout
+// See https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#Status
+type PlatformReportStatus string
+
+const (
+	PlatformReportStatusSuccess PlatformReportStatus = "success"
+	PlatformReportStatusFailure PlatformReportStatus = "failure"
+	PlatformReportStatusError   PlatformReportStatus = "error"
+	PlatformReportStatusTimeout PlatformReportStatus = "timeout"
+)
