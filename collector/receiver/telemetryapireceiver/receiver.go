@@ -509,6 +509,12 @@ func createPlatformReportMessage(requestId string, record map[string]interface{}
 		}
 	}
 
+	// checking status
+	reportStatus := telemetrySuccessStatus
+	if status, ok := record["status"].(string); ok {
+		reportStatus = status
+	}
+
 	message := fmt.Sprintf(
 		platformReportLogFmt,
 		requestId,
@@ -519,6 +525,11 @@ func createPlatformReportMessage(requestId string, record map[string]interface{}
 	)
 	if initDurationMs > 0 {
 		message += fmt.Sprintf(" Init Duration: %.2f ms", initDurationMs)
+	}
+
+	// AWS does not log success status, let's conform to that
+	if reportStatus != telemetrySuccessStatus {
+		message += fmt.Sprintf(" Status: %s", reportStatus)
 	}
 
 	return message
