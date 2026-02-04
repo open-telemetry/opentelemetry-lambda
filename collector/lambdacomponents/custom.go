@@ -25,6 +25,7 @@ import (
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 
 	"go.uber.org/multierr"
 )
@@ -63,6 +64,7 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		Exporters:  exporters,
 		Extensions: extensions,
 		Connectors: connectors,
+		Telemetry:  otelconftelemetry.NewFactory(),
 	}
 
 	return factories, multierr.Combine(errs...)
