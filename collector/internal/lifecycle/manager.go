@@ -33,6 +33,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 )
 
+const accountIDSymlinkPath = "/tmp/.otel-account-id"
+
 var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
 )
@@ -67,6 +69,8 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 	if err != nil {
 		logger.Fatal("Cannot register extension", zap.Error(err))
 	}
+
+	writeAccountIDSymlink(logger, res.AccountID)
 
 	listener := telemetryapi.NewListener(logger)
 	addr, err := listener.Start()
@@ -177,4 +181,15 @@ func (lm *manager) notifyEnvironmentShutdown() {
 
 func (lm *manager) AddListener(listener lambdalifecycle.Listener) {
 	lm.lifecycleListeners = append(lm.lifecycleListeners, listener)
+}
+
+func writeAccountIDSymlink(logger *zap.Logger, accountID string) {
+	if accountID == "" {
+		return
+	}
+	// Remove any stale symlink from a previous execution environment reuse.
+	os.Remove(accountIDSymlinkPath)
+	if err := os.Symlink(accountID, accountIDSymlinkPath); err != nil {
+		logger.Debug("Failed to create account ID symlink", zap.Error(err))
+	}
 }
