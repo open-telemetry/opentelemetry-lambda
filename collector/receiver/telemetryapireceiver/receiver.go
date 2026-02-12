@@ -418,12 +418,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				logRecord.Body().SetStr(line)
 			}
 		} else {
-			requestId := r.getRecordRequestId(nil)
-			if requestId == "" {
-				requestId = r.getCurrentRequestId()
-			}
-
-			if requestId != "" {
+			if requestId := r.getCurrentRequestId(); requestId != "" {
 				logRecord.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), requestId)
 			}
 
