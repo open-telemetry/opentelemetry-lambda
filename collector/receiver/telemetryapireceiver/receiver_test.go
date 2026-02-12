@@ -670,6 +670,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 					Type: "platform.report",
 					Record: map[string]any{
 						"requestId": "test-request-id-123",
+						"status": "success",
 						"metrics": map[string]any{
 							"durationMs":       123.45,
 							"billedDurationMs": float64(124),
@@ -684,6 +685,31 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 			expectedType:       "platform.report",
 			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
 			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - status failure adds Status suffix",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"status":    "failure",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": float64(124),
+							"memorySizeMB":     float64(512),
+							"maxMemoryUsedMB":  float64(256),
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB Status: failure",
 			expectError:        false,
 		},
 		{
@@ -962,6 +988,38 @@ func TestCreatePlatformMessage(t *testing.T) {
 				},
 			},
 			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with status success does not add Status suffix",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with status timeout adds Status suffix",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"status": "timeout",
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB Status: timeout",
 		},
 		{
 			desc:            "platform.report with missing metrics",
