@@ -4,10 +4,13 @@ go 1.24.11
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 
+replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle => ../../lambdalifecycle
+
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.143.0
 	github.com/open-telemetry/opentelemetry-lambda/collector v0.98.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.49.0
 	go.opentelemetry.io/collector/component/componenttest v0.143.0
