@@ -15,7 +15,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Create Release
         run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
         env:
@@ -28,9 +28,9 @@ jobs:
     outputs:
       NODEJS_VERSION: ${{ steps.save-node-sdk-version.outputs.SDK_VERSION}}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 18
 
@@ -51,7 +51,7 @@ jobs:
         run: mv layer.zip opentelemetry-nodejs-layer.zip
         working-directory: nodejs/packages/layer/build
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         name: Save assembled layer to build
         with:
           name: opentelemetry-nodejs-layer.zip
@@ -78,6 +78,7 @@ jobs:
           - ap-southeast-1
           - ap-southeast-2
           - ca-central-1
+          - ca-west-1
           - eu-central-1
           - eu-north-1
           - eu-west-1
@@ -95,7 +96,7 @@ jobs:
       # architecture:
       # If you add a nodejs runtime here, please make sure that the collector/Makefile publish and publish-layer targets
       # get updated as well
-      runtimes: nodejs18.x nodejs20.x nodejs22.x
+      runtimes: nodejs20.x nodejs22.x nodejs24.x
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit

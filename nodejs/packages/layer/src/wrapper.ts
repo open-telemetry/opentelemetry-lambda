@@ -47,21 +47,7 @@ import {
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
 import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
-const defaultInstrumentationList = [
-  'dns',
-  'express',
-  'graphql',
-  'grpc',
-  'hapi',
-  'http',
-  'ioredis',
-  'koa',
-  'mongodb',
-  'mysql',
-  'net',
-  'pg',
-  'redis',
-];
+const defaultInstrumentationList = ['dns', 'http', 'net'];
 
 const propagatorMap = new Map<string, () => TextMapPropagator>([
   ['tracecontext', () => new W3CTraceContextPropagator()],
@@ -103,7 +89,7 @@ declare global {
   function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
-function getActiveInstumentations(): Set<string> {
+function getActiveInstrumentations(): Set<string> {
   let enabledInstrumentations: string[] = defaultInstrumentationList;
   if (process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS) {
     enabledInstrumentations =
@@ -124,7 +110,7 @@ function getActiveInstumentations(): Set<string> {
 
 async function defaultConfigureInstrumentations() {
   const instrumentations = [];
-  const activeInstrumentations = getActiveInstumentations();
+  const activeInstrumentations = getActiveInstrumentations();
   if (activeInstrumentations.has('amqplib')) {
     const { AmqplibInstrumentation } = await import(
       '@opentelemetry/instrumentation-amqplib'

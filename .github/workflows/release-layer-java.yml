@@ -15,7 +15,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Create Release
         run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
         env:
@@ -29,9 +29,9 @@ jobs:
       JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
       JAVAWRAPPER_VERSION: ${{ steps.save-javawrapper-version.outputs.JAVAWRAPPER_VERSION }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: corretto
           java-version: 17
@@ -44,13 +44,13 @@ jobs:
           cd java
           ./gradlew :layer-javaagent:assemble :layer-wrapper:assemble --scan --stacktrace
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         name: Save javaagent layer to build
         with:
           name: opentelemetry-javaagent-layer.zip
           path: java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         name: Save javawrapper layer to build
         with:
           name: opentelemetry-javawrapper-layer.zip
@@ -93,6 +93,7 @@ jobs:
           - ap-southeast-1
           - ap-southeast-2
           - ca-central-1
+          - ca-west-1
           - eu-central-1
           - eu-north-1
           - eu-west-1
@@ -130,6 +131,7 @@ jobs:
           - ap-southeast-1
           - ap-southeast-2
           - ca-central-1
+          - ca-west-1
           - eu-central-1
           - eu-north-1
           - eu-west-1

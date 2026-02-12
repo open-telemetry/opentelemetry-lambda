@@ -27,7 +27,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	semconv "go.opentelemetry.io/collector/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 )
 
 func TestListenOnAddress(t *testing.T) {
@@ -161,7 +161,7 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
-			td, err := r.createPlatformInitSpan(tc.start, tc.end)
+			td, err := r.createPlatformInitSpan(make(map[string]any), tc.start, tc.end)
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
@@ -174,23 +174,26 @@ func TestCreatePlatformInitSpan(t *testing.T) {
 func TestCreateLogs(t *testing.T) {
 	t.Parallel()
 
+	type logInfo struct {
+		logType           string
+		timestamp         string
+		body              string
+		severityText      string
+		containsRequestId bool
+		requestId         string
+		severityNumber    plog.SeverityNumber
+	}
+
 	testCases := []struct {
-		desc                      string
-		slice                     []event
-		expectedLogRecords        int
-		expectedType              string
-		expectedTimestamp         string
-		expectedBody              string
-		expectedSeverityText      string
-		expectedContainsRequestId bool
-		expectedRequestId         string
-		expectedSeverityNumber    plog.SeverityNumber
-		expectError               bool
+		desc         string
+		slice        []event
+		expectedLogs []logInfo
+		expectError  bool
 	}{
 		{
-			desc:               "no slice",
-			expectedLogRecords: 0,
-			expectError:        false,
+			desc:         "no slice",
+			expectedLogs: []logInfo{},
+			expectError:  false,
 		},
 		{
 			desc: "Invalid Timestamp",
@@ -212,14 +215,16 @@ func TestCreateLogs(t *testing.T) {
 					Record: "[INFO] Hello world, I am an extension!",
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: false,
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "function text with requestId",
@@ -242,15 +247,33 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.start",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+				{
+					logType:           "platform.runtimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "34472c47-5ff0-4df5-a9ad-03776afa5473",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "function json",
@@ -266,15 +289,18 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "function",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am a function!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
-			expectedSeverityText:      "Info",
-			expectedSeverityNumber:    plog.SeverityNumberInfo,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am a function!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension text",
@@ -285,14 +311,16 @@ func TestCreateLogs(t *testing.T) {
 					Record: "[INFO] Hello world, I am an extension!",
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "[INFO] Hello world, I am an extension!",
-			expectedContainsRequestId: false,
-			expectedSeverityText:      "",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "[INFO] Hello world, I am an extension!",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension json",
@@ -308,15 +336,18 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
-			expectedSeverityText:      "Info",
-			expectedSeverityNumber:    plog.SeverityNumberInfo,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
 		},
 		{
 			desc: "extension json anything",
@@ -332,18 +363,21 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords:        1,
-			expectedType:              "extension",
-			expectedTimestamp:         "2022-10-12T00:03:50.000Z",
-			expectedBody:              "Hello world, I am an extension!",
-			expectedContainsRequestId: true,
-			expectedRequestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
-			expectedSeverityText:      "Unspecified",
-			expectedSeverityNumber:    plog.SeverityNumberUnspecified,
-			expectError:               false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "extension",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "Hello world, I am an extension!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68689",
+					severityText:      "Unspecified",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initStart anything",
+			desc: "platform.initStart",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -351,11 +385,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initStart",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initRuntimeDone anything",
+			desc: "platform.initRuntimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -363,11 +405,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initRuntimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.initReport anything",
+			desc: "platform.initReport",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -375,11 +425,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.initReport",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.start anything",
+			desc: "platform.start",
 			slice: []event{
 				{
 					Time: "2022-10-12T00:03:50.000Z",
@@ -389,11 +447,20 @@ func TestCreateLogs(t *testing.T) {
 					},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.start",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: true,
+					requestId:         "test-id",
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.runtimeDone anything",
+			desc: "platform.runtimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -401,11 +468,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.runtimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.report anything",
+			desc: "platform.report",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -413,11 +488,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.report",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreStart anything",
+			desc: "platform.restoreStart",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -425,11 +508,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreStart",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreRuntimeDone anything",
+			desc: "platform.restoreRuntimeDone",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -437,23 +528,39 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreRuntimeDone",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.restoreReport anything",
+			desc: "platform.restoreReport",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
-					Type:   "platform.restoreStart",
+					Type:   "platform.restoreReport",
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.restoreReport",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.telemetrySubscription anything",
+			desc: "platform.telemetrySubscription",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -461,11 +568,19 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
-			expectedLogRecords: 0,
-			expectError:        false,
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.telemetrySubscription",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
 		},
 		{
-			desc: "platform.logsDropped anything",
+			desc: "platform.logsDropped",
 			slice: []event{
 				{
 					Time:   "2022-10-12T00:03:50.000Z",
@@ -473,14 +588,273 @@ func TestCreateLogs(t *testing.T) {
 					Record: map[string]any{},
 				},
 			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "platform.logsDropped",
+					timestamp:         "2022-10-12T00:03:50.000Z",
+					body:              "",
+					containsRequestId: false,
+					severityNumber:    plog.SeverityNumberUnspecified,
+				},
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			r, err := newTelemetryAPIReceiver(
+				&Config{
+					LogReport: true,
+				},
+				receivertest.NewNopSettings(Type),
+			)
+			require.NoError(t, err)
+			log, err := r.createLogs(tc.slice)
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, 1, log.ResourceLogs().Len())
+			resourceLog := log.ResourceLogs().At(0)
+			require.Equal(t, 1, resourceLog.ScopeLogs().Len())
+			scopeLog := resourceLog.ScopeLogs().At(0)
+			require.Equal(t, scopeName, scopeLog.Scope().Name())
+			require.Equal(t, len(tc.expectedLogs), scopeLog.LogRecords().Len())
+
+			for i, expected := range tc.expectedLogs {
+				logRecord := scopeLog.LogRecords().At(i)
+
+				attr, ok := logRecord.Attributes().Get("type")
+				require.True(t, ok)
+				require.Equal(t, expected.logType, attr.Str())
+
+				expectedTime, err := time.Parse(time.RFC3339, expected.timestamp)
+				require.NoError(t, err)
+				require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
+
+				requestId, ok := logRecord.Attributes().Get(string(semconv.FaaSInvocationIDKey))
+				require.Equal(t, expected.containsRequestId, ok)
+				if ok {
+					require.Equal(t, expected.requestId, requestId.Str())
+				}
+
+				require.Equal(t, expected.severityText, logRecord.SeverityText())
+				require.Equal(t, expected.severityNumber, logRecord.SeverityNumber())
+				require.Equal(t, expected.body, logRecord.Body().Str())
+			}
+		})
+	}
+}
+
+func TestCreateLogsWithLogReport(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		desc               string
+		slice              []event
+		logReport          bool
+		expectedLogRecords int
+		expectedType       string
+		expectedTimestamp  string
+		expectedBody       string
+		expectedAttributes map[string]interface{}
+		expectError        bool
+	}{
+		{
+			desc: "platform.report with logReport enabled - valid metrics",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": float64(124),
+							"memorySizeMB":     float64(512),
+							"maxMemoryUsedMB":  float64(256),
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport disabled",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
 			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - missing requestId",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - invalid timestamp",
+			slice: []event{
+				{
+					Time: "invalid-timestamp",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - missing metrics",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - invalid metrics format",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       "invalid",
+							"billedDurationMs": 124,
+							"memorySizeMB":     512,
+							"maxMemoryUsedMB":  256,
+						},
+					},
+				},
+			},
+			logReport:          false,
+			expectedLogRecords: 0,
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - record not a map",
+			slice: []event{
+				{
+					Time:   "2022-10-12T00:03:50.000Z",
+					Type:   "platform.report",
+					Record: "invalid record format",
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectError:        false,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "invalid record format",
+		},
+		{
+			desc: "platform.report with logReport enabled - with initDurationMs",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124.0,
+							"memorySizeMB":     512.0,
+							"maxMemoryUsedMB":  256.0,
+							"initDurationMs":   50.5,
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB Init Duration: 50.50 ms",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - with invalid initDurationMs type",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": 124.0,
+							"memorySizeMB":     512.0,
+							"maxMemoryUsedMB":  256.0,
+							"initDurationMs":   "invalid-string",
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
 			expectError:        false,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			r, err := newTelemetryAPIReceiver(
-				&Config{},
+				&Config{LogReport: tc.logReport},
 				receivertest.NewNopSettings(Type),
 			)
 			require.NoError(t, err)
@@ -488,6 +862,7 @@ func TestCreateLogs(t *testing.T) {
 			if tc.expectError {
 				require.Error(t, err)
 			} else {
+				require.NoError(t, err)
 				require.Equal(t, 1, log.ResourceLogs().Len())
 				resourceLog := log.ResourceLogs().At(0)
 				require.Equal(t, 1, resourceLog.ScopeLogs().Len())
@@ -499,19 +874,409 @@ func TestCreateLogs(t *testing.T) {
 					attr, ok := logRecord.Attributes().Get("type")
 					require.True(t, ok)
 					require.Equal(t, tc.expectedType, attr.Str())
-					expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
-					require.NoError(t, err)
-					require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
-					requestId, ok := logRecord.Attributes().Get(semconv.AttributeFaaSInvocationID)
-					require.Equal(t, tc.expectedContainsRequestId, ok)
-					if ok {
-						require.Equal(t, tc.expectedRequestId, requestId.Str())
+					if tc.expectedTimestamp != "" {
+						expectedTime, err := time.Parse(time.RFC3339, tc.expectedTimestamp)
+						require.NoError(t, err)
+						require.Equal(t, pcommon.NewTimestampFromTime(expectedTime), logRecord.Timestamp())
+					} else {
+						// For invalid timestamps, no timestamp should be set (zero value)
+						require.Equal(t, pcommon.Timestamp(0), logRecord.Timestamp())
 					}
-					require.Equal(t, tc.expectedSeverityText, logRecord.SeverityText())
-					require.Equal(t, tc.expectedSeverityNumber, logRecord.SeverityNumber())
 					require.Equal(t, tc.expectedBody, logRecord.Body().Str())
 				}
 			}
+		})
+	}
+}
+
+func TestCreatePlatformMessage(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		desc            string
+		requestId       string
+		functionVersion string
+		eventType       string
+		record          map[string]interface{}
+		expected        string
+	}{
+		{
+			desc:            "platform.start with requestId and functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "START RequestId: test-request-id Version: $LATEST",
+		},
+		{
+			desc:            "platform.start with empty requestId",
+			requestId:       "",
+			functionVersion: "$LATEST",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.start with empty functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "",
+			eventType:       "platform.start",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.runtimeDone with requestId and functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "v1.0.0",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "END RequestId: test-request-id Version: v1.0.0",
+		},
+		{
+			desc:            "platform.runtimeDone with empty requestId",
+			requestId:       "",
+			functionVersion: "v1.0.0",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.runtimeDone with empty functionVersion",
+			requestId:       "test-request-id",
+			functionVersion: "",
+			eventType:       "platform.runtimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.report with valid metrics",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with missing metrics",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initStart with runtimeVersion and runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersion":    "python:3.9",
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:python:3.9",
+			},
+			expected: "INIT_START Runtime Version: python:3.9 Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:python:3.9",
+		},
+		{
+			desc:            "platform.initStart with only runtimeVersion",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersion": "nodejs:18",
+			},
+			expected: "INIT_START Runtime Version: nodejs:18 Runtime Version ARN: ",
+		},
+		{
+			desc:            "platform.initStart with only runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record: map[string]interface{}{
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:go:1.x",
+			},
+			expected: "INIT_START Runtime Version:  Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:go:1.x",
+		},
+		{
+			desc:            "platform.initStart with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initStart",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initRuntimeDone with status success",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "success",
+			},
+			expected: "INIT_RUNTIME_DONE Status: success",
+		},
+		{
+			desc:            "platform.initRuntimeDone with status failure",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "failure",
+			},
+			expected: "INIT_RUNTIME_DONE Status: failure",
+		},
+		{
+			desc:            "platform.initRuntimeDone with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record: map[string]interface{}{
+				"status": "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.initRuntimeDone with missing status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initRuntimeDone",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initReport with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "on-demand",
+				"phase":              "init",
+				"status":             "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 250.75,
+				},
+			},
+			expected: "INIT_REPORT Initialization Type: on-demand Phase: init Status: success Duration: 250.75 ms",
+		},
+		{
+			desc:            "platform.initReport with provisioned-concurrency",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "provisioned-concurrency",
+				"phase":              "init",
+				"status":             "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 100.0,
+				},
+			},
+			expected: "INIT_REPORT Initialization Type: provisioned-concurrency Phase: init Status: success Duration: 100.00 ms",
+		},
+		{
+			desc:            "platform.initReport with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.initReport with only initType",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.initReport",
+			record: map[string]interface{}{
+				"initializationType": "on-demand",
+			},
+			expected: "INIT_REPORT Initialization Type: on-demand Phase:  Status:  Duration: 0.00 ms",
+		},
+		{
+			desc:            "platform.restoreStart with runtimeVersion and runtimeVersionArn",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreStart",
+			record: map[string]interface{}{
+				"runtimeVersion":    "python:3.9",
+				"runtimeVersionArn": "arn:aws:lambda:us-east-1::runtime:python:3.9",
+			},
+			expected: "RESTORE_START Runtime Version: python:3.9 Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:python:3.9",
+		},
+		{
+			desc:            "platform.restoreStart with empty record",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreStart",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "platform.restoreRuntimeDone with status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreRuntimeDone",
+			record: map[string]interface{}{
+				"status": "success",
+			},
+			expected: "RESTORE_RUNTIME_DONE Status: success",
+		},
+		{
+			desc:            "platform.restoreRuntimeDone with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreRuntimeDone",
+			record: map[string]interface{}{
+				"status": "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.restoreReport with status and duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 50.25,
+				},
+			},
+			expected: "RESTORE_REPORT Status: success Duration: 50.25 ms",
+		},
+		{
+			desc:            "platform.restoreReport with empty status",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "",
+				"metrics": map[string]interface{}{
+					"durationMs": 50.25,
+				},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.restoreReport with zero duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs": 0.0,
+				},
+			},
+			expected: "RESTORE_REPORT Status: success Duration: 0.00 ms",
+		},
+		{
+			desc:            "platform.restoreReport with no duration",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.restoreReport",
+			record: map[string]interface{}{
+				"status":  "success",
+				"metrics": map[string]interface{}{},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.telemetrySubscription with name and types",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.telemetrySubscription",
+			record: map[string]interface{}{
+				"name":  "my-extension",
+				"types": []interface{}{"platform", "function"},
+			},
+			expected: "TELEMETRY: my-extension Subscribed Types: [platform function]",
+		},
+		{
+			desc:            "platform.telemetrySubscription with empty name",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.telemetrySubscription",
+			record: map[string]interface{}{
+				"name":  "",
+				"types": []interface{}{"platform"},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.extension with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.extension",
+			record: map[string]interface{}{
+				"name":   "my-extension",
+				"state":  "Ready",
+				"events": []interface{}{"INVOKE", "SHUTDOWN"},
+			},
+			expected: "EXTENSION Name: my-extension State: Ready Events: [INVOKE SHUTDOWN]",
+		},
+		{
+			desc:            "platform.extension with empty name",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.extension",
+			record: map[string]interface{}{
+				"name":   "",
+				"state":  "Ready",
+				"events": []interface{}{"INVOKE"},
+			},
+			expected: "",
+		},
+		{
+			desc:            "platform.logsDropped with all fields",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.logsDropped",
+			record: map[string]interface{}{
+				"droppedRecords": float64(10),
+				"droppedBytes":   float64(1024),
+				"reason":         "Consumer is too slow",
+			},
+			expected: "LOGS_DROPPED DroppedRecords: 10 DroppedBytes: 1024 Reason: Consumer is too slow",
+		},
+		{
+			desc:            "platform.logsDropped with empty reason",
+			requestId:       "",
+			functionVersion: "",
+			eventType:       "platform.logsDropped",
+			record: map[string]interface{}{
+				"droppedRecords": float64(10),
+				"droppedBytes":   float64(1024),
+				"reason":         "",
+			},
+			expected: "",
+		},
+		{
+			desc:            "unknown event type",
+			requestId:       "test-id",
+			functionVersion: "v1",
+			eventType:       "platform.unknown",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+		{
+			desc:            "function event type",
+			requestId:       "test-id",
+			functionVersion: "v1",
+			eventType:       "function",
+			record:          map[string]interface{}{},
+			expected:        "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			result := createPlatformMessage(tc.requestId, tc.functionVersion, tc.eventType, tc.record)
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }

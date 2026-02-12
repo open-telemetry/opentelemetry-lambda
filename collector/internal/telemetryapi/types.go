@@ -24,13 +24,29 @@ const (
 	PlatformInitStart EventType = Platform + ".initStart"
 	// PlatformInitRuntimeDone is used when function initialization ended.
 	PlatformInitRuntimeDone EventType = Platform + ".initRuntimeDone"
-	// Function invocation started.
+	// PlatformInitReport is used when a report of function initialization is received.
+	PlatformInitReport EventType = Platform + ".initReport"
+	// PlatformStart is used when function invocation started.
 	PlatformStart EventType = Platform + ".start"
-	// The runtime finished processing an event with either success or failure.
+	// PlatformRuntimeDone is used when the runtime finished processing an event with either success or failure.
 	PlatformRuntimeDone EventType = Platform + ".runtimeDone"
+	// PlatformReport is used when a report of function invocation is received.
+	PlatformReport EventType = Platform + ".report"
+	// PlatformRestoreStart is used when runtime restore started.
+	PlatformRestoreStart EventType = Platform + ".restoreStart"
+	// PlatformRestoreRuntimeDone is used when runtime restore completed.
+	PlatformRestoreRuntimeDone EventType = Platform + ".restoreRuntimeDone"
+	// PlatformRestoreReport is used when a report of runtime restore is received.
+	PlatformRestoreReport EventType = Platform + ".restoreReport"
+	// PlatformExtension is used for extension state events.
+	PlatformExtension EventType = Platform + ".extension"
+	// PlatformTelemetrySubscription is used when the extension subscribed to the Telemetry API.
+	PlatformTelemetrySubscription EventType = Platform + ".telemetrySubscription"
+	// PlatformLogsDropped is used when Lambda dropped log entries.
+	PlatformLogsDropped EventType = Platform + ".logsDropped"
 	// Function is used to receive log events emitted by the function
 	Function EventType = "function"
-	// Extension is used is to receive log events emitted by the extension
+	// Extension is used to receive log events emitted by the extension
 	Extension EventType = "extension"
 )
 
@@ -95,3 +111,15 @@ type Event struct {
 	Type   string         `json:"type"`
 	Record map[string]any `json:"record"`
 }
+
+// MetricType represents the type of metric in the platform.report event
+// see https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html#ReportMetrics
+type MetricType string
+
+const (
+	MetricBilledDurationMs MetricType = "billedDurationMs"
+	MetricDurationMs       MetricType = "durationMs"
+	MetricMaxMemoryUsedMB  MetricType = "maxMemoryUsedMB"
+	MetricMemorySizeMB     MetricType = "memorySizeMB"
+	MetricInitDurationMs   MetricType = "initDurationMs"
+)

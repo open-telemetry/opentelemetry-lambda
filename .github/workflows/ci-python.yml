@@ -31,13 +31,13 @@ jobs:
       matrix:
         # If you add a python version here, please make sure that the collector/Makefile publish and publish-layer targets
         # get updated as well
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup Python for OTel Python SDK
-        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python }}
       - name: Install tox testing package
@@ -46,7 +46,7 @@ jobs:
           pip install tox
           tox
       - name: Set up Go for ADOT Collector
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
           go-version: '^1.20.8'
       - name: Build Python Layer which includes ADOT Collector

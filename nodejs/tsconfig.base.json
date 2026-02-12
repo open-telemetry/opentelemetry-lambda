@@ -17,7 +17,10 @@
     "strictNullChecks": true,
     "target": "es2022",
     "incremental": true,
-    "newLine": "LF"
+    "newLine": "LF",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
     "node_modules"

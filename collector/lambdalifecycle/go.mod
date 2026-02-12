@@ -1,3 +1,3 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle
 
-go 1.24.4
+go 1.24.11

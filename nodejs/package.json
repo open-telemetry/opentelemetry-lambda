@@ -33,7 +33,7 @@
     "@types/aws-lambda": "8.10.156",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
-    "aws-sdk": "2.1692.0",
+    "aws-sdk": "2.1693.0",
     "bestzip": "2.2.1",
     "copyfiles": "2.4.1",
     "eslint": "^8.57.0",
@@ -42,7 +42,7 @@
     "gts": "6.0.2",
     "lerna": "^9.0.0",
     "lerna-changelog": "2.2.0",
-    "rimraf": "6.0.1",
+    "rimraf": "6.1.2",
     "typescript": "5.9.3"
   },
   "overrides": {
