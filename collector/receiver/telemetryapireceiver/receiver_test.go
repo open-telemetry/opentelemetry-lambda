@@ -969,7 +969,7 @@ func TestCreatePlatformMessage(t *testing.T) {
 			functionVersion: "$LATEST",
 			eventType:       "platform.report",
 			record:          map[string]interface{}{},
-			expected:        "",
+			expected:        "REPORT RequestId: test-request-id",
 		},
 		{
 			desc:            "platform.initStart with runtimeVersion and runtimeVersionArn",
