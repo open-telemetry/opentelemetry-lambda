@@ -78,15 +78,17 @@ type Client struct {
 	httpClient  *http.Client
 	extensionID string
 	logger      *zap.Logger
+	events      []EventType
 }
 
 // NewClient returns a Lambda Extensions API client.
-func NewClient(logger *zap.Logger, awsLambdaRuntimeAPI string) *Client {
+func NewClient(logger *zap.Logger, awsLambdaRuntimeAPI string, events []EventType) *Client {
 	baseURL := fmt.Sprintf("http://%s/2020-01-01/extension", awsLambdaRuntimeAPI)
 	return &Client{
 		baseURL:    baseURL,
 		httpClient: &http.Client{},
 		logger:     logger.Named("extensionAPI.Client"),
+		events:     events,
 	}
 }
 
@@ -96,7 +98,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 	url := e.baseURL + action
 
 	reqBody, err := json.Marshal(map[string]interface{}{
-		"events": []EventType{Invoke, Shutdown},
+		"events": e.events,
 	})
 	if err != nil {
 		return nil, err
