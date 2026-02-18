@@ -43,7 +43,7 @@ func TestRegisterSendsAcceptFeatureHeader(t *testing.T) {
 	// The client prepends "http://" and appends "/2020-01-01/extension", so we
 	// need to set up the server path accordingly. Instead, construct the client
 	// with an empty base and override.
-	client := NewClient(logger, u.Host)
+	client := NewClient(logger, u.Host, []EventType{Invoke, Shutdown})
 	resp, err := client.Register(context.Background(), "test-extension")
 	require.NoError(t, err)
 
@@ -65,7 +65,7 @@ func TestRegisterParsesAccountIDWithLeadingZeros(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := zaptest.NewLogger(t)
-	client := NewClient(logger, u.Host)
+	client := NewClient(logger, u.Host, []EventType{Invoke, Shutdown})
 	resp, err := client.Register(context.Background(), "test-extension")
 	require.NoError(t, err)
 
