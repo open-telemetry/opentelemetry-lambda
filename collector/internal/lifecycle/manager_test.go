@@ -164,7 +164,7 @@ func TestProcessEvents(t *testing.T) {
 func TestWriteAccountIDSymlink(t *testing.T) {
 	// Use a temp directory so we don't conflict with the real path.
 	tmpDir := t.TempDir()
-	symlinkPath := filepath.Join(tmpDir, ".otel-account-id")
+	symlinkPath := filepath.Join(tmpDir, ".otel-aws-account-id")
 
 	// Temporarily override the package-level constant via a helper approach:
 	// We call the function directly and verify the symlink at the real path,

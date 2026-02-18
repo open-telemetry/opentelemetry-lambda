@@ -33,7 +33,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 )
 
-const accountIDSymlinkPath = "/tmp/.otel-account-id"
+const accountIDSymlinkPath = "/tmp/.otel-aws-account-id"
 
 var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
@@ -190,6 +190,6 @@ func writeAccountIDSymlink(logger *zap.Logger, accountID string) {
 	// Remove any stale symlink from a previous execution environment reuse.
 	os.Remove(accountIDSymlinkPath)
 	if err := os.Symlink(accountID, accountIDSymlinkPath); err != nil {
-		logger.Debug("Failed to create account ID symlink", zap.Error(err))
+		logger.Warn("Failed to create account ID symlink", zap.Error(err))
 	}
 }
