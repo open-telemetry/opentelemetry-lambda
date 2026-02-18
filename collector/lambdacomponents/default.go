@@ -26,6 +26,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter/debugexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -37,11 +38,12 @@ import (
 	"go.opentelemetry.io/collector/service/telemetry/otelconftelemetry"
 	"go.uber.org/multierr"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/accountidprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver"
 )
 
-func Components(extensionID string) (otelcol.Factories, error) {
+func Components(extensionID string, accountID string) (otelcol.Factories, []confmap.ConverterFactory, error) {
 	var errs []error
 
 	receivers, err := otelcol.MakeFactoryMap(
@@ -93,5 +95,12 @@ func Components(extensionID string) (otelcol.Factories, error) {
 		Telemetry:  otelconftelemetry.NewFactory(),
 	}
 
-	return factories, multierr.Combine(errs...)
+	// Create converter factories
+	converters := []confmap.ConverterFactory{
+		confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
+			return accountidprocessor.New(accountID)
+		}),
+	}
+
+	return factories, converters, multierr.Combine(errs...)
 }
