@@ -35,8 +35,10 @@ tasks {
     }
 }
 
+val runtimeClasspath = project.configurations["runtimeClasspath"]
+
 tasks.register("printOtelJavaInstrumentationVersion") {
     doLast {
-        println(project.configurations["runtimeClasspath"].resolvedConfiguration.resolvedArtifacts.find {  it.name == "opentelemetry-aws-lambda-events-2.2" }?.moduleVersion?.id?.version)
+        println(runtimeClasspath.resolvedConfiguration.resolvedArtifacts.find {  it.name == "opentelemetry-aws-lambda-events-2.2" }?.moduleVersion?.id?.version)
     }
 }
