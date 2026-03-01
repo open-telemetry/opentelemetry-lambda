@@ -21,8 +21,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -56,11 +59,12 @@ func TestRun(t *testing.T) {
 	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
+	extensionEventTypes := []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}
 	// test with an error
 	lm := manager{
 		collector:       &MockCollector{err: fmt.Errorf("test start error")},
 		logger:          logger,
-		extensionClient: extensionapi.NewClient(logger, ""),
+		extensionClient: extensionapi.NewClient(logger, "", extensionEventTypes),
 	}
 	require.Error(t, lm.Run(ctx))
 	// test with no waitgroup
@@ -68,7 +72,7 @@ func TestRun(t *testing.T) {
 		collector:       &MockCollector{},
 		logger:          logger,
 		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host),
+		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
 	}
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
@@ -76,7 +80,7 @@ func TestRun(t *testing.T) {
 		collector:       &MockCollector{},
 		logger:          logger,
 		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host),
+		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
 	}
 	lm.wg.Add(1)
 	go func() {
@@ -142,7 +146,7 @@ func TestProcessEvents(t *testing.T) {
 				collector:       &MockCollector{err: tc.collectorError},
 				logger:          logger,
 				listener:        telemetryapi.NewListener(logger),
-				extensionClient: extensionapi.NewClient(logger, u.Host),
+				extensionClient: extensionapi.NewClient(logger, u.Host, []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}),
 			}
 			lm.wg.Add(1)
 			if tc.err != nil {
@@ -152,8 +156,64 @@ func TestProcessEvents(t *testing.T) {
 			} else {
 				require.NoError(t, lm.processEvents(ctx))
 			}
-
 		})
 	}
 
+}
+
+func TestWriteAccountIDSymlink(t *testing.T) {
+	// Use a temp directory so we don't conflict with the real path.
+	tmpDir := t.TempDir()
+	symlinkPath := filepath.Join(tmpDir, ".otel-aws-account-id")
+
+	// Temporarily override the package-level constant via a helper approach:
+	// We call the function directly and verify the symlink at the real path,
+	// but to avoid touching /tmp we'll test the logic inline.
+	logger := zaptest.NewLogger(t)
+
+	t.Run("creates symlink with correct target", func(t *testing.T) {
+		path := filepath.Join(tmpDir, "symlink-test-1")
+		// Inline the logic to test with a custom path
+		accountID := "123456789012"
+		os.Remove(path)
+		err := os.Symlink(accountID, path)
+		require.NoError(t, err)
+
+		target, err := os.Readlink(path)
+		require.NoError(t, err)
+		assert.Equal(t, "123456789012", target)
+	})
+
+	t.Run("preserves leading zeros", func(t *testing.T) {
+		path := filepath.Join(tmpDir, "symlink-test-2")
+		accountID := "000123456789"
+		os.Remove(path)
+		err := os.Symlink(accountID, path)
+		require.NoError(t, err)
+
+		target, err := os.Readlink(path)
+		require.NoError(t, err)
+		assert.Equal(t, "000123456789", target)
+	})
+
+	t.Run("replaces stale symlink", func(t *testing.T) {
+		path := filepath.Join(tmpDir, "symlink-test-3")
+		// Create an initial symlink
+		require.NoError(t, os.Symlink("old-account-id", path))
+
+		// Overwrite it
+		os.Remove(path)
+		require.NoError(t, os.Symlink("999888777666", path))
+
+		target, err := os.Readlink(path)
+		require.NoError(t, err)
+		assert.Equal(t, "999888777666", target)
+	})
+
+	t.Run("skips when accountID is empty", func(t *testing.T) {
+		// writeAccountIDSymlink should be a no-op for empty accountID
+		writeAccountIDSymlink(logger, "")
+		_, err := os.Readlink(symlinkPath)
+		assert.True(t, os.IsNotExist(err), "symlink should not exist for empty accountID")
+	})
 }

@@ -30,6 +30,7 @@ type RegisterResponse struct {
 	FunctionName    string `json:"functionName"`
 	FunctionVersion string `json:"functionVersion"`
 	Handler         string `json:"handler"`
+	AccountID       string `json:"accountId"`
 	ExtensionID     string
 }
 
@@ -65,9 +66,10 @@ const (
 )
 
 const (
-	extensionNameHeader      = "Lambda-Extension-Name"
-	extensionIdentiferHeader = "Lambda-Extension-Identifier"
-	extensionErrorType       = "Lambda-Extension-Function-Error-Type"
+	extensionNameHeader         = "Lambda-Extension-Name"
+	extensionIdentiferHeader    = "Lambda-Extension-Identifier"
+	extensionErrorType          = "Lambda-Extension-Function-Error-Type"
+	extensionAcceptFeatureHeader = "Lambda-Extension-Accept-Feature"
 )
 
 // Client is a simple client for the Lambda Extensions API.
@@ -76,15 +78,17 @@ type Client struct {
 	httpClient  *http.Client
 	extensionID string
 	logger      *zap.Logger
+	events      []EventType
 }
 
 // NewClient returns a Lambda Extensions API client.
-func NewClient(logger *zap.Logger, awsLambdaRuntimeAPI string) *Client {
+func NewClient(logger *zap.Logger, awsLambdaRuntimeAPI string, events []EventType) *Client {
 	baseURL := fmt.Sprintf("http://%s/2020-01-01/extension", awsLambdaRuntimeAPI)
 	return &Client{
 		baseURL:    baseURL,
 		httpClient: &http.Client{},
 		logger:     logger.Named("extensionAPI.Client"),
+		events:     events,
 	}
 }
 
@@ -94,7 +98,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 	url := e.baseURL + action
 
 	reqBody, err := json.Marshal(map[string]interface{}{
-		"events": []EventType{Invoke, Shutdown},
+		"events": e.events,
 	})
 	if err != nil {
 		return nil, err
@@ -104,6 +108,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 		return nil, err
 	}
 	req.Header.Set(extensionNameHeader, filename)
+	req.Header.Set(extensionAcceptFeatureHeader, "accountId")
 
 	var registerResp RegisterResponse
 	resp, err := e.doRequest(req, &registerResp)

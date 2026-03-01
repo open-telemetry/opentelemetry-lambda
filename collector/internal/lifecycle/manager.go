@@ -17,12 +17,13 @@ package lifecycle
 import (
 	"context"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sync"
 	"syscall"
+
+	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -32,6 +33,8 @@ import (
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents"
 )
+
+const accountIDSymlinkPath = "/tmp/.otel-aws-account-id"
 
 var (
 	extensionName = filepath.Base(os.Args[0]) // extension name has to match the filename
@@ -49,6 +52,7 @@ type manager struct {
 	listener           *telemetryapi.Listener
 	wg                 sync.WaitGroup
 	lifecycleListeners []lambdalifecycle.Listener
+	initType           lambdalifecycle.InitType
 }
 
 func NewManager(ctx context.Context, logger *zap.Logger, version string) (context.Context, *manager) {
@@ -62,28 +66,42 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		logger.Info("received signal", zap.String("signal", s.String()))
 	}()
 
-	extensionClient := extensionapi.NewClient(logger, os.Getenv("AWS_LAMBDA_RUNTIME_API"))
+	var extensionEvents []extensionapi.EventType
+	initType := lambdalifecycle.InitTypeFromEnv(lambdalifecycle.InitTypeEnvVar)
+	if initType == lambdalifecycle.LambdaManagedInstances {
+		extensionEvents = []extensionapi.EventType{extensionapi.Shutdown}
+	} else {
+		extensionEvents = []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}
+	}
+
+	extensionClient := extensionapi.NewClient(logger, os.Getenv(RuntimeApiEnvVar), extensionEvents)
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		logger.Fatal("Cannot register extension", zap.Error(err))
 	}
 
-	listener := telemetryapi.NewListener(logger)
-	addr, err := listener.Start()
-	if err != nil {
-		logger.Fatal("Cannot start Telemetry API Listener", zap.Error(err))
-	}
+	writeAccountIDSymlink(logger, res.AccountID)
 
-	telemetryClient := telemetryapi.NewClient(logger)
-	_, err = telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Platform}, res.ExtensionID, addr)
-	if err != nil {
-		logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
+	var listener *telemetryapi.Listener
+	if initType != lambdalifecycle.LambdaManagedInstances {
+		listener = telemetryapi.NewListener(logger)
+		addr, err := listener.Start()
+		if err != nil {
+			logger.Fatal("Cannot start Telemetry API Listener", zap.Error(err))
+		}
+
+		telemetryClient := telemetryapi.NewClient(logger)
+		_, err = telemetryClient.Subscribe(ctx, []telemetryapi.EventType{telemetryapi.Platform}, res.ExtensionID, addr)
+		if err != nil {
+			logger.Fatal("Cannot register Telemetry API client", zap.Error(err))
+		}
 	}
 
 	lm := &manager{
 		logger:          logger.Named("lifecycle.manager"),
 		extensionClient: extensionClient,
 		listener:        listener,
+		initType:        initType,
 	}
 
 	factories, _ := lambdacomponents.Components(res.ExtensionID)
@@ -134,7 +152,9 @@ func (lm *manager) processEvents(ctx context.Context) error {
 			if res.EventType == extensionapi.Shutdown {
 				lm.logger.Info("Received SHUTDOWN event")
 				lm.notifyEnvironmentShutdown()
-				lm.listener.Shutdown()
+				if lm.listener != nil {
+					lm.listener.Shutdown()
+				}
 				err = lm.collector.Stop()
 				if err != nil {
 					if _, exitErr := lm.extensionClient.ExitError(ctx, fmt.Sprintf("error stopping collector: %v", err)); exitErr != nil {
@@ -142,17 +162,17 @@ func (lm *manager) processEvents(ctx context.Context) error {
 					}
 				}
 				return err
+			} else if lm.listener != nil && res.EventType == extensionapi.Invoke {
+				lm.notifyFunctionInvoked()
+
+				err = lm.listener.Wait(ctx, res.RequestID)
+				if err != nil {
+					lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
+				}
+
+				// Check other components are ready before allowing the freezing of the environment.
+				lm.notifyFunctionFinished()
 			}
-
-			lm.notifyFunctionInvoked()
-
-			err = lm.listener.Wait(ctx, res.RequestID)
-			if err != nil {
-				lm.logger.Error("problem waiting for platform.runtimeDone event", zap.Error(err), zap.String("requestID", res.RequestID))
-			}
-
-			// Check other components are ready before allowing the freezing of the environment.
-			lm.notifyFunctionFinished()
 		}
 	}
 }
@@ -177,4 +197,15 @@ func (lm *manager) notifyEnvironmentShutdown() {
 
 func (lm *manager) AddListener(listener lambdalifecycle.Listener) {
 	lm.lifecycleListeners = append(lm.lifecycleListeners, listener)
+}
+
+func writeAccountIDSymlink(logger *zap.Logger, accountID string) {
+	if accountID == "" {
+		return
+	}
+	// Remove any stale symlink from a previous execution environment reuse.
+	os.Remove(accountIDSymlinkPath)
+	if err := os.Symlink(accountID, accountIDSymlinkPath); err != nil {
+		logger.Warn("Failed to create account ID symlink", zap.Error(err))
+	}
 }

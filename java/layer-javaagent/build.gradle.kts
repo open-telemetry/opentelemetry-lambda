@@ -13,7 +13,7 @@ val agentClasspath by configurations.creating {
 
 dependencies {
     // version set in dependencyManagement/build.gradle.kts
-    implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent")
+    implementation("io.opentelemetry.javaagent:opentelemetry-javaagent")
 }
 
 tasks {

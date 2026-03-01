@@ -36,7 +36,7 @@ public class AutoconfiguredTracingExecutionInterceptor implements ExecutionInter
       AwsSdkTelemetry.builder(GlobalOpenTelemetry.get())
           .setCaptureExperimentalSpanAttributes(CAPTURE_EXPERIMENTAL_SPAN_ATTRIBUTES)
           .build()
-          .newExecutionInterceptor();
+          .createExecutionInterceptor();
 
   @Override
   public void beforeExecution(
