@@ -6,6 +6,7 @@ BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null
 LAYER_NAME:=otel-collector
 OTELCOL_VERSION=$(shell cat VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
+COLLECTOR_CONTRIB_VERSION=$(shell grep 'opentelemetry-collector-contrib/processor/attributesprocessor ' lambdacomponents/go.mod | awk '{print $$2}')
 GOARCH ?= amd64
 GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",)
 BUILD_INFO_IMPORT_PATH=main
@@ -33,10 +34,15 @@ clean:
 	rm -rf build/
 
 .PHONY: build
-build: clean set-otelcol-version
+build: clean set-otelcol-version sync-resource-detection-fork
 	@echo Building otel collector extension, $(shell go version)
 	mkdir -p $(BUILD_SPACE)/extensions
 	GOOS=linux GOARCH=$(GOARCH) $(GOBUILD) $(LDFLAGS) -o $(BUILD_SPACE)/extensions .
+
+.PHONY: sync-resource-detection-fork
+sync-resource-detection-fork:
+	@echo Syncing minimal resourcedetectionprocessor fork from upstream $(COLLECTOR_CONTRIB_VERSION)
+	cd lambdacomponents/processor/resourcedetectionprocessor && bash sync-from-upstream.sh $(COLLECTOR_CONTRIB_VERSION)
 
 .PHONY: package
 package: build
