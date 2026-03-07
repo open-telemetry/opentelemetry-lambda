@@ -12,10 +12,10 @@ if [[ $OTEL_RESOURCE_ATTRIBUTES != *"service.name="* ]]; then
   fi
 fi
 
-ACCOUNT_ID=$(readlink /tmp/.otel-aws-account-id 2>/dev/null || true)
-if [[ -n "$ACCOUNT_ID" ]]; then
+CLOUD_ACCOUNT_ID=$(readlink /tmp/.otel-aws-account-id 2>/dev/null || true)
+if [[ -n "$CLOUD_ACCOUNT_ID" ]]; then
   if [[ $OTEL_RESOURCE_ATTRIBUTES != *"cloud.account.id="* ]]; then
-    export OTEL_RESOURCE_ATTRIBUTES="cloud.account.id=${ACCOUNT_ID},${OTEL_RESOURCE_ATTRIBUTES}"
+    export OTEL_RESOURCE_ATTRIBUTES="cloud.account.id=${CLOUD_ACCOUNT_ID},${OTEL_RESOURCE_ATTRIBUTES}"
   fi
 else
   echo "otel-handler: ERROR: could not read cloud.account.id from symlink /tmp/.otel-aws-account-id" >&2
