@@ -19,4 +19,12 @@ else
     export OTEL_RESOURCE_ATTRIBUTES="$LAMBDA_RESOURCE_ATTRIBUTES,$OTEL_RESOURCE_ATTRIBUTES";
 fi
 
+CLOUD_ACCOUNT_ID=$(readlink /tmp/.otel-aws-account-id 2>/dev/null || true)
+if [ -n "$CLOUD_ACCOUNT_ID" ]; then
+  case "$OTEL_RESOURCE_ATTRIBUTES" in
+    *cloud.account.id=*) ;;
+    *) export OTEL_RESOURCE_ATTRIBUTES="cloud.account.id=${CLOUD_ACCOUNT_ID},${OTEL_RESOURCE_ATTRIBUTES}" ;;
+  esac
+fi
+
 exec "$@"
