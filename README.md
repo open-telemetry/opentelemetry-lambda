@@ -66,7 +66,7 @@ If not already set, the wrapper scripts default `OTEL_PROPAGATORS` to `tracecont
 The wrapper scripts extend `OTEL_RESOURCE_ATTRIBUTES` with:
 
 - **`service.name`** — set to the Lambda function name (`AWS_LAMBDA_FUNCTION_NAME`) if not already present.
-- **`cloud.account.id`** — the AWS account ID, read from a symlink at `/tmp/.otel-aws-account-id` that is created by the collector extension during registration (see [#2127](https://github.com/open-telemetry/opentelemetry-lambda/pull/2127)). This is added automatically when the collector layer is used alongside a language layer. If the symlink does not exist (e.g., when running without the collector layer), the attribute is silently skipped.
+- **`cloud.account.id`** — the AWS account ID, read from a symlink at `/tmp/.otel-aws-account-id` that is created by the collector extension during registration. This is added automatically when the collector layer is used alongside a language layer. If the symlink does not exist (e.g., when running without the collector layer), the attribute is silently skipped.
 
 User-provided values in `OTEL_RESOURCE_ATTRIBUTES` are never overwritten.
 
