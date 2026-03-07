@@ -1,0 +1,119 @@
+--- a/factory.go
++++ b/factory.go
+@@ -1,6 +1,13 @@
+ // Copyright The OpenTelemetry Authors
+ // SPDX-License-Identifier: Apache-2.0
+ 
++// This is a minimal fork of github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor
++// Synced from: v0.145.0
++// Only the env and lambda detectors are included — no AWS SDK EC2, no Kubernetes, no Docker, no GCP, no Azure, etc.
++//
++// To upgrade to a new upstream version, run from this directory:
++//   ./sync-from-upstream.sh <new-version>   (e.g. ./sync-from-upstream.sh v0.146.0)
++
+ package resourcedetectionprocessor // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
+ 
+ import (
+@@ -19,33 +26,9 @@
+ 	"go.opentelemetry.io/collector/processor/xprocessor"
+ 
+ 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/akamai"
+-	alibabaecs "github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/alibaba/ecs"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/aws/ec2"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/aws/ecs"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/aws/eks"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/aws/elasticbeanstalk"
+ 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/aws/lambda"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/azure"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/azure/aks"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/consul"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/digitalocean"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/docker"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/dynatrace"
+ 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/env"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/gcp"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/heroku"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/hetzner"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/k8snode"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/kubeadm"
+ 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/metadata"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/openshift"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/openstack/nova"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/oraclecloud"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/scaleway"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/system"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/upcloud"
+-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal/vultr"
+ )
+ 
+ var consumerCapabilities = consumer.Capabilities{MutatesData: true}
+@@ -54,7 +37,7 @@
+ 	resourceProviderFactory *internal.ResourceProviderFactory
+ 
+ 	// providers stores a provider for each named processor that
+-	// may a different set of detectors configured.
++	// may have a different set of detectors configured.
+ 	providers map[component.ID]*internal.ResourceProvider
+ 	lock      sync.Mutex
+ }
+@@ -62,32 +45,8 @@
+ // NewFactory creates a new factory for ResourceDetection processor.
+ func NewFactory() processor.Factory {
+ 	resourceProviderFactory := internal.NewProviderFactory(map[internal.DetectorType]internal.DetectorFactory{
+-		akamai.TypeStr:           akamai.NewDetector,
+-		alibabaecs.TypeStr:       alibabaecs.NewDetector,
+-		aks.TypeStr:              aks.NewDetector,
+-		azure.TypeStr:            azure.NewDetector,
+-		consul.TypeStr:           consul.NewDetector,
+-		digitalocean.TypeStr:     digitalocean.NewDetector,
+-		docker.TypeStr:           docker.NewDetector,
+-		ec2.TypeStr:              ec2.NewDetector,
+-		ecs.TypeStr:              ecs.NewDetector,
+-		eks.TypeStr:              eks.NewDetector,
+-		elasticbeanstalk.TypeStr: elasticbeanstalk.NewDetector,
+-		lambda.TypeStr:           lambda.NewDetector,
+-		env.TypeStr:              env.NewDetector,
+-		gcp.TypeStr:              gcp.NewDetector,
+-		heroku.TypeStr:           heroku.NewDetector,
+-		hetzner.TypeStr:          hetzner.NewDetector,
+-		scaleway.TypeStr:         scaleway.NewDetector,
+-		system.TypeStr:           system.NewDetector,
+-		openshift.TypeStr:        openshift.NewDetector,
+-		nova.TypeStr:             nova.NewDetector,
+-		oraclecloud.TypeStr:      oraclecloud.NewDetector,
+-		k8snode.TypeStr:          k8snode.NewDetector,
+-		kubeadm.TypeStr:          kubeadm.NewDetector,
+-		dynatrace.TypeStr:        dynatrace.NewDetector,
+-		upcloud.TypeStr:          upcloud.NewDetector,
+-		vultr.TypeStr:            vultr.NewDetector,
++		env.TypeStr:    env.NewDetector,
++		lambda.TypeStr: lambda.NewDetector,
+ 	})
+ 
+ 	f := &factory{
+@@ -104,20 +63,12 @@
+ 		xprocessor.WithProfiles(f.createProfilesProcessor, metadata.ProfilesStability))
+ }
+ 
+-// Type gets the type of the Option config created by this factory.
+-func (*factory) Type() component.Type {
+-	return metadata.Type
+-}
+-
+ func createDefaultConfig() component.Config {
+ 	return &Config{
+-		Detectors:       []string{env.TypeStr},
+-		ClientConfig:    defaultClientConfig(),
+-		Override:        true,
+-		DetectorConfig:  detectorCreateDefaultConfig(),
+-		RefreshInterval: 0,
+-		// TODO: Once issue(https://github.com/open-telemetry/opentelemetry-collector/issues/4001) gets resolved,
+-		//		 Set the default value of 'hostname_source' here instead of 'system' detector
++		Detectors:      []string{env.TypeStr},
++		ClientConfig:   defaultClientConfig(),
++		Override:       true,
++		DetectorConfig: detectorCreateDefaultConfig(),
+ 	}
+ }
+ 
