@@ -36,6 +36,7 @@ import {
   Instrumentation,
   registerInstrumentations,
 } from '@opentelemetry/instrumentation';
+import type { InstrumentationModuleDefinition } from '@opentelemetry/instrumentation';
 import {
   AwsInstrumentation,
   AwsSdkInstrumentationConfig,
@@ -331,20 +332,25 @@ async function createInstrumentations() {
   // We can't override init() because it's already called during construction (via enable()).
   // _onRequire is called lazily when modules are required, so this override takes effect
   // before the Lambda runtime loads the handler.
-  const originalOnRequire = (awsLambdaInstrumentation as any)._onRequire;
-  (awsLambdaInstrumentation as any)._onRequire = function (
-    module: any,
-    exports: any,
+  type OnRequireFn = <T>(
+    module: InstrumentationModuleDefinition,
+    exports: T,
     name: string,
-    basedir?: string,
-  ) {
-    return originalOnRequire.call(
-      this,
-      module,
-      makeExportsConfigurable(exports),
-      name,
-      basedir,
-    );
+    baseDir?: string | void,
+  ) => T;
+  const instrumentationWithOnRequire = awsLambdaInstrumentation as unknown as {
+    _onRequire: OnRequireFn;
+  };
+  const originalOnRequire = instrumentationWithOnRequire._onRequire.bind(
+    awsLambdaInstrumentation,
+  );
+  instrumentationWithOnRequire._onRequire = function <T>(
+    module: InstrumentationModuleDefinition,
+    exports: T,
+    name: string,
+    baseDir?: string | void,
+  ): T {
+    return originalOnRequire(module, makeExportsConfigurable(exports), name, baseDir);
   };
 
   return [
