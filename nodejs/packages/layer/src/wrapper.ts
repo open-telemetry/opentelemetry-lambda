@@ -350,7 +350,12 @@ async function createInstrumentations() {
     name: string,
     baseDir?: string | void,
   ): T {
-    return originalOnRequire(module, makeExportsConfigurable(exports), name, baseDir);
+    return originalOnRequire(
+      module,
+      makeExportsConfigurable(exports),
+      name,
+      baseDir,
+    );
   };
 
   return [
