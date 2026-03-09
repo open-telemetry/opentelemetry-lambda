@@ -294,18 +294,66 @@ async function defaultConfigureInstrumentations() {
   return instrumentations;
 }
 
+// When esbuild bundles ESM to CJS format, it defines exports using non-configurable
+// accessor descriptors. OpenTelemetry's shimmer then fails with "Cannot redefine property"
+// when trying to wrap the handler. This replaces such exports with a new object that has
+// configurable data descriptors so shimmer can wrap them.
+// See: https://github.com/evanw/esbuild/issues/2199
+function makeExportsConfigurable<T>(moduleExports: T): T {
+  if (typeof moduleExports !== 'object' || moduleExports === null) {
+    return moduleExports;
+  }
+  const keys = Object.getOwnPropertyNames(moduleExports);
+  const descriptors = Object.getOwnPropertyDescriptors(moduleExports);
+  if (keys.every(key => descriptors[key].configurable)) {
+    return moduleExports;
+  }
+  const fixed = Object.create(Object.getPrototypeOf(moduleExports));
+  for (const key of keys) {
+    Object.defineProperty(fixed, key, {
+      value: moduleExports[key as keyof T],
+      writable: true,
+      enumerable: descriptors[key].enumerable,
+      configurable: true,
+    });
+  }
+  return fixed;
+}
+
 async function createInstrumentations() {
+  const awsLambdaInstrumentation = new AwsLambdaInstrumentation(
+    typeof configureLambdaInstrumentation === 'function'
+      ? configureLambdaInstrumentation({})
+      : {},
+  );
+
+  // Override _onRequire to fix non-configurable exports before patching.
+  // We can't override init() because it's already called during construction (via enable()).
+  // _onRequire is called lazily when modules are required, so this override takes effect
+  // before the Lambda runtime loads the handler.
+  const originalOnRequire = (awsLambdaInstrumentation as any)._onRequire;
+  (awsLambdaInstrumentation as any)._onRequire = function (
+    module: any,
+    exports: any,
+    name: string,
+    basedir?: string,
+  ) {
+    return originalOnRequire.call(
+      this,
+      module,
+      makeExportsConfigurable(exports),
+      name,
+      basedir,
+    );
+  };
+
   return [
     new AwsInstrumentation(
       typeof configureAwsInstrumentation === 'function'
         ? configureAwsInstrumentation({ suppressInternalInstrumentation: true })
         : { suppressInternalInstrumentation: true },
     ),
-    new AwsLambdaInstrumentation(
-      typeof configureLambdaInstrumentation === 'function'
-        ? configureLambdaInstrumentation({})
-        : {},
-    ),
+    awsLambdaInstrumentation,
     ...(typeof configureInstrumentations === 'function'
       ? configureInstrumentations()
       : await defaultConfigureInstrumentations()),
