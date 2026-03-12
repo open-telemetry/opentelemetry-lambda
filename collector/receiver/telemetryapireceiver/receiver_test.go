@@ -847,7 +847,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 					Type: "platform.report",
 					Record: map[string]any{
 						"requestId": "test-request-id-123",
-						"status": "success",
+						"status":    "success",
 						"metrics": map[string]any{
 							"durationMs":       123.45,
 							"billedDurationMs": float64(124),
