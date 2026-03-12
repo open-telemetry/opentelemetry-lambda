@@ -18,8 +18,10 @@ import (
 	"context"
 	crand "crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -84,29 +86,55 @@ type telemetryAPIReceiver struct {
 	logReport               bool
 }
 
+func (r *telemetryAPIReceiver) bindListener() (net.Listener, string, error) {
+	listenerAddr := listenOnAddress()
+	l, err := net.Listen("tcp", listenerAddr+":"+strconv.Itoa(r.port))
+	if err != nil {
+		return nil, "", err
+	}
+	addr := fmt.Sprintf("%s:%d", listenerAddr, l.Addr().(*net.TCPAddr).Port)
+	return l, addr, nil
+}
+
 func (r *telemetryAPIReceiver) Start(ctx context.Context, host component.Host) error {
-	address := listenOnAddress(r.port)
-	r.logger.Info("Listening for requests", zap.String("address", address))
+	if len(r.types) == 0 {
+		return fmt.Errorf("no telemetry event types provided")
+	}
+
+	listener, address, err := r.bindListener()
+	if err != nil {
+		return fmt.Errorf("failed to find available port: %w", err)
+	}
+	r.logger.Info("Starting telemetry API listener", zap.String("address", address))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", r.httpHandler)
 	r.httpServer = &http.Server{Addr: address, Handler: mux}
 	go func() {
-		_ = r.httpServer.ListenAndServe()
+		err := r.httpServer.Serve(listener)
+		if !errors.Is(err, http.ErrServerClosed) {
+			r.logger.Error("Unexpected stop on HTTP Server", zap.Error(err))
+		} else {
+			r.logger.Info("HTTP server closed", zap.Error(err))
+		}
 	}()
 
 	telemetryClient := telemetryapi.NewClient(r.logger)
-	if len(r.types) > 0 {
-		_, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address))
-		if err != nil {
-			r.logger.Info("Listening for requests", zap.String("address", address), zap.String("extensionID", r.extensionID))
-			return err
-		}
+	if _, err := telemetryClient.Subscribe(ctx, r.types, r.extensionID, fmt.Sprintf("http://%s/", address)); err != nil {
+		r.logger.Error("Failed to subscribe to telemetry", zap.Error(err))
+		_ = r.Shutdown(ctx)
+		return err
 	}
+	r.logger.Info("Successfully subscribed to telemetry", zap.String("address", address))
 	return nil
 }
 
 func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
+	if r.httpServer != nil {
+		if err := r.httpServer.Shutdown(ctx); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -727,14 +755,10 @@ func newTelemetryAPIReceiver(
 	}, nil
 }
 
-func listenOnAddress(port int) string {
+func listenOnAddress() string {
 	envAwsLocal, ok := os.LookupEnv("AWS_SAM_LOCAL")
-	var addr string
 	if ok && envAwsLocal == "true" {
-		addr = ":" + strconv.Itoa(port)
-	} else {
-		addr = "sandbox.localdomain:" + strconv.Itoa(port)
+		return ""
 	}
-
-	return addr
+	return "sandbox.localdomain"
 }

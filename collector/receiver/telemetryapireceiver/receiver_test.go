@@ -38,22 +38,47 @@ func TestListenOnAddress(t *testing.T) {
 		{
 			desc: "listen on address without AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, "sandbox.localdomain:4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "sandbox.localdomain", addr)
 			},
 		},
 		{
 			desc: "listen on address with AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
 				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, ":4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "", addr)
 			},
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, tc.testFunc)
 	}
+}
+
+func TestBindListener(t *testing.T) {
+	t.Setenv("AWS_SAM_LOCAL", "true")
+
+	t.Run("dynamic port allocation", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 0}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotEmpty(t, addr)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":")
+	})
+
+	t.Run("specific port", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 4325}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":4325")
+	})
 }
 
 type mockConsumer struct {
