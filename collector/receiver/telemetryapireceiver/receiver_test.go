@@ -134,7 +134,8 @@ func TestRecordMetrics(t *testing.T) {
 
 	c := &mockConsumer{}
 	r.registerMetricsConsumer(c)
-	r.flushMetrics(context.Background())
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
 
 	require.Len(t, c.metricBatches, 1)
 	metrics := c.metricBatches[0]
@@ -191,7 +192,8 @@ func TestFlushMetricsIntervalDelayed(t *testing.T) {
 	r.httpHandler(httptest.NewRecorder(), req)
 	require.Len(t, c.metricBatches, 0)
 
-	r.flushMetrics(context.Background())
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
 	require.Len(t, c.metricBatches, 1)
 }
 
@@ -211,6 +213,41 @@ func TestShutdownFlushesMetrics(t *testing.T) {
 	err = r.Shutdown(context.Background())
 	require.NoError(t, err)
 	require.Len(t, c.metricBatches, 1)
+}
+
+func TestFlushMetricsNilConsumer(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	slice := []event{
+		{
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+}
+
+func TestFlushMetricsNoData(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 0)
 }
 
 func TestHandler(t *testing.T) {
