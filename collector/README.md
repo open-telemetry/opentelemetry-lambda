@@ -195,3 +195,34 @@ When used with the batch processor the decouple processor must be the last proce
 is successfully exported before the lambda environment is frozen.
 
 As stated previously in the auto-configuration section, the OpenTelemetry Lambda Layer will automatically add the decouple processor to the end of the processors if the batch is used and the decouple processor is not. The result will be the same whether you configure it manually or not.
+
+## Minimal `resourcedetectionprocessor` fork
+
+The upstream `resourcedetectionprocessor` from `opentelemetry-collector-contrib` compiles 26 cloud-provider detectors into every binary (EC2, ECS, EKS, GCP, Kubernetes, Docker, Azure, DigitalOcean, etc.), even though the default Lambda config only uses `env` and `lambda`. This adds large transitive dependencies — AWS SDK v2/EC2, Kubernetes client, GCP SDK, Docker, Azure SDK — that bloat the Lambda binary and increase cold-start time.
+
+This repository ships a minimal local fork at `lambdacomponents/processor/resourcedetectionprocessor/` that includes only the `env` and `lambda` detectors. Both read exclusively from environment variables and have no cloud SDK dependencies. The fork is wired into the build via a `replace` directive in `lambdacomponents/go.mod`; no import paths in application code are affected.
+
+### How the sync works
+
+The fork is kept in sync with upstream using two patch files and a script:
+
+| File | Purpose |
+|---|---|
+| `lambdacomponents/processor/resourcedetectionprocessor/factory.patch` | Diff that strips the 24 unused detectors from `factory.go` |
+| `lambdacomponents/processor/resourcedetectionprocessor/config.patch` | Diff that strips unused detector config structs from `config.go` |
+| `lambdacomponents/processor/resourcedetectionprocessor/sync-from-upstream.sh` | Fetches all upstream files and applies the patches |
+
+`make build` (and `make package`) automatically runs the sync against the version of `opentelemetry-collector-contrib` declared in `lambdacomponents/go.mod`, so the fork is always up to date when building.
+
+### Upgrading to a new upstream version
+
+When the `opentelemetry-collector-contrib` version is bumped in `lambdacomponents/go.mod`, a `make build` will automatically re-sync. If the upstream `factory.go` or `config.go` have changed in ways that prevent the patch from applying cleanly, the sync script will stop with an error and print instructions for regenerating the patches:
+
+```shell
+cd lambdacomponents/processor/resourcedetectionprocessor
+./sync-from-upstream.sh v0.146.0
+# if the patch fails to apply, regenerate it:
+diff -u /tmp/rdp_factory_upstream.go factory.go > factory.patch
+diff -u /tmp/rdp_config_upstream.go  config.go  > config.patch
+# then commit all changes
+```
