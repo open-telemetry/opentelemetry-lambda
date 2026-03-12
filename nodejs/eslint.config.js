@@ -1,7 +1,6 @@
 module.exports = {
   plugins: [
     "@typescript-eslint",
-    "header"
   ],
   extends: [
       "../../node_modules/gts",
