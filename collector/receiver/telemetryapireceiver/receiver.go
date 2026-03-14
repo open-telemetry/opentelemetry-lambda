@@ -143,16 +143,16 @@ func (r *telemetryAPIReceiver) Shutdown(ctx context.Context) error {
 
 	var errs []error
 
-	if r.exportInterval > 0 {
-		if err := r.flushMetrics(ctx); err != nil {
-			r.logger.Error("error while flushing metrics", zap.Error(err))
+	if r.httpServer != nil {
+		if err := r.httpServer.Shutdown(ctx); err != nil {
+			r.logger.Error("error shutting down http server", zap.Error(err))
 			errs = append(errs, err)
 		}
 	}
 
-	if r.httpServer != nil {
-		if err := r.httpServer.Shutdown(ctx); err != nil {
-			r.logger.Error("error shutting down http server", zap.Error(err))
+	if r.exportInterval > 0 {
+		if err := r.flushMetrics(ctx); err != nil {
+			r.logger.Error("error while flushing metrics", zap.Error(err))
 			errs = append(errs, err)
 		}
 	}
