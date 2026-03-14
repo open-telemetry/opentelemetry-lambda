@@ -153,6 +153,7 @@ def mock_execute_lambda(event=None):
     Args:
         event: The Lambda event which may or may not be used by instrumentation.
     """
+    AwsLambdaInstrumentor().instrument()
 
     # The point of the repo is to test using the script, so we can count on it
     # being here for every test and do not check for its existence.
