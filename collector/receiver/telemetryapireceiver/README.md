@@ -17,7 +17,7 @@ Supported events:
 
 | Field   | Default                               | Description                                                                                                                             |
 |---------|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `port`  | 4325                                  | HTTP server port to receive Telemetry API data.                                                                                         |
+| `port`  | 0 (dynamically determined by OS)      | HTTP server port to receive Telemetry API data.                                                                                         |
 | `types` | ["platform", "function", "extension"] | [Types](https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api-reference.html#telemetry-subscribe-api) of telemetry to subscribe to |
 
 
