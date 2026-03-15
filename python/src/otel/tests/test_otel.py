@@ -190,7 +190,7 @@ class TestAwsLambdaInstrumentor(TestBase):
             "os.environ",
             {
                 AWS_LAMBDA_EXEC_WRAPPER: "mock_aws_lambda_exec_wrapper",
-                AWS_LAMBDA_FUNCTION_NAME: "test-func",
+                AWS_LAMBDA_FUNCTION_NAME: "my-function",
                 _HANDLER: "mocks.lambda_function.handler",
             },
         )
@@ -239,7 +239,7 @@ class TestAwsLambdaInstrumentor(TestBase):
 
         self.assertEqual(len(spans), 1)
         span = spans[0]
-        self.assertEqual(span.name, os.environ[ORIG_HANDLER])
+        self.assertEqual(span.name, MOCK_LAMBDA_CONTEXT.function_name)
         self.assertEqual(span.get_span_context().trace_id, MOCK_XRAY_TRACE_ID)
         self.assertEqual(span.kind, SpanKind.SERVER)
         self.assertSpanHasAttributes(
