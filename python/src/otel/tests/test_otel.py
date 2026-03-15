@@ -53,14 +53,16 @@ TOX_PYTHON_DIRECTORY = os.path.dirname(os.path.dirname(which("python3")))
 
 
 class MockLambdaContext:
-    def __init__(self, aws_request_id, invoked_function_arn):
+    def __init__(self, aws_request_id, invoked_function_arn, function_name):
         self.invoked_function_arn = invoked_function_arn
         self.aws_request_id = aws_request_id
+        self.function_name = function_name
 
 
 MOCK_LAMBDA_CONTEXT = MockLambdaContext(
     aws_request_id="mock_aws_request_id",
     invoked_function_arn="arn:aws:lambda:us-west-2:123456789012:function:my-function",
+    function_name="my-function",
 )
 
 MOCK_XRAY_TRACE_ID = 0x5FB7331105E8BB83207FA31D4D9CDB4C
