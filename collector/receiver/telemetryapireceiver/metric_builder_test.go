@@ -648,6 +648,78 @@ func TestCounterMetricBuilder_CumulativeDataPoints(t *testing.T) {
 	})
 }
 
+func TestHistogramMetricBuilder_AppendDataPoints_NoData(t *testing.T) {
+	startTime := pcommon.NewTimestampFromTime(time.Now().Add(-time.Hour))
+
+	t.Run("cumulative temporality", func(t *testing.T) {
+		builder := NewHistogramMetricBuilder(
+			"test.histogram", "Test histogram", "ms",
+			nil, startTime, pmetric.AggregationTemporalityCumulative,
+		)
+
+		metrics := pmetric.NewMetrics()
+		rm := metrics.ResourceMetrics().AppendEmpty()
+		scopeMetrics := rm.ScopeMetrics().AppendEmpty()
+
+		timestamp := pcommon.NewTimestampFromTime(time.Now())
+		builder.AppendDataPoints(scopeMetrics, timestamp)
+
+		assert.Equal(t, 0, scopeMetrics.Metrics().Len())
+	})
+
+	t.Run("delta temporality", func(t *testing.T) {
+		builder := NewHistogramMetricBuilder(
+			"test.histogram", "Test histogram", "ms",
+			nil, startTime, pmetric.AggregationTemporalityDelta,
+		)
+
+		metrics := pmetric.NewMetrics()
+		rm := metrics.ResourceMetrics().AppendEmpty()
+		scopeMetrics := rm.ScopeMetrics().AppendEmpty()
+
+		timestamp := pcommon.NewTimestampFromTime(time.Now())
+		builder.AppendDataPoints(scopeMetrics, timestamp)
+
+		assert.Equal(t, 0, scopeMetrics.Metrics().Len())
+	})
+}
+
+func TestCounterMetricBuilder_AppendDataPoints_NoData(t *testing.T) {
+	startTime := pcommon.NewTimestampFromTime(time.Now().Add(-time.Hour))
+
+	t.Run("cumulative temporality", func(t *testing.T) {
+		builder := NewCounterMetricBuilder(
+			"test.counter", "Test counter", "{count}",
+			true, startTime, pmetric.AggregationTemporalityCumulative,
+		)
+
+		metrics := pmetric.NewMetrics()
+		rm := metrics.ResourceMetrics().AppendEmpty()
+		scopeMetrics := rm.ScopeMetrics().AppendEmpty()
+
+		timestamp := pcommon.NewTimestampFromTime(time.Now())
+		builder.AppendDataPoints(scopeMetrics, timestamp)
+
+		assert.Equal(t, 0, scopeMetrics.Metrics().Len())
+	})
+
+	t.Run("delta temporality", func(t *testing.T) {
+		builder := NewCounterMetricBuilder(
+			"test.counter", "Test counter", "{count}",
+			true, startTime, pmetric.AggregationTemporalityDelta,
+		)
+
+		metrics := pmetric.NewMetrics()
+		rm := metrics.ResourceMetrics().AppendEmpty()
+		scopeMetrics := rm.ScopeMetrics().AppendEmpty()
+
+		timestamp := pcommon.NewTimestampFromTime(time.Now())
+		builder.AppendDataPoints(scopeMetrics, timestamp)
+
+		assert.Equal(t, 0, scopeMetrics.Metrics().Len())
+	})
+}
+
 func TestHistogramMetricBuilder_AggregationTemporality(t *testing.T) {
 	startTime := pcommon.NewTimestampFromTime(time.Now().Add(-time.Hour))
 

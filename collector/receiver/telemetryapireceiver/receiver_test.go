@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -38,16 +39,16 @@ func TestListenOnAddress(t *testing.T) {
 		{
 			desc: "listen on address without AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, "sandbox.localdomain:4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "sandbox.localdomain", addr)
 			},
 		},
 		{
 			desc: "listen on address with AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
 				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, ":4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "", addr)
 			},
 		},
 	}
@@ -56,8 +57,34 @@ func TestListenOnAddress(t *testing.T) {
 	}
 }
 
+func TestBindListener(t *testing.T) {
+	t.Setenv("AWS_SAM_LOCAL", "true")
+
+	t.Run("dynamic port allocation", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 0}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotEmpty(t, addr)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":")
+	})
+
+	t.Run("specific port", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 4325}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":4325")
+	})
+}
+
 type mockConsumer struct {
-	consumed int
+	consumed      int
+	metricBatches []pmetric.Metrics
 }
 
 func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
@@ -69,8 +96,158 @@ func (c *mockConsumer) ConsumeLogs(ctx context.Context, td plog.Logs) error {
 	return nil
 }
 
+func (c *mockConsumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
+	c.metricBatches = append(c.metricBatches, md)
+	return nil
+}
+
 func (c *mockConsumer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{MutatesData: true}
+}
+
+func TestRecordMetrics(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	slice := []event{
+		{
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+		{
+			Type: "platform.runtimeDone",
+			Record: map[string]any{
+				"status": "success",
+				"metrics": map[string]any{
+					"durationMs": 100.0,
+				},
+			},
+		},
+	}
+
+	r.recordMetrics(slice)
+
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+
+	require.Len(t, c.metricBatches, 1)
+	metrics := c.metricBatches[0]
+	require.Equal(t, 3, metrics.MetricCount()) // coldstarts, invocations and duration
+
+	foundColdstart := false
+	foundInvocation := false
+	foundDuration := false
+	rm := metrics.ResourceMetrics().At(0)
+	sm := rm.ScopeMetrics().At(0)
+	for i := 0; i < sm.Metrics().Len(); i++ {
+		m := sm.Metrics().At(i)
+		if m.Name() == semconv.FaaSColdstartsName {
+			foundColdstart = true
+		}
+		if m.Name() == semconv.FaaSInvocationsName {
+			foundInvocation = true
+		}
+		if m.Name() == semconv.FaaSInvokeDurationName {
+			foundDuration = true
+		}
+	}
+	require.True(t, foundColdstart)
+	require.True(t, foundInvocation)
+	require.True(t, foundDuration)
+}
+
+func TestFlushMetricsIntervalImmediate(t *testing.T) {
+	// Test immediate flush when interval = 0
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 0},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestFlushMetricsIntervalDelayed(t *testing.T) {
+	// Test delayed flush when interval > 0
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 0)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestShutdownFlushesMetrics(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 0)
+
+	err = r.Shutdown(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestFlushMetricsNilConsumer(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	slice := []event{
+		{
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+}
+
+func TestFlushMetricsNoData(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 0)
 }
 
 func TestHandler(t *testing.T) {
@@ -781,6 +958,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 					Type: "platform.report",
 					Record: map[string]any{
 						"requestId": "test-request-id-123",
+						"status":    "success",
 						"metrics": map[string]any{
 							"durationMs":       123.45,
 							"billedDurationMs": float64(124),
@@ -795,6 +973,31 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 			expectedType:       "platform.report",
 			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
 			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB",
+			expectError:        false,
+		},
+		{
+			desc: "platform.report with logReport enabled - status failure adds Status suffix",
+			slice: []event{
+				{
+					Time: "2022-10-12T00:03:50.000Z",
+					Type: "platform.report",
+					Record: map[string]any{
+						"requestId": "test-request-id-123",
+						"status":    "failure",
+						"metrics": map[string]any{
+							"durationMs":       123.45,
+							"billedDurationMs": float64(124),
+							"memorySizeMB":     float64(512),
+							"maxMemoryUsedMB":  float64(256),
+						},
+					},
+				},
+			},
+			logReport:          true,
+			expectedLogRecords: 1,
+			expectedType:       "platform.report",
+			expectedTimestamp:  "2022-10-12T00:03:50.000Z",
+			expectedBody:       "REPORT RequestId: test-request-id-123 Duration: 123.45 ms Billed Duration: 124 ms Memory Size: 512 MB Max Memory Used: 256 MB Status: failure",
 			expectError:        false,
 		},
 		{
@@ -1073,6 +1276,38 @@ func TestCreatePlatformMessage(t *testing.T) {
 				},
 			},
 			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with status success does not add Status suffix",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"status": "success",
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB",
+		},
+		{
+			desc:            "platform.report with status timeout adds Status suffix",
+			requestId:       "test-request-id",
+			functionVersion: "$LATEST",
+			eventType:       "platform.report",
+			record: map[string]interface{}{
+				"status": "timeout",
+				"metrics": map[string]interface{}{
+					"durationMs":       100.5,
+					"billedDurationMs": 101.0,
+					"memorySizeMB":     128.0,
+					"maxMemoryUsedMB":  64.0,
+				},
+			},
+			expected: "REPORT RequestId: test-request-id Duration: 100.50 ms Billed Duration: 101 ms Memory Size: 128 MB Max Memory Used: 64 MB Status: timeout",
 		},
 		{
 			desc:            "platform.report with missing metrics",

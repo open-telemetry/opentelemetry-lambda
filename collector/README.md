@@ -50,7 +50,7 @@ For example, if you want to add the extension `foo`, the file providing this ext
 //go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
 ```
 
-You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](#contributing) to this project.
+You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](../CONTRIBUTING.md) to this project.
 
 ## Build and publish your own OpenTelemetry Collector Lambda layer
 

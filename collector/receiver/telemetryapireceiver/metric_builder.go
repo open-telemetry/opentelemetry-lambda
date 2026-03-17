@@ -127,7 +127,7 @@ func (h *HistogramMetricBuilder) AppendDataPoints(scopeMetrics pmetric.ScopeMetr
 		}
 	}
 
-	if !export {
+	if !export || len(h.dataPoints) == 0 {
 		return
 	}
 
@@ -249,7 +249,7 @@ func (c *CounterMetricBuilder) AppendDataPoints(scopeMetrics pmetric.ScopeMetric
 		}
 	}
 
-	if !export {
+	if !export || len(c.dataPoints) == 0 {
 		return
 	}
 

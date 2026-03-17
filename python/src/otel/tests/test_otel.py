@@ -53,14 +53,16 @@ TOX_PYTHON_DIRECTORY = os.path.dirname(os.path.dirname(which("python3")))
 
 
 class MockLambdaContext:
-    def __init__(self, aws_request_id, invoked_function_arn):
+    def __init__(self, aws_request_id, invoked_function_arn, function_name):
         self.invoked_function_arn = invoked_function_arn
         self.aws_request_id = aws_request_id
+        self.function_name = function_name
 
 
 MOCK_LAMBDA_CONTEXT = MockLambdaContext(
     aws_request_id="mock_aws_request_id",
     invoked_function_arn="arn:aws:lambda:us-west-2:123456789012:function:my-function",
+    function_name="my-function",
 )
 
 MOCK_XRAY_TRACE_ID = 0x5FB7331105E8BB83207FA31D4D9CDB4C
@@ -188,7 +190,7 @@ class TestAwsLambdaInstrumentor(TestBase):
             "os.environ",
             {
                 AWS_LAMBDA_EXEC_WRAPPER: "mock_aws_lambda_exec_wrapper",
-                AWS_LAMBDA_FUNCTION_NAME: "test-func",
+                AWS_LAMBDA_FUNCTION_NAME: "my-function",
                 _HANDLER: "mocks.lambda_function.handler",
             },
         )
@@ -237,7 +239,7 @@ class TestAwsLambdaInstrumentor(TestBase):
 
         self.assertEqual(len(spans), 1)
         span = spans[0]
-        self.assertEqual(span.name, os.environ[ORIG_HANDLER])
+        self.assertEqual(span.name, MOCK_LAMBDA_CONTEXT.function_name)
         self.assertEqual(span.get_span_context().trace_id, MOCK_XRAY_TRACE_ID)
         self.assertEqual(span.kind, SpanKind.SERVER)
         self.assertSpanHasAttributes(
