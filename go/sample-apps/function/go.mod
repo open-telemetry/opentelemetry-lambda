@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/go/sample-apps/function
 
-go 1.25.0
+go 1.26.1
 
 require (
 	github.com/aws/aws-lambda-go v1.53.0
