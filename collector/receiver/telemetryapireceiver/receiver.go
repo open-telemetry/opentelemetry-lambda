@@ -422,7 +422,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 					case "level", "message", "requestId", "timestamp":
 						continue
 					default:
-						attr, _ := logRecord.Attributes().GetOrPutEmpty("app.extra." + key)
+						attr, _ := logRecord.Attributes().GetOrPutEmpty(key)
 						if err := attr.FromRaw(value); err != nil {
 							r.logger.Warn(fmt.Sprintf("error creating attribute: %s", key), zap.Error(err))
 							continue

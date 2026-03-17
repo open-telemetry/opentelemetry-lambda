@@ -310,16 +310,19 @@ func TestCreateLogs(t *testing.T) {
 					Time: "2026-02-26T20:15:32.000Z",
 					Type: "function",
 					Record: map[string]any{
-						"timestamp":             "2026-02-26T20:15:32.000Z",
-						"level":                 "INFO",
-						"requestId":             "79b4f56e-95b1-4643-9700-2807f4e6",
-						"message":               "Hello world, I am a function with extra data!",
-						"extraString":           "stringValue",
-						"extraNumber":           "2217",
-						"extraBoolean":          true,
-						"extraNull":             nil,
-						"extraArray":            []any{"stringValue", 2217, true, nil},
-						"extraArrayWithNesting": []any{"stringValue", []any{2217, []any{true, nil}}},
+						"timestamp":              "2026-02-26T20:15:32.000Z",
+						"level":                  "INFO",
+						"requestId":              "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":                "Hello world, I am a function with extra data!",
+						"extraString":            "stringValue",
+						"extraNumber":            2217,
+						"extraFloat":             3.14,
+						"extraBoolean":           true,
+						"extraNull":              nil,
+						"extraArrayOfStrings":    []any{"stringValue", "stringValue"},
+						"extraArrayOfNumbers":    []any{2217, 2217},
+						"extraArrayOfMixedTypes": []any{"stringValue", 2217, true, nil},
+						"extraArrayWithNesting":  []any{"stringValue", []any{2217, []any{true, nil}}},
 						"extraObject": map[string]any{
 							"stringValue":  "stringValue",
 							"numberValue":  2217,
@@ -350,14 +353,54 @@ func TestCreateLogs(t *testing.T) {
 					severityText:      "Info",
 					severityNumber:    plog.SeverityNumberInfo,
 					attributes: map[string]interface{}{
-						"app.extra.extraString": "stringValue",
-						"app.extra.extraNumber": 2217,
-						// "app.extra.extraBoolean":           "true",
-						// "app.extra.extraNull":              "null",
-						// "app.extra.extraArray":             "[stringValue, 2217, true, null]",
-						// "app.extra.extraArrayWithNesting":  "[stringValue, [2217, [true, null]]]",
-						// "app.extra.extraObject":            "{stringValue:stringValue, numberValue:2217, booleanValue:true, nullValue:null}",
-						// "app.extra.extraObjectWithNesting": "{stringValue:stringValue, numberValue:2217, nullValue:null, arrayValue:[stringValue, 2217], objectValue:{stringValue:stringValue, numberValue:2217}}",
+						"extraString":  "stringValue",
+						"extraNumber":  int64(2217),
+						"extraFloat":   float64(3.14),
+						"extraBoolean": true,
+						"extraNull":    nil,
+						"extraArrayOfStrings": []interface{}{
+							"stringValue",
+							"stringValue",
+						},
+						"extraArrayOfNumbers": []interface{}{
+							int64(2217),
+							int64(2217),
+						},
+						"extraArrayOfMixedTypes": []interface{}{
+							"stringValue",
+							int64(2217),
+							true,
+							nil,
+						},
+						"extraArrayWithNesting": []interface{}{
+							"stringValue",
+							[]interface{}{
+								int64(2217),
+								[]interface{}{
+									true, nil,
+								},
+							},
+						},
+						"extraObject": map[string]interface{}{
+							"stringValue":  "stringValue",
+							"numberValue":  int64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+						},
+						"extraObjectWithNesting": map[string]interface{}{
+							"stringValue":  "stringValue",
+							"numberValue":  int64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+							"arrayValue": []interface{}{
+								"stringValue",
+								int64(2217),
+							},
+							"objectValue": map[string]interface{}{
+								"stringValue": "stringValue",
+								"numberValue": int64(2217),
+							},
+						},
 					},
 				},
 			},
@@ -709,7 +752,7 @@ func TestCreateLogs(t *testing.T) {
 				for key, value := range expected.attributes {
 					attr, ok := logRecord.Attributes().Get(key)
 					require.True(t, ok, "expected attribute %s not found", key)
-					require.Equal(t, value, attr.Str(), "expected attribute %s to have value %s, got %s", key, value, attr.Str())
+					require.Equal(t, value, attr.AsRaw(), "expected attribute %s to have value %v, got %v", key, value, attr.AsRaw())
 				}
 			}
 		})
