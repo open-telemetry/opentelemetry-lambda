@@ -529,51 +529,51 @@ func TestCreateLogs(t *testing.T) {
 					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
 					severityText:      "Info",
 					severityNumber:    plog.SeverityNumberInfo,
-					attributes: map[string]interface{}{
+					attributes: map[string]any{
 						"extraString":  "stringValue",
 						"extraNumber":  int64(2217),
 						"extraFloat":   float64(3.14),
 						"extraBoolean": true,
 						"extraNull":    nil,
-						"extraArrayOfStrings": []interface{}{
+						"extraArrayOfStrings": []any{
 							"stringValue",
 							"stringValue",
 						},
-						"extraArrayOfNumbers": []interface{}{
+						"extraArrayOfNumbers": []any{
 							int64(2217),
 							int64(2217),
 						},
-						"extraArrayOfMixedTypes": []interface{}{
+						"extraArrayOfMixedTypes": []any{
 							"stringValue",
 							int64(2217),
 							true,
 							nil,
 						},
-						"extraArrayWithNesting": []interface{}{
+						"extraArrayWithNesting": []any{
 							"stringValue",
-							[]interface{}{
+							[]any{
 								int64(2217),
-								[]interface{}{
+								[]any{
 									true, nil,
 								},
 							},
 						},
-						"extraObject": map[string]interface{}{
+						"extraObject": map[string]any{
 							"stringValue":  "stringValue",
 							"numberValue":  int64(2217),
 							"booleanValue": true,
 							"nullValue":    nil,
 						},
-						"extraObjectWithNesting": map[string]interface{}{
+						"extraObjectWithNesting": map[string]any{
 							"stringValue":  "stringValue",
 							"numberValue":  int64(2217),
 							"booleanValue": true,
 							"nullValue":    nil,
-							"arrayValue": []interface{}{
+							"arrayValue": []any{
 								"stringValue",
 								int64(2217),
 							},
-							"objectValue": map[string]interface{}{
+							"objectValue": map[string]any{
 								"stringValue": "stringValue",
 								"numberValue": int64(2217),
 							},
