@@ -43,6 +43,8 @@ var exporters = map[string]struct{}{
 	"observiq":                {},
 	"opencensus":              {},
 	"otlp":                    {},
+	"otlp_grpc":               {},
+	"otlp_http":               {},
 	"otlphttp":                {},
 	"pulsar":                  {},
 	"sapm":                    {},
