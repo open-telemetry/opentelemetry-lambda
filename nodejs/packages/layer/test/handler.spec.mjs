@@ -42,10 +42,7 @@ describe('when loading ESM module', async () => {
         spanProcessors: [new BatchSpanProcessor(memoryExporter)],
       };
     };
-    global.configureMeter = _ => {
-      {
-      }
-    };
+    global.configureMeter = _ => {};
     global.configureMeterProvider = _ => {};
     global.configureLoggerProvider = _ => {};
 
