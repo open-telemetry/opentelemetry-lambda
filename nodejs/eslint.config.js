@@ -6,8 +6,6 @@ const globals = require('globals');
 
 module.exports = [
   ...gtsConfig,
-
-  // Global ignores (replaces .eslintignore files)
   {
     ignores: [
       '**/build/**',
@@ -17,8 +15,14 @@ module.exports = [
       'sample-apps/aws-sdk/lib/**',
     ],
   },
-
-  // Node globals and rules for JS/MJS/CJS files
+  {
+    rules: {
+      'prettier/prettier': [
+        'error',
+        {singleQuote: true, arrowParens: 'avoid'},
+      ],
+    },
+  },
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     languageOptions: {
@@ -30,8 +34,18 @@ module.exports = [
       'no-unused-vars': ['error', {varsIgnorePattern: '^_'}],
     },
   },
-
-  // Custom rules for all .ts files
+    {
+    files: ['**/test/**/*.js', '**/test/**/*.mjs', '**/test/**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
+    },
+    rules: {
+      'no-empty': 'off',
+      'no-unused-vars': 'off',
+    },
+  },
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -61,15 +75,9 @@ module.exports = [
         {ignoreProperties: true},
       ],
       'arrow-parens': ['error', 'as-needed'],
-      'prettier/prettier': [
-        'error',
-        {singleQuote: true, arrowParens: 'avoid'},
-      ],
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
-
-  // Relaxed rules for test files
   {
     files: ['**/test/**/*.ts'],
     languageOptions: {
@@ -84,20 +92,6 @@ module.exports = [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-require-imports': 'off',
-    },
-  },
-
-  // Relaxed rules for non-TS test files
-  {
-    files: ['**/test/**/*.js', '**/test/**/*.mjs', '**/test/**/*.cjs'],
-    languageOptions: {
-      globals: {
-        ...globals.mocha,
-      },
-    },
-    rules: {
-      'no-empty': 'off',
-      'no-unused-vars': 'off',
     },
   },
 ];
