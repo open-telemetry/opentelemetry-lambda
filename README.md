@@ -137,7 +137,7 @@ For more information about the maintainer role, see the [community repository](h
 - [Ivan Santos](https://github.com/pragmaticivan)
 - [Lukas Hering](https://github.com/herin049)
 - [Maxime David](https://github.com/maxday)
-- [Raphael Manke](https://github.com/raphaelmanke), Dash0
+- [Raphael Manke](https://github.com/raphaelmanke)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
