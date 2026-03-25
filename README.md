@@ -128,15 +128,15 @@ See the [Contributing Guide](CONTRIBUTING.md) for details.
 
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
 - [Tyler Benson](https://github.com/tylerbenson), ServiceNow
-- [Warre Pessers](https://github.com/wpessers), DPG Media
+- [Warre Pessers](https://github.com/wpessers)
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
 ### Approvers
 
-- [Ivan Santos](https://github.com/pragmaticivan), EverQuote
-- [Lukas Hering](https://github.com/herin049), Oracle
-- [Maxime David](https://github.com/maxday), AWS
+- [Ivan Santos](https://github.com/pragmaticivan)
+- [Lukas Hering](https://github.com/herin049)
+- [Maxime David](https://github.com/maxday)
 - [Raphael Manke](https://github.com/raphaelmanke), Dash0
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
