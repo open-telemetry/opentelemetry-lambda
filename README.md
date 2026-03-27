@@ -43,7 +43,7 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 ## FAQ
 
 * **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
-    > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go#L18) in this repository for a full list of currently included components.
+    > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go) in this repository for a full list of currently included components.
 
     > Self-built binaries of the collector have **experimental** support for a custom set of connectors/exporters/receivers/processors. For more information, see [(Experimental) Customized collector build](./collector/README.md#experimental-customized-collector-build)
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
@@ -154,6 +154,7 @@ For more information about the maintainer role, see the [community repository](h
 - [Ivan Santos](https://github.com/pragmaticivan)
 - [Lukas Hering](https://github.com/herin049)
 - [Maxime David](https://github.com/maxday)
+- [Raphael Manke](https://github.com/raphaelmanke)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 

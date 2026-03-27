@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle
 
-go 1.24.11
+go 1.26.1
 
 require github.com/stretchr/testify v1.11.1
 
