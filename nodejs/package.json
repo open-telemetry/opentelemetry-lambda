@@ -38,26 +38,11 @@
     "globals": "^17.4.0",
     "gts": "^7.0.0",
     "lerna": "^9.0.0",
-    "lerna-changelog": "2.2.0",
     "rimraf": "6.1.3",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.57.1"
   },
   "overrides": {
     "@types/aws-lambda": "8.10.156"
-  },
-  "changelog": {
-    "labels": {
-      "breaking": ":boom: Breaking Change",
-      "bug": ":bug: Bug Fix",
-      "plugin-request": ":tada: New Plugins",
-      "enhancement": ":rocket: Enhancement",
-      "internal": ":house: Internal",
-      "documentation": ":memo: Documentation"
-    },
-    "ignoreCommitters": [
-      "renovate-bot",
-      "dependabot"
-    ]
   }
 }
