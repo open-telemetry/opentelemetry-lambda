@@ -20,7 +20,10 @@
     "target": "es2022",
     "incremental": true,
     "newLine": "LF",
-    "types": ["node"]
+    "types": ["node"],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
     "node_modules"
