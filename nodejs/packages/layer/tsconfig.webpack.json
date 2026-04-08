@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.esm",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "build"
+    "outDir": "build",
+    "types": ["node", "mocha", "sinon"]
   },
   "include": [
     "src/**/*.ts",

@@ -7,6 +7,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
+    "moduleResolution": "bundler",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -19,6 +20,7 @@
     "target": "es2022",
     "incremental": true,
     "newLine": "LF",
+    "types": ["node"],
     "typeRoots": [
       "node_modules/@types"
     ]
