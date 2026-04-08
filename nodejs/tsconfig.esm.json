@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "es2022",
     "target": "es2022",
     "allowUnreachableCode": false,
@@ -18,10 +18,7 @@
     "strict": true,
     "strictNullChecks": true,
     "incremental": true,
-    "newLine": "LF",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "newLine": "LF"
   },
   "exclude": [
     "node_modules"
