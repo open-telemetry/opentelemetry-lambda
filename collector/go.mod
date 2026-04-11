@@ -33,7 +33,10 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v1.55.0
 	go.opentelemetry.io/collector/confmap/provider/httpsprovider v1.55.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v1.55.0
+	go.opentelemetry.io/collector/exporter/exportertest v0.149.0
 	go.opentelemetry.io/collector/otelcol v0.149.0
+	go.opentelemetry.io/collector/receiver/receivertest v0.149.0
+	go.opentelemetry.io/collector/service v0.149.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.1
 )
@@ -203,7 +206,6 @@ require (
 	go.opentelemetry.io/collector/exporter/debugexporter v0.149.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.149.0 // indirect
 	go.opentelemetry.io/collector/exporter/exporterhelper/xexporterhelper v0.149.0 // indirect
-	go.opentelemetry.io/collector/exporter/exportertest v0.149.0 // indirect
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.149.0 // indirect
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.149.0 // indirect
 	go.opentelemetry.io/collector/exporter/xexporter v0.149.0 // indirect
@@ -235,10 +237,8 @@ require (
 	go.opentelemetry.io/collector/receiver v1.55.0 // indirect
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.149.0 // indirect
 	go.opentelemetry.io/collector/receiver/receiverhelper v0.149.0 // indirect
-	go.opentelemetry.io/collector/receiver/receivertest v0.149.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.149.0 // indirect
 	go.opentelemetry.io/collector/semconv v0.128.0 // indirect
-	go.opentelemetry.io/collector/service v0.149.0 // indirect
 	go.opentelemetry.io/collector/service/hostcapabilities v0.149.0 // indirect
 	go.opentelemetry.io/contrib/bridges/otelzap v0.17.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.67.0 // indirect
