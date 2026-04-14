@@ -1,43 +1,97 @@
-module.exports = {
-  plugins: [
-    "@typescript-eslint",
-  ],
-  extends: [
-      "../../node_modules/gts",
-  ],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-      "project": "./tsconfig.json"
-  },
-  rules: {
-    "@typescript-eslint/no-this-alias": "off",
-    "eqeqeq": "off",
-    "prefer-rest-params": "off",
-    "@typescript-eslint/naming-convention": [
-        "error",
-        {
-          "selector": "memberLike",
-          "modifiers": ["private", "protected"],
-          "format": ["camelCase"],
-          "leadingUnderscore": "require"
-        }
+'use strict';
+
+const gtsConfig = require('gts');
+const tseslint = require('typescript-eslint');
+const globals = require('globals');
+
+module.exports = [
+  ...gtsConfig,
+  {
+    ignores: [
+      '**/build/**',
+      '**/node_modules/**',
+      'sample-apps/aws-sdk/cdk.out/**',
+      'sample-apps/aws-sdk/bin/**',
+      'sample-apps/aws-sdk/lib/**',
     ],
-    "@typescript-eslint/no-inferrable-types": ["error", { ignoreProperties: true }],
-    "arrow-parens": ["error", "as-needed"],
-    "prettier/prettier": ["error", { "singleQuote": true, "arrowParens": "avoid" }],
-    "@typescript-eslint/no-require-imports": "off",
   },
-  overrides: [
+  {
+    rules: {
+      'prettier/prettier': [
+        'error',
+        {singleQuote: true, arrowParens: 'avoid'},
+      ],
+    },
+  },
+  {
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', {varsIgnorePattern: '^_'}],
+    },
+  },
     {
-      "files": ["test/**/*.ts"],
-      "rules": {
-        "no-empty": "off",
-        "@typescript-eslint/ban-ts-ignore": "off",
-        "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": "off",
-        "@typescript-eslint/no-var-requires": "off"
-      }
-    }
-  ]
-};
+    files: ['**/test/**/*.js', '**/test/**/*.mjs', '**/test/**/*.cjs'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
+    },
+    rules: {
+      'no-empty': 'off',
+      'no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: true,
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-this-alias': 'off',
+      'eqeqeq': 'off',
+      'prefer-rest-params': 'off',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'memberLike',
+          modifiers: ['private', 'protected'],
+          format: ['camelCase'],
+          leadingUnderscore: 'require',
+        },
+      ],
+      '@typescript-eslint/no-inferrable-types': [
+        'error',
+        {ignoreProperties: true},
+      ],
+      'arrow-parens': ['error', 'as-needed'],
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['**/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
+    },
+    rules: {
+      'no-empty': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+];

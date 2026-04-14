@@ -3,13 +3,10 @@ import url from 'url';
 
 import assert from 'assert';
 
-import {
-  SpanKind,
-  SpanStatusCode
-} from '@opentelemetry/api';
+import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import {
   BatchSpanProcessor,
-  InMemorySpanExporter
+  InMemorySpanExporter,
 } from '@opentelemetry/sdk-trace-node';
 
 import { registerLoader } from '../src/loader.mjs';
@@ -17,7 +14,7 @@ import { init, wrap, unwrap } from '../build/src/wrapper.js';
 
 const DIR_NAME = path.dirname(url.fileURLToPath(import.meta.url));
 
-const assertHandlerSpan = (span) => {
+const assertHandlerSpan = span => {
   assert.strictEqual(span.kind, SpanKind.SERVER);
   assert.strictEqual(span.name, 'my_function');
   assert.strictEqual(span.attributes['faas.id'], 'my_arn');
@@ -37,22 +34,22 @@ describe('when loading ESM module', async () => {
 
   await init();
 
-  const initializeHandler = async (handler) => {
+  const initializeHandler = async handler => {
     process.env._HANDLER = handler;
 
-    global.configureTracer = (_) => {
+    global.configureTracer = _ => {
       return {
         spanProcessors: [new BatchSpanProcessor(memoryExporter)],
       };
     };
-    global.configureMeter = (_) => { {} };
-    global.configureMeterProvider = (_) => {};
-    global.configureLoggerProvider = (_) => {};
+    global.configureMeter = _ => {};
+    global.configureMeterProvider = _ => {};
+    global.configureLoggerProvider = _ => {};
 
     await wrap();
   };
 
-  const loadHandler = async (handler) => {
+  const loadHandler = async handler => {
     return await import(path.join(DIR_NAME, handler));
   };
 
@@ -80,7 +77,10 @@ describe('when loading ESM module', async () => {
   });
 
   it('should wrap ESM file handler with .mjs extension', async () => {
-    const lambdaModule = await initializeAndLoadHandler('./handler/esm/index_esm.handler', './handler/esm/index_esm.mjs');
+    const lambdaModule = await initializeAndLoadHandler(
+      './handler/esm/index_esm.handler',
+      './handler/esm/index_esm.mjs',
+    );
     const result = await lambdaModule.handler('arg', ctx);
 
     assert.strictEqual(result, 'ok');
@@ -92,7 +92,10 @@ describe('when loading ESM module', async () => {
   });
 
   it('should wrap ESM module handler with .js extension', async () => {
-    const lambdaModule = await initializeAndLoadHandler('./handler/esm/index.handler', './handler/esm/index.js');
+    const lambdaModule = await initializeAndLoadHandler(
+      './handler/esm/index.handler',
+      './handler/esm/index.js',
+    );
     const result = await lambdaModule.handler('arg', ctx);
 
     assert.strictEqual(result, 'ok');
