@@ -46,17 +46,7 @@ jobs:
         # containing source code for that language.
         target:
           - language: 'go'
-            directory: 'go'
-          - language: 'javascript'
-            directory: 'nodejs'
-          - language: 'python'
-            directory: 'python'
-          - language: 'ruby'
-            directory: 'ruby'
-          - language: 'java'
-            directory: 'java'
-          - language: 'csharp'
-            directory: 'dotnet'
+            directory: 'collector'
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift' ]
         # Use only 'java' to analyze code written in Java, Kotlin or both
         # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
@@ -97,35 +87,6 @@ jobs:
     # - run: |
     #     echo "Run, Build Application using script"
     #     ./location_of_script_within_repo/buildscript.sh
-
-    - name: Set up Java
-      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-      with:
-        distribution: corretto
-        java-version: '17'
-      if: ${{ matrix.target.language == 'java' }}
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
-      with:
-        cache-provider: basic # MIT licensed (see https://github.com/gradle/actions/releases/tag/v6.1.0)
-
-    - name: build Java
-      run: ./gradlew build --no-build-cache
-      working-directory: ${{ matrix.target.directory }}
-      if: ${{ matrix.target.language == 'java' }}
-
-    - name: setup dotnet
-      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
-      with:
-        dotnet-version: 6.x
-      if: ${{ matrix.target.language == 'csharp' }}
-
-    - name: build dotnet
-      # Build all dotnet applications from this directory
-      run: find . -name '*.sln' -exec dotnet build '{}' \;
-      working-directory: ${{ matrix.target.directory }}
-      if: ${{ matrix.target.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v3.29.5

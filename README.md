@@ -20,16 +20,6 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 ## Collector Layer
 * ### [Collector Lambda Layer](collector/README.md)
 
-## Extension Layer Language Support
-* ### [Python Lambda Layer](python/README.md)
-* ### [Java Lambda Layer](java/README.md)
-* ### [NodeJS Lambda Layer](nodejs/README.md)
-* ### [Ruby Lambda Layer](ruby/README.md)
-
-## Additional language tooling not currently supported
-* ### [Go Lambda Library](go/README.md)
-* ### [.NET Lambda Layer](dotnet/README.md)
-
 ## Latest Layer Versions
 | Name         | ARN                                                                                                                    | Version |
 |--------------|:-----------------------------------------------------------------------------------------------------------------------|:--------|
@@ -51,7 +41,7 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 
 ## Design Proposal
 
-To get a better understanding of the proposed design for the OpenTelemetry Lambda extension, you can see the [Design Proposal here.](docs/design_proposal.md)
+To get a better understanding of the proposed design for the OpenTelemetry Lambda extension, you can see the Design Proposal here.
 
 ## Features
 
@@ -119,10 +109,6 @@ The following are runtimes which are no longer or not yet supported by this repo
 [2]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#incoming-invocations
 [3]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-spans.md#outgoing-invocations
 [4]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/faas/faas-metrics.md
-
-## Contributing
-
-See the [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Maintainers
 
