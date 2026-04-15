@@ -23,7 +23,7 @@ jobs:
       COLLECTOR_VERSION: ${{ steps.save-collector-version.outputs.COLLECTOR_VERSION }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version-file: collector/go.mod
       - name: set version to the default config.yaml
@@ -34,7 +34,7 @@ jobs:
         run: cat collector/config.yaml
       - name: build
         run: make -C collector package GOARCH=${{ matrix.architecture == 'x86_64' && 'amd64' || 'arm64' }}
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
@@ -74,18 +74,34 @@ jobs:
           - x86_64
           - arm64
         aws_region:
+          - af-south-1
+          - ap-east-1
+          - ap-east-2
           - ap-northeast-1
           - ap-northeast-2
           - ap-south-1
+          - ap-south-2
           - ap-southeast-1
           - ap-southeast-2
+          - ap-southeast-3
+          - ap-southeast-4
+          - ap-southeast-5
+          - ap-southeast-6
+          - ap-southeast-7
           - ca-central-1
           - ca-west-1
           - eu-central-1
+          - eu-central-2
           - eu-north-1
+          - eu-south-1
+          - eu-south-2
           - eu-west-1
           - eu-west-2
           - eu-west-3
+          - il-central-1
+          - me-central-1
+          - me-south-1
+          - mx-central-1
           - sa-east-1
           - us-east-1
           - us-east-2

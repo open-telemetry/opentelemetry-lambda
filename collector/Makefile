@@ -93,7 +93,6 @@ gofmt:
 
 .PHONY: install-tools
 install-tools:
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/client9/misspell/cmd/misspell
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/google/addlicense
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/ory/go-acc

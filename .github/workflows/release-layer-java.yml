@@ -7,42 +7,62 @@ on:
       - layer-javaagent/**
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
-  build-layer:
+  create-release:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create Release
+        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build-layer:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: create-release
     outputs:
       JAVAAGENT_VERSION: ${{ steps.save-javaagent-version.outputs.JAVAAGENT_VERSION }}
       JAVAWRAPPER_VERSION: ${{ steps.save-javawrapper-version.outputs.JAVAWRAPPER_VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: corretto
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+        with:
+          cache-provider: basic # MIT licensed (see https://github.com/gradle/actions/releases/tag/v6.1.0)
 
       - name: Execute Gradle build
         run: |
           cd java
           ./gradlew :layer-javaagent:assemble :layer-wrapper:assemble --scan --stacktrace
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         name: Save javaagent layer to build
         with:
           name: opentelemetry-javaagent-layer.zip
           path: java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         name: Save javawrapper layer to build
         with:
           name: opentelemetry-javawrapper-layer.zip
           path: java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+
+      - name: Add Binary to Release
+        run: |
+          gh release upload ${{github.ref_name}} java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save Javaagent Version
         id: save-javaagent-version
@@ -61,22 +81,42 @@ jobs:
           echo "JAVAWRAPPER_VERSION=$JAVAWRAPPER_VERSION" >> $GITHUB_OUTPUT
 
   publish-javaagent-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
       matrix:
         aws_region: 
+          - af-south-1
+          - ap-east-1
+          - ap-east-2
           - ap-northeast-1
           - ap-northeast-2
           - ap-south-1
+          - ap-south-2
           - ap-southeast-1
           - ap-southeast-2
+          - ap-southeast-3
+          - ap-southeast-4
+          - ap-southeast-5
+          - ap-southeast-6
+          - ap-southeast-7
           - ca-central-1
+          - ca-west-1
           - eu-central-1
+          - eu-central-2
           - eu-north-1
+          - eu-south-1
+          - eu-south-2
           - eu-west-1
           - eu-west-2
           - eu-west-3
+          - il-central-1
+          - me-central-1
+          - me-south-1
+          - mx-central-1
           - sa-east-1
           - us-east-1
           - us-east-2
@@ -87,35 +127,57 @@ jobs:
       layer-name: opentelemetry-javaagent
       component-version: ${{needs.build-layer.outputs.JAVAAGENT_VERSION}}
       # architecture:
-      runtimes: java8.al2 java11 java17
+      # If you add a java runtime here, please make sure that the collector/Makefile publish and publish-layer targets
+      # get updated as well
+      runtimes: java8.al2 java11 java17 java21
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
 
   publish-javawrapper-layer:
+    permissions: # required by the reusable workflow
+      contents: read
+      id-token: write
     uses: ./.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
       matrix:
         aws_region:
+          - af-south-1
+          - ap-east-1
+          - ap-east-2
           - ap-northeast-1
           - ap-northeast-2
           - ap-south-1
+          - ap-south-2
           - ap-southeast-1
           - ap-southeast-2
+          - ap-southeast-3
+          - ap-southeast-4
+          - ap-southeast-5
+          - ap-southeast-6
+          - ap-southeast-7
           - ca-central-1
+          - ca-west-1
           - eu-central-1
+          - eu-central-2
           - eu-north-1
+          - eu-south-1
+          - eu-south-2
           - eu-west-1
           - eu-west-2
           - eu-west-3
+          - il-central-1
+          - me-central-1
+          - me-south-1
+          - mx-central-1
           - sa-east-1
           - us-east-1
           - us-east-2
           - us-west-1
           - us-west-2
     with:
-      artifact-name: opentelemetry-java-wrapper.zip
+      artifact-name: opentelemetry-javawrapper-layer.zip
       layer-name: opentelemetry-javawrapper
       component-version: ${{needs.build-layer.outputs.JAVAWRAPPER_VERSION}}
       # architecture:

@@ -5,7 +5,7 @@ plugins {
 dependencies {
     runtimeOnly(project(":awssdk-autoconfigure"))
 
-    runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-events-2.2")
+    runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-events-3.11")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-logging")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
     runtimeOnly("io.opentelemetry:opentelemetry-extension-trace-propagators")
@@ -37,6 +37,6 @@ tasks {
 
 tasks.register("printOtelJavaInstrumentationVersion") {
     doLast {
-        println(project.configurations["runtimeClasspath"].resolvedConfiguration.resolvedArtifacts.find {  it.name == "opentelemetry-aws-lambda-events-2.2" }?.moduleVersion?.id?.version)
+        println(configurations.named("runtimeClasspath").get().resolvedConfiguration.resolvedArtifacts.find {  it.name == "opentelemetry-aws-lambda-events-3.11" }?.moduleVersion?.id?.version)
     }
 }

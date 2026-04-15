@@ -50,7 +50,7 @@ For example, if you want to add the extension `foo`, the file providing this ext
 //go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.extension.all || lambdacomponents.extension.foo)
 ```
 
-You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](#contributing) to this project.
+You can provide your addition as a pull-request to this repository. Before doing so, please also read through the details of [Contributing](../CONTRIBUTING.md) to this project.
 
 ## Build and publish your own OpenTelemetry Collector Lambda layer
 
@@ -71,7 +71,7 @@ After that, you can run the `Publish Collector Lambda Layer` workflow to build t
   Available options are `all`, `amd64` and `arm64`.
   The default value is `all` which builds and publishes layer for both of the `amd64` and `arm64` architectures.
 - Specify the AWS region(s) where the collector Lambda layer will be published to via the `AWS Region(s) where layer will be published` input.
-  Available options are `all`, `ap-northeast-1`, `ap-northeast-2`, `ap-south-1`, `ap-southeast-1`, `ap-southeast-2`, `ca-central-1`, `ca-west-1`, `eu-central-1`, `eu-north-1`, `eu-west-1`, `eu-west-2`, `eu-west-3`, `sa-east-1`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
+  Available options are `all`, `af-south-1`, `ap-east-1`, `ap-east-2`, `ap-northeast-1`, `ap-northeast-2`, `ap-south-1`, `ap-south-2`, `ap-southeast-1`, `ap-southeast-2`, `ap-southeast-3`, `ap-southeast-4`, `ap-southeast-5`, `ap-southeast-6`, `ap-southeast-7`, `ca-central-1`, `ca-west-1`, `eu-central-1`, `eu-central-2`, `eu-north-1`, `eu-south-1`, `eu-south-2`, `eu-west-1`, `eu-west-2`, `eu-west-3`, `il-central-1`, `me-central-1`, `me-south-1`, `mx-central-1`, `sa-east-1`, `us-east-1`, `us-east-2`, `us-west-1`, `us-west-2`.
   The default value is `all` which publishes layer to all the defined AWS regions mentioned above.
 - Specify the AWS IAM Role ARN to be assumed for publishing layer via the `AWS IAM Role ARN to be assumed for publishing layer` input.
   This is the ARN of the AWS IAM Role you have taken from the `RoleARN` output variable of the created AWS CloudFormation stack above.

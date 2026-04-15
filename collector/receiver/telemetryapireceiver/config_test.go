@@ -31,9 +31,10 @@ func TestLoadConfig(t *testing.T) {
 	// Helper function to create expected Config
 	createExpectedConfig := func(types []string) *Config {
 		return &Config{
-			extensionID: "extensionID",
-			Port:        12345,
-			Types:       types,
+			extensionID:    "extensionID",
+			Port:           12345,
+			Types:          types,
+			ExportInterval: defaultExportInterval,
 		}
 	}
 
@@ -48,7 +49,7 @@ func TestLoadConfig(t *testing.T) {
 			expected: NewFactory("extensionID").CreateDefaultConfig(),
 		},
 		{
-			name:     "default types",
+			name:     "all types",
 			id:       component.NewIDWithName(component.MustNewType("telemetryapi"), "1"),
 			expected: createExpectedConfig([]string{}),
 		},
