@@ -14,9 +14,9 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.149.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.149.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.149.0
-	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.98.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/processor/coldstartprocessor v0.149.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/processor/decoupleprocessor v0.0.0-00010101000000-000000000000
-	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.98.0
+	github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver v0.149.0
 	go.opentelemetry.io/collector/component v1.55.0
 	go.opentelemetry.io/collector/connector v0.149.0
 	go.opentelemetry.io/collector/exporter v1.55.0
@@ -177,7 +177,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.149.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.149.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.149.0 // indirect
-	github.com/open-telemetry/opentelemetry-lambda/collector v0.98.0 // indirect
+	github.com/open-telemetry/opentelemetry-lambda/collector v0.149.0 // indirect
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
