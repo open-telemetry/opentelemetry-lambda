@@ -10,7 +10,6 @@ opentelemetry-instrumentation-aiohttp-client==0.62b0
 opentelemetry-util-http==0.62b0
 opentelemetry-instrumentation-asgi==0.62b0
 opentelemetry-instrumentation-asyncpg==0.62b0
-opentelemetry-instrumentation-boto==0.61b0
 opentelemetry-instrumentation-boto3sqs==0.62b0
 opentelemetry-instrumentation-celery==0.62b0
 opentelemetry-instrumentation-dbapi==0.62b0
