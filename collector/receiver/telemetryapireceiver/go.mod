@@ -8,7 +8,7 @@ replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle
 
 require (
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
-	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.149.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.150.0
 	github.com/open-telemetry/opentelemetry-lambda/collector v0.98.0
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.11.1
@@ -61,7 +61,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260401024825-9d38bb4040a9 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
 	google.golang.org/grpc v1.80.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
