@@ -20,18 +20,13 @@ RUN echo 'alias be="bundle exec"' >> ~/.profile
 # install rubies to build our gem against Gemfile
 RUN . ~/.profile \
    && cd /root/.rbenv/plugins/ruby-build && git pull && cd - \
-   && rbenv install 3.2.0 \
    && rbenv install 3.3.0 \
    && rbenv install 3.4.0
 
 WORKDIR /build/layer
 
-RUN . ~/.profile && rbenv local 3.2.0 && bundle install
 RUN . ~/.profile && rbenv local 3.3.0 && bundle install
 RUN . ~/.profile && rbenv local 3.4.0 && bundle install
-
-WORKDIR /root/.rbenv/versions/3.2.0/lib/ruby/gems/
-RUN zip -r gems-3.2.0.zip 3.2.0/
 
 WORKDIR /root/.rbenv/versions/3.3.0/lib/ruby/gems/
 RUN zip -r gems-3.3.0.zip 3.3.0/
@@ -49,14 +44,12 @@ RUN zip -r gems-3.4.0.zip 3.4.0/
 # copy gems to /build/ruby/gems for zipping 
 RUN mkdir /build/ruby && mkdir /build/ruby/gems
 WORKDIR /build/ruby/gems
-RUN cp /root/.rbenv/versions/3.2.0/lib/ruby/gems/gems-3.2.0.zip . && unzip gems-3.2.0.zip && rm gems-3.2.0.zip
 RUN cp /root/.rbenv/versions/3.3.0/lib/ruby/gems/gems-3.3.0.zip . && unzip gems-3.3.0.zip && rm gems-3.3.0.zip
 RUN cp /root/.rbenv/versions/3.4.0/lib/ruby/gems/gems-3.4.0.zip . && unzip gems-3.4.0.zip && rm gems-3.4.0.zip
 RUN ls -al /build/ruby/gems
 
 # rm gem cache
-RUN rm /root/.rbenv/versions/3.2.0/lib/ruby/gems/3.2.0/cache/* \
-    && rm /root/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0/cache/* \
+RUN rm /root/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0/cache/* \
     && rm /root/.rbenv/versions/3.4.0/lib/ruby/gems/3.4.0/cache/*
 
 # zip all the gems

@@ -3,7 +3,7 @@
 Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Ruby.
 
 **Requirement**
-* Ruby 3.2.0/3.3.0/3.4.0
+* Ruby 3.3.0/3.4.0
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Go](https://go.dev/doc/install)
@@ -62,7 +62,7 @@ For more information about aws lambda wrapper and wrapper layer, check [aws lamb
 
 ### Sample App
 
-1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.). Current sample app only support testing Ruby 3.2.0. If you wish to play with other ruby version, please modify ruby version from Runtime in sample-apps/template.yml and src/otel/layer/Makefile.
+1. Make sure the requirements are met (e.g. sam, aws, docker, ruby version.). Current sample app only support testing Ruby 3.3.0. If you wish to play with other ruby version, please modify ruby version from Runtime in sample-apps/template.yml and src/otel/layer/Makefile.
 
 2. Navigate to the path `cd ruby/src` to build layer
 
