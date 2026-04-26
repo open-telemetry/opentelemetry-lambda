@@ -8,7 +8,12 @@
 
 This receiver generates telemetry in response to events from the [Telemetry API](https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api.html). It does this by setting up an endpoint and registering itself with the Telemetry API on startup.
 
-## Logs Metadata Reserved Fields
+Supported events:
+
+* `platform.initStart` - The receiver uses this event to record the start time of the function initialization period. Once both start and end times are recorded, the receiver generates a span named `platform.initRuntimeDone` to record the event.
+* `platform.initRuntimeDone` - The receiver uses this event to record the end time of the function initialization period. Once both start and end times are recorded, the receiver generates a span named `platform.initRuntimeDone` to record the event.
+
+## Logs metadata reserved fields
 
 The following field names are reserved for internal use in logs metadata and must not be used as custom metadata keys:
 
@@ -21,11 +26,6 @@ The following field names are reserved for internal use in logs metadata and mus
 | `type`      | Telemetry API event type                 |
 
 > **Note:** These fields are populated internally by the receiver and will take priority over any user-provided metadata with the same name. You should be aware of these limitations and handle conflicts at the business logic level — for example, by renaming custom fields that collide with reserved names before they are emitted as log metadata.
-
-Supported events:
-
-* `platform.initStart` - The receiver uses this event to record the start time of the function initialization period. Once both start and end times are recorded, the receiver generates a span named `platform.initRuntimeDone` to record the event.
-* `platform.initRuntimeDone` - The receiver uses this event to record the end time of the function initialization period. Once both start and end times are recorded, the receiver generates a span named `platform.initRuntimeDone` to record the event.
 
 ## Configuration
 
