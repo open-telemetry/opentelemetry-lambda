@@ -40,7 +40,7 @@ jobs:
         id: save-ruby-sdk-version
         run: |
           unzip -q build/opentelemetry-ruby-layer.zip
-          export GEM_PATH=$PWD/ruby/gems/3.2.0/
+          export GEM_PATH=$PWD/ruby/gems/3.3.0/
           RUBY_SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
           echo "RUBY_SDK_VERSION=$RUBY_SDK_VERSION" >> $GITHUB_OUTPUT
         working-directory: ruby/src
@@ -108,7 +108,7 @@ jobs:
       artifact-name: opentelemetry-ruby-layer.zip
       layer-name: opentelemetry-ruby
       component-version: ${{needs.build-layer.outputs.RUBY_SDK_VERSION}}
-      runtimes: ruby3.2 ruby3.3 ruby3.4
+      runtimes: ruby3.3 ruby3.4
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
