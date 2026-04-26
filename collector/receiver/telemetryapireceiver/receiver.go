@@ -498,6 +498,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 					default:
 						attr, _ := logRecord.Attributes().GetOrPutEmpty(key)
 						if err := attr.FromRaw(value); err != nil {
+							logRecord.Attributes().Remove(key)
 							r.logger.Warn("Failed while converting field to attribute", zap.String("key", key), zap.Error(err))
 							continue
 						}

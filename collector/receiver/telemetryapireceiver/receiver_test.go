@@ -953,7 +953,7 @@ func TestCreateLogs(t *testing.T) {
 				require.Equal(t, expected.severityNumber, logRecord.SeverityNumber())
 				require.Equal(t, expected.body, logRecord.Body().Str())
 
-				// Check extra attributes
+				// Check expected attributes
 				for key, value := range expected.attributes {
 					attr, ok := logRecord.Attributes().Get(key)
 					require.True(t, ok, "expected attribute %s not found", key)
