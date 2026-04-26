@@ -584,6 +584,34 @@ func TestCreateLogs(t *testing.T) {
 			expectError: false,
 		},
 		{
+			desc: "function json with keeping reserved fields intact",
+			slice: []event{
+				{
+					Time: "2026-02-26T20:15:32.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp": "2026-02-26T20:15:32.000Z",
+						"level":     "INFO",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":   "Hello world, I am a function with overriden type field!",
+						"type":      "override",
+					},
+				},
+			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2026-02-26T20:15:32.000Z",
+					body:              "Hello world, I am a function with overriden type field!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
+		},
+		{
 			desc: "extension text",
 			slice: []event{
 				{

@@ -493,7 +493,7 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 
 				for key, value := range record {
 					switch key {
-					case "level", "message", "requestId", "timestamp":
+					case "level", "message", "requestId", "timestamp", "type":
 						continue
 					default:
 						attr, _ := logRecord.Attributes().GetOrPutEmpty(key)
