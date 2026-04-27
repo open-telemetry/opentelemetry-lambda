@@ -24,6 +24,8 @@ github.com/Code-Hex/go-generics-cache v1.5.1 h1:6vhZGc5M7Y/YD8cIUcY8kcuQLB4cHR7U
 github.com/Code-Hex/go-generics-cache v1.5.1/go.mod h1:qxcC9kRVrct9rHeiYpFWSoW1vxyillCVzX13KZG8dl4=
 github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 h1:IEjq88XO4PuBDcvmjQJcQGg+w+UaafSy8G5Kcb5tBhI=
 github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5/go.mod h1:exZ0C/1emQJAw5tHOaUDyY1ycttqBAPcxuzf7QbY6ec=
+github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
+github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=
@@ -368,6 +370,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.
 github.com/open-telemetry/opentelemetry-collector-contrib/internal/pdatautil v0.150.0/go.mod h1:Gk/6Tnh62QKXtTui5fzFxbeMn1keAysuWRl8te/4juE=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.150.0 h1:Rn+s865vOKUOxiQ024mL8LR1Oyxvsx5qOnlRz81N41o=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.150.0/go.mod h1:MQOHiv39A973LwC49WEe7TaqMgFp2i/OEj1vUqKxoJ8=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.150.0 h1:Q7xQ69ypdyVrpRQNRtsv2YubNqNHA0ACHFJFbl6dP+A=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.150.0/go.mod h1:P7Njx8XvW4rIPcZdlyrgpRL62A1qNVMSQy7+8fRD6EQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.150.0 h1:IxaqOzPrpE6svD/jWEOi3LPUV+ecRZ9KIosWJ7fnbQE=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl v0.150.0/go.mod h1:9gCOLf1k219U1lwkeqYupsSv+aMJjcYb+6Hz3mDJeho=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.150.0 h1:ZEE1XJ7YrBNW53hnKVN7Lq6u4kWddqgz1HBiLxBKRyk=
@@ -392,6 +396,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceproc
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.150.0/go.mod h1:uvFGClxfPPttXjJh/h5e5WyszZvIXYT5+KMfgQ6cy+Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.150.0 h1:4XP5KUW87zdd5QJaEBOdbZCG7QjYGuHjBAmkdt9+5Kk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.150.0/go.mod h1:LgPUSsF5lyEPPcXX/Xmesl4r4toyAnw6IFOsBgzWsm8=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.150.0 h1:zH3kotfYvtZcZDVznb9lOgz1d60223Hr9/ZgtF9lLUw=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.150.0/go.mod h1:22FH5jkqi0Wq4kh3hkZktx6KoTknIQSKKfBDVmEMATw=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=

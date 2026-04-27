@@ -67,3 +67,9 @@ jobs:
         working-directory: collector/build/extensions
         run: |
           grep ${{ env.LAMBDA_LAYER_ARCHITECTURE }} <<< "$(file collector)"
+      - name: Output artifact size to job summary
+        working-directory: collector/build
+        run: |
+          echo "### Collector size (${{ matrix.architecture }})" >> $GITHUB_STEP_SUMMARY
+          echo "- Binary: $(du -h extensions/collector | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Layer zip: $(du -h opentelemetry-collector-layer-*.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
