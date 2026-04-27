@@ -490,6 +490,20 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				}
 			} else if line, ok := record["message"].(string); ok {
 				logRecord.Body().SetStr(line)
+
+				for key, value := range record {
+					switch key {
+					case "level", "message", "requestId", "timestamp", "type":
+						continue
+					default:
+						attr, _ := logRecord.Attributes().GetOrPutEmpty(key)
+						if err := attr.FromRaw(value); err != nil {
+							logRecord.Attributes().Remove(key)
+							r.logger.Warn("Failed while converting field to attribute", zap.String("key", key), zap.Error(err))
+							continue
+						}
+					}
+				}
 			}
 		} else {
 			if requestId := r.getCurrentRequestId(); requestId != "" {
