@@ -3,6 +3,19 @@
 The OpenTelemetry Collector Lambda Extension provides a mechanism to export telemetry aynchronously from AWS Lambdas. It does this by embedding a stripped-down version of [OpenTelemetry Collector Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) inside an [AWS Extension Layer](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-extensions-in-preview/). This allows lambdas to use the OpenTelemetry Collector Exporter to send traces and metrics to any configured backend.
 
 
+## Deprecation Notice
+
+The `attributes`, `resource`, and `span` processors are considered **deprecated** in the default collector layer build and will be removed in an upcoming release. The [`transform` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor), which covers the same functionality through [OTTL](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl), has been added to the default build and should be used instead.
+
+**If your collector configuration references `attributes`, `resource`, or `span`**, you have two options before upgrading past the removal release:
+
+1. **Migrate to the `transform` processor.** It uses OTTL on the `resource`, `span`, and `spanevent` contexts 
+   and covers the full capabilities of the three deprecated processors.
+
+2. **Build a custom layer that re-includes them via build tags.**
+   See [Customized collector build](#experimental-customized-collector-build) below.
+
+
 ## Build your OpenTelemetry Collector Lambda layer from scratch
 At the moment users have to build Collector Lambda layer by themselves, we will provide sharing Lambda layer in the future.
 - Download a local copy of the [opentelemetry-lambda repository from Github](https://github.com/open-telemetry/opentelemetry-lambda).
