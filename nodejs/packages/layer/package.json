@@ -87,7 +87,7 @@
     "@types/mocha": "^10.0.9",
     "@types/sinon": "^21.0.1",
     "mocha": "^11.0.1",
-    "sinon": "^21.1.2",
+    "sinon": "^22.0.0",
     "ts-loader": "^9.5.7",
     "ts-node": "^10.9.2",
     "webpack": "^5.106.2",
