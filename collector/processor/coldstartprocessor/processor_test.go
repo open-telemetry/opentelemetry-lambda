@@ -77,7 +77,7 @@ func TestProcessor(t *testing.T) {
 			}(),
 		},
 		{
-			desc: "faas.execution and faas.coldstart with coldstart is first",
+			desc: "faas.invocation_id and faas.coldstart with coldstart is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
@@ -100,7 +100,7 @@ func TestProcessor(t *testing.T) {
 			reported: true,
 		},
 		{
-			desc: "faas.execution and faas.coldstart with execution is first",
+			desc: "faas.invocation_id and faas.coldstart with execution is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				addExecutionSpan(td, executionTraceID)
