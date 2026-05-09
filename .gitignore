@@ -20,3 +20,10 @@ build.toml
 *.zip
 
 collector/VERSION
+
+# Riptide artifacts (cloud-synced)
+.humanlayer/tasks/
+
+# Integration tests
+integration-tests/cdk.out/
+integration-tests/node_modules/
