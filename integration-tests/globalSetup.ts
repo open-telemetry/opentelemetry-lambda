@@ -62,6 +62,14 @@ export async function setup({ provide }: TestProject) {
 
   const source = await toolkit.fromAssemblyBuilder(async (props) => {
     const app = new cdk.App({ outdir: props.outdir, context: props.context });
+
+    cdk.Tags.of(app).add("Purpose", "integration-test");
+    cdk.Tags.of(app).add("Language", language);
+    if (runId) {
+      cdk.Tags.of(app).add("GitHubRunId", runId);
+      cdk.Tags.of(app).add("GitHubRunAttempt", runAttempt ?? "1");
+    }
+
     new IntegrationTestStack(app, stackName, {
       runtime: config.runtime,
       handler: config.handler,
