@@ -50,7 +50,11 @@ export async function setup({ provide }: TestProject) {
     );
   }
 
-  const stackName = `IntegrationTest-${language}`;
+  const runId = process.env.GITHUB_RUN_ID;
+  const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
+  const stackName = runId
+    ? `IntegrationTest-${language}-${runId}-${runAttempt}`
+    : `IntegrationTest-${language}`;
 
   const toolkit = new Toolkit({
     ioHost: new NonInteractiveIoHost(),
