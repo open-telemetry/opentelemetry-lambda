@@ -33,7 +33,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/processor/processortest"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/multierr"
 )
 
@@ -57,7 +57,7 @@ func TestProcessor(t *testing.T) {
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-				span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+				span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 				return td
 			}(),
 			expected:      ptrace.NewTraces(),
@@ -81,7 +81,7 @@ func TestProcessor(t *testing.T) {
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-				span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+				span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 				span.Attributes().PutBool("faas.initialization", true)
 				addExecutionSpan(td, executionTraceID)
 				return td
@@ -105,7 +105,7 @@ func TestProcessor(t *testing.T) {
 				td := ptrace.NewTraces()
 				addExecutionSpan(td, executionTraceID)
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-				span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+				span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 				span.Attributes().PutBool("faas.initialization", true)
 				return td
 			}(),
@@ -164,7 +164,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 	input = ptrace.NewTraces()
 	expected = ptrace.NewTraces()
 	span := input.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+	span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 	span.Attributes().PutBool("faas.initialization", true)
 	input.CopyTo(expected)
 	output, err = c.processTraces(context.Background(), input)
@@ -186,7 +186,7 @@ func TestMultipleProcessTraces(t *testing.T) {
 	input = ptrace.NewTraces()
 	expected = ptrace.NewTraces()
 	span = input.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
-	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+	span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 	span.Attributes().PutBool("faas.initialization", true)
 	input.CopyTo(expected)
 	output, err = c.processTraces(context.Background(), input)
@@ -225,17 +225,17 @@ func addExecutionSpan(td ptrace.Traces, id pcommon.TraceID) {
 	ss.Scope().SetName("app/execution")
 	span := ss.Spans().AppendEmpty()
 	span.SetTraceID(id)
-	span.Attributes().PutStr(semconv.AttributeFaaSExecution, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
 func executionSpan(span ptrace.Span, id pcommon.TraceID) {
 	span.SetTraceID(id)
-	span.Attributes().PutStr(semconv.AttributeFaaSExecution, "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
 func initializationSpan(span ptrace.Span, id pcommon.TraceID) {
 	span.SetTraceID(id)
-	span.Attributes().PutBool(semconv.AttributeFaaSColdstart, true)
+	span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
 	span.Attributes().PutBool("faas.initialization", true)
 }
 
