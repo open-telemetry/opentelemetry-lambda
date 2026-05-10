@@ -30,8 +30,7 @@ describe('Node.js Lambda layer', () => {
     const events = await waitForSpans({
       logGroupName,
       filterPattern: '"STS" "GetCallerIdentity"',
-      startTime,
-      timeoutMs: 60_000,
+      startTime
     });
 
     expect(events.length).toBeGreaterThan(0);
