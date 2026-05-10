@@ -16,10 +16,18 @@ declare module "vitest" {
   }
 }
 
-const LANGUAGE_CONFIG: Record<
-  string,
-  { runtime: lambda.Runtime; handler: string; handlerDir: string }
-> = {
+type SupportedLanguage = "nodejs" | "python";
+type LanguageConfig = {
+  runtime: lambda.Runtime;
+  handler: string;
+  handlerDir: string;
+};
+
+function isSupportedLanguage(lang: string): lang is SupportedLanguage {
+  return lang in LANGUAGE_CONFIG;
+}
+
+const LANGUAGE_CONFIG: Record<SupportedLanguage, LanguageConfig> = {
   nodejs: {
     runtime: lambda.Runtime.NODEJS_24_X,
     handler: "index.handler",
@@ -43,12 +51,12 @@ export async function setup({ provide }: TestProject) {
     );
   }
 
-  const config = LANGUAGE_CONFIG[language];
-  if (!config) {
+  if (!isSupportedLanguage(language)) {
     throw new Error(
-      `Unsupported language: ${language}. Supported: ${Object.keys(LANGUAGE_CONFIG).join(", ")}`,
-    );
+      `Unsupported language: ${language}`
+    )
   }
+  const config = LANGUAGE_CONFIG[language];
 
   const runId = process.env.GITHUB_RUN_ID;
   const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
