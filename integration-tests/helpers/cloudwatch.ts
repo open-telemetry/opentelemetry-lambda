@@ -7,19 +7,21 @@ import {
 
 const cwl = new CloudWatchLogsClient({});
 
-export async function waitForSpans(options: {
+interface CwlOptions {
   logGroupName: string;
   filterPattern: string;
   startTime: number;
   timeoutMs?: number;
   pollIntervalMs?: number;
-}): Promise<FilteredLogEvent[]> {
+}
+
+export async function waitForSpans(options: CwlOptions): Promise<FilteredLogEvent[]> {
   const {
     logGroupName,
     filterPattern,
     startTime,
     timeoutMs = 60_000,
-    pollIntervalMs = 5_000,
+    pollIntervalMs = 2_000,
   } = options;
 
   const deadline = Date.now() + timeoutMs;
