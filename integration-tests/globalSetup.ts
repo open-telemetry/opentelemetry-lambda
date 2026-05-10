@@ -16,18 +16,13 @@ declare module "vitest" {
   }
 }
 
-type SupportedLanguage = "nodejs" | "python";
 type LanguageConfig = {
   runtime: lambda.Runtime;
   handler: string;
   handlerDir: string;
 };
 
-function isSupportedLanguage(lang: string): lang is SupportedLanguage {
-  return lang in LANGUAGE_CONFIG;
-}
-
-const LANGUAGE_CONFIG: Record<SupportedLanguage, LanguageConfig> = {
+const LANGUAGE_CONFIG = {
   nodejs: {
     runtime: lambda.Runtime.NODEJS_24_X,
     handler: "index.handler",
@@ -38,7 +33,13 @@ const LANGUAGE_CONFIG: Record<SupportedLanguage, LanguageConfig> = {
     handler: "lambda_function.lambda_handler",
     handlerDir: "handlers/python",
   },
-};
+} satisfies Record<string, LanguageConfig>;
+
+type SupportedLanguage = keyof typeof LANGUAGE_CONFIG;
+
+function isSupportedLanguage(language: string): language is SupportedLanguage {
+  return language in LANGUAGE_CONFIG;
+}
 
 export async function setup({ provide }: TestProject) {
   const language = process.env.TEST_LANGUAGE;
