@@ -1,3 +1,4 @@
+import { setTimeout as sleep } from 'node:timers/promises';
 import {
   CloudWatchLogsClient,
   FilterLogEventsCommand,
@@ -36,7 +37,7 @@ export async function waitForSpans(options: {
       return response.events;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    await sleep(pollIntervalMs);
   }
 
   throw new Error(
