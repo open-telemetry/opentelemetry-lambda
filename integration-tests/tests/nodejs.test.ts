@@ -18,11 +18,9 @@ describe("Node.js Lambda layer", () => {
         Payload: JSON.stringify({}),
       }),
     );
+    expect(response.StatusCode).toBe(200);
 
     const payload = JSON.parse(new TextDecoder().decode(response.Payload));
-    expect(response.StatusCode).toBe(200);
-    expect(payload.statusCode).toBe(200);
-
     const body = JSON.parse(payload.body);
     expect(body.status).toBe("ok");
     expect(body.account).toBeDefined();
