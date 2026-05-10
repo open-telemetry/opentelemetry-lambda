@@ -5,7 +5,7 @@ import { waitForSpans } from '../helpers/cloudwatch.js';
 const lambdaClient = new LambdaClient({});
 
 describe('Node.js Lambda layer', () => {
-  it('produces STS spans via the debug exporter', async () => {
+  it('produces STS spans', async () => {
     const functionName = inject('functionName');
     const logGroupName = inject('logGroupName');
 

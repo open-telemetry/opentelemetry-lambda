@@ -1,8 +1,7 @@
-import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as logs from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
-import { Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 
 export interface IntegrationTestStackProps extends StackProps {
   runtime: lambda.Runtime;
@@ -34,15 +33,15 @@ export class IntegrationTestStack extends Stack {
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: "/opt/otel-handler",
       },
-      logGroup: new logs.LogGroup(this, "FunctionLogGroup", {
-        retention: logs.RetentionDays.ONE_DAY,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      logGroup: new LogGroup(this, "FunctionLogGroup", {
+        retention: RetentionDays.ONE_DAY,
+        removalPolicy: RemovalPolicy.DESTROY,
       }),
-      timeout: cdk.Duration.seconds(30),
+      timeout: Duration.seconds(30),
       memorySize: 512,
     });
 
-    new cdk.CfnOutput(this, "FunctionName", { value: lambdaFunction.functionName });
-    new cdk.CfnOutput(this, "LogGroupName", { value: lambdaFunction.logGroup.logGroupName });
+    new CfnOutput(this, "FunctionName", { value: lambdaFunction.functionName });
+    new CfnOutput(this, "LogGroupName", { value: lambdaFunction.logGroup.logGroupName });
   }
 }

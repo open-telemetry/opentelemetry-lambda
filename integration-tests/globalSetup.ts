@@ -1,13 +1,13 @@
+import { resolve } from "node:path";
 import {
   Toolkit,
   NonInteractiveIoHost,
   StackSelectionStrategy,
 } from "@aws-cdk/toolkit-lib";
-import * as cdk from "aws-cdk-lib";
-import * as lambda from "aws-cdk-lib/aws-lambda";
+import { Runtime } from "aws-cdk-lib/aws-lambda";
 import type { TestProject } from "vitest/node";
 import { IntegrationTestStack } from "./cdk/stack.js";
-import * as path from "node:path";
+import { App, Tags } from "aws-cdk-lib";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -17,19 +17,19 @@ declare module "vitest" {
 }
 
 type LanguageConfig = {
-  runtime: lambda.Runtime;
+  runtime: Runtime;
   handler: string;
   handlerDir: string;
 };
 
 const LANGUAGE_CONFIG = {
   nodejs: {
-    runtime: lambda.Runtime.NODEJS_24_X,
+    runtime: Runtime.NODEJS_24_X,
     handler: "index.handler",
     handlerDir: "handlers/nodejs",
   },
   python: {
-    runtime: lambda.Runtime.PYTHON_3_14,
+    runtime: Runtime.PYTHON_3_14,
     handler: "lambda_function.lambda_handler",
     handlerDir: "handlers/python",
   },
@@ -70,21 +70,21 @@ export async function setup({ provide }: TestProject) {
   });
 
   const source = await toolkit.fromAssemblyBuilder(async (props) => {
-    const app = new cdk.App({ outdir: props.outdir, context: props.context });
+    const app = new App({ outdir: props.outdir, context: props.context });
 
-    cdk.Tags.of(app).add("Purpose", "integration-test");
-    cdk.Tags.of(app).add("Language", language);
+    Tags.of(app).add("Purpose", "integration-test");
+    Tags.of(app).add("Language", language);
     if (runId) {
-      cdk.Tags.of(app).add("GitHubRunId", runId);
-      cdk.Tags.of(app).add("GitHubRunAttempt", runAttempt ?? "1");
+      Tags.of(app).add("GitHubRunId", runId);
+      Tags.of(app).add("GitHubRunAttempt", runAttempt ?? "1");
     }
 
     new IntegrationTestStack(app, stackName, {
       runtime: config.runtime,
       handler: config.handler,
-      handlerCodePath: path.resolve(config.handlerDir),
-      collectorLayerZipPath: path.resolve(collectorZip),
-      instrumentationLayerZipPath: path.resolve(instrumentationZip),
+      handlerCodePath: resolve(config.handlerDir),
+      collectorLayerZipPath: resolve(collectorZip),
+      instrumentationLayerZipPath: resolve(instrumentationZip),
     });
     return app.synth();
   });
