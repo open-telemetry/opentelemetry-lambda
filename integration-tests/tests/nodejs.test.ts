@@ -1,20 +1,20 @@
-import { describe, it, expect, inject } from 'vitest';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { waitForSpans } from '../helpers/cloudwatch.js';
+import { describe, it, expect, inject } from "vitest";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { waitForSpans as waitForLogs } from "../helpers/cloudwatch.js";
 
 const lambdaClient = new LambdaClient({});
 
-describe('Node.js Lambda layer', () => {
-  it('produces STS spans', async () => {
-    const functionName = inject('functionName');
-    const logGroupName = inject('logGroupName');
+describe("Node.js Lambda layer", () => {
+  it("produces STS spans", async () => {
+    const functionName = inject("functionName");
+    const logGroupName = inject("logGroupName");
 
     const startTime = Date.now();
 
     const response = await lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
-        InvocationType: 'RequestResponse',
+        InvocationType: "RequestResponse",
         Payload: JSON.stringify({}),
       }),
     );
@@ -24,15 +24,30 @@ describe('Node.js Lambda layer', () => {
     expect(payload.statusCode).toBe(200);
 
     const body = JSON.parse(payload.body);
-    expect(body.status).toBe('ok');
+    expect(body.status).toBe("ok");
     expect(body.account).toBeDefined();
 
-    const events = await waitForSpans({
+    const logEvents = await waitForLogs({
       logGroupName,
-      filterPattern: '"STS" "GetCallerIdentity"',
-      startTime
+      filterPattern: '"otelcol.component.id" "debug" "exporter"',
+      startTime,
     });
+    const traceEvents = logEvents
+      .map((event) => {
+        if (!event.message) throw new Error("CloudWatch event missing message");
+        return JSON.parse(event.message) as Record<string, unknown>;
+      })
+      .filter((span) => span["otelcol.signal"] === "traces");
+    expect(traceEvents).toHaveLength(2); // debug exporter emits 1 summary and 1 detailed log event
 
-    expect(events.length).toBeGreaterThan(0);
+    const detailedTraceEventMsg = traceEvents[1].msg as string;
+    const instrumentationScopes = Array.from(
+      detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
+      (match) => match[1]
+    );
+    expect(instrumentationScopes).toEqual([
+      "@opentelemetry/instrumentation-aws-sdk",
+      "@opentelemetry/instrumentation-aws-lambda",
+    ]);
   });
 });
