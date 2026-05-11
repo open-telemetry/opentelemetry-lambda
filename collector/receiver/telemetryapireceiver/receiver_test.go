@@ -163,6 +163,66 @@ func TestRecordMetrics(t *testing.T) {
 	require.True(t, foundDuration)
 }
 
+func TestMetricTimestampMatchesEventTime(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	const earliest = "2006-01-02T15:04:04.000Z"
+	const latest = "2006-01-02T15:04:05.000Z"
+
+	slice := []event{
+		{
+			Time: earliest,
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+		{
+			Time: latest,
+			Type: "platform.runtimeDone",
+			Record: map[string]any{
+				"status": "success",
+				"metrics": map[string]any{
+					"durationMs": 100.0,
+				},
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+
+	expected, err := time.Parse(time.RFC3339, latest)
+	require.NoError(t, err)
+	expectedTS := pcommon.NewTimestampFromTime(expected)
+
+	sm := c.metricBatches[0].ResourceMetrics().At(0).ScopeMetrics().At(0)
+	require.Greater(t, sm.Metrics().Len(), 0)
+	for i := 0; i < sm.Metrics().Len(); i++ {
+		m := sm.Metrics().At(i)
+		switch m.Type() {
+		case pmetric.MetricTypeSum:
+			dps := m.Sum().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "sum metric %q dp %d", m.Name(), j)
+			}
+		case pmetric.MetricTypeHistogram:
+			dps := m.Histogram().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "histogram metric %q dp %d", m.Name(), j)
+			}
+		}
+	}
+}
+
 func TestFlushMetricsIntervalImmediate(t *testing.T) {
 	// Test immediate flush when interval = 0
 	r, err := newTelemetryAPIReceiver(

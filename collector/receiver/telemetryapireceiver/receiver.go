@@ -87,6 +87,7 @@ type telemetryAPIReceiver struct {
 	exportInterval          time.Duration
 	stopCh                  chan struct{}
 	wg                      sync.WaitGroup
+	lastEventTime           pcommon.Timestamp
 }
 
 func (r *telemetryAPIReceiver) bindListener() (net.Listener, string, error) {
@@ -191,7 +192,10 @@ func (r *telemetryAPIReceiver) flushMetricsLocked(ctx context.Context) error {
 	scopeMetric.Scope().SetName(scopeName)
 	scopeMetric.SetSchemaUrl(semconv.SchemaURL)
 
-	ts := pcommon.NewTimestampFromTime(time.Now())
+	ts := r.lastEventTime
+	if ts == 0 {
+		ts = pcommon.NewTimestampFromTime(time.Now())
+	}
 	r.faaSMetricBuilders.coldstartsMetric.AppendDataPoints(scopeMetric, ts)
 	r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, ts)
 	r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, ts)
@@ -235,6 +239,12 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 	if err := json.Unmarshal(body, &slice); err != nil {
 		r.logger.Error("error unmarshalling body", zap.Error(err))
 		return
+	}
+
+	for i := range slice {
+		if t, err := time.Parse(time.RFC3339, slice[i].Time); err == nil {
+			slice[i].parsedTime = t
+		}
 	}
 
 	r.mu.Lock()
@@ -359,6 +369,16 @@ func (r *telemetryAPIReceiver) recordMetrics(slice []event) {
 			continue
 		}
 
+		t := el.parsedTime
+		if t.IsZero() {
+			t, _ = time.Parse(time.RFC3339, el.Time)
+		}
+		if !t.IsZero() {
+			if ets := pcommon.NewTimestampFromTime(t); ets > r.lastEventTime {
+				r.lastEventTime = ets
+			}
+		}
+
 		switch el.Type {
 		case string(telemetryapi.PlatformInitStart):
 			r.faaSMetricBuilders.coldstartsMetric.Add(1)
@@ -428,13 +448,16 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
-		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
-			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
-		} else {
-			r.logger.Error("error parsing time", zap.Error(err))
-			return plog.Logs{}, err
+		t := el.parsedTime
+		if t.IsZero() {
+			var err error
+			if t, err = time.Parse(time.RFC3339, el.Time); err != nil {
+				r.logger.Error("error parsing time", zap.Error(err))
+				return plog.Logs{}, err
+			}
 		}
+		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 		if record, ok := el.Record.(map[string]interface{}); ok {
 			requestId := r.getRecordRequestId(record)
 
