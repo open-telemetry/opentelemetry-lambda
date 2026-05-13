@@ -99,6 +99,21 @@ Resources:
                   - "iam:UntagRole"
                 Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/IntegrationTest-*"
+              - Sid: AssumeCDKBootstrapRoles
+                Effect: Allow
+                Action:
+                  - "sts:AssumeRole"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-us-east-1"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-image-publishing-role-${AWS::AccountId}-us-east-1"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-us-east-1"
+              - Sid: PassCDKExecutionRole
+                Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-us-east-1"
               - Sid: STS
                 Effect: Allow
                 Action:
