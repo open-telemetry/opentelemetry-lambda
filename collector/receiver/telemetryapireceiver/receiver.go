@@ -87,6 +87,7 @@ type telemetryAPIReceiver struct {
 	exportInterval          time.Duration
 	stopCh                  chan struct{}
 	wg                      sync.WaitGroup
+	lastEventTime           pcommon.Timestamp
 }
 
 func (r *telemetryAPIReceiver) bindListener() (net.Listener, string, error) {
@@ -189,7 +190,10 @@ func (r *telemetryAPIReceiver) flushMetricsLocked(ctx context.Context) error {
 	scopeMetric.Scope().SetName(scopeName)
 	scopeMetric.SetSchemaUrl(semconv.SchemaURL)
 
-	ts := pcommon.NewTimestampFromTime(time.Now())
+	ts := r.lastEventTime
+	if ts == 0 {
+		ts = pcommon.NewTimestampFromTime(time.Now())
+	}
 	r.faaSMetricBuilders.coldstartsMetric.AppendDataPoints(scopeMetric, ts)
 	r.faaSMetricBuilders.errorsMetric.AppendDataPoints(scopeMetric, ts)
 	r.faaSMetricBuilders.timeoutsMetric.AppendDataPoints(scopeMetric, ts)
@@ -357,6 +361,12 @@ func (r *telemetryAPIReceiver) recordMetrics(slice []event) {
 			continue
 		}
 
+		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
+			if ets := pcommon.NewTimestampFromTime(t); ets > r.lastEventTime {
+				r.lastEventTime = ets
+			}
+		}
+
 		switch el.Type {
 		case string(telemetryapi.PlatformInitStart):
 			r.faaSMetricBuilders.coldstartsMetric.Add(1)
@@ -488,6 +498,20 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 				}
 			} else if line, ok := record["message"].(string); ok {
 				logRecord.Body().SetStr(line)
+
+				for key, value := range record {
+					switch key {
+					case "level", "message", "requestId", "timestamp", "type":
+						continue
+					default:
+						attr, _ := logRecord.Attributes().GetOrPutEmpty(key)
+						if err := attr.FromRaw(value); err != nil {
+							logRecord.Attributes().Remove(key)
+							r.logger.Warn("Failed while converting field to attribute", zap.String("key", key), zap.Error(err))
+							continue
+						}
+					}
+				}
 			}
 		} else {
 			if requestId := r.getCurrentRequestId(); requestId != "" {

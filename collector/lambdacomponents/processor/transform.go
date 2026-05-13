@@ -1,3 +1,5 @@
+//go:build lambdacomponents.custom && (lambdacomponents.all || lambdacomponents.processor.all || lambdacomponents.processor.transform)
+
 // Copyright The OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build tools
-// +build tools
-
-package tools // import "go.opentelemetry.io/otel/internal/tools"
+package processor
 
 import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/google/addlicense"
-	_ "github.com/jcchavezs/porto/cmd/porto"
-	_ "github.com/pavius/impi/cmd/impi"
-	_ "github.com/tcnksm/ghr"
-	_ "github.com/wadey/gocovmerge"
-	_ "go.opentelemetry.io/build-tools/chloggen"
-	_ "go.opentelemetry.io/build-tools/crosslink"
-	_ "go.opentelemetry.io/build-tools/multimod"
-	_ "go.opentelemetry.io/build-tools/semconvgen"
-	_ "golang.org/x/exp/cmd/apidiff"
-	_ "golang.org/x/tools/cmd/goimports"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor"
+	"go.opentelemetry.io/collector/processor"
 )
+
+func init() {
+	Factories = append(Factories, func(extensionId string) processor.Factory {
+		return transformprocessor.NewFactory()
+	})
+}

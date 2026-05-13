@@ -103,8 +103,18 @@ func (c *Collector) Start(ctx context.Context) error {
 		Factories: func() (otelcol.Factories, error) {
 			return c.factories, nil
 		},
-		LoggingOptions: []zap.Option{zap.WrapCore(func(_ zapcore.Core) zapcore.Core {
-			return c.logger.Core()
+		// TODO: fully decouple extension and collector log levels so that
+		// OPENTELEMETRY_EXTENSION_LOG_LEVEL only affects extension logs.
+		LoggingOptions: []zap.Option{zap.WrapCore(func(collectorCore zapcore.Core) zapcore.Core {
+			extensionCore := c.logger.Core()
+			if zapcore.LevelOf(collectorCore) == zapcore.InfoLevel {
+				return extensionCore
+			}
+			increased, err := zapcore.NewIncreaseLevelCore(extensionCore, collectorCore)
+			if err != nil {
+				return extensionCore
+			}
+			return increased
 		})},
 	}
 	var err error

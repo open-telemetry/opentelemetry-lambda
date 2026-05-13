@@ -163,6 +163,66 @@ func TestRecordMetrics(t *testing.T) {
 	require.True(t, foundDuration)
 }
 
+func TestMetricTimestampMatchesEventTime(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	const earliest = "2006-01-02T15:04:04.000Z"
+	const latest = "2006-01-02T15:04:05.000Z"
+
+	slice := []event{
+		{
+			Time: earliest,
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+		{
+			Time: latest,
+			Type: "platform.runtimeDone",
+			Record: map[string]any{
+				"status": "success",
+				"metrics": map[string]any{
+					"durationMs": 100.0,
+				},
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+
+	expected, err := time.Parse(time.RFC3339, latest)
+	require.NoError(t, err)
+	expectedTS := pcommon.NewTimestampFromTime(expected)
+
+	sm := c.metricBatches[0].ResourceMetrics().At(0).ScopeMetrics().At(0)
+	require.Greater(t, sm.Metrics().Len(), 0)
+	for i := 0; i < sm.Metrics().Len(); i++ {
+		m := sm.Metrics().At(i)
+		switch m.Type() {
+		case pmetric.MetricTypeSum:
+			dps := m.Sum().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "sum metric %q dp %d", m.Name(), j)
+			}
+		case pmetric.MetricTypeHistogram:
+			dps := m.Histogram().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "histogram metric %q dp %d", m.Name(), j)
+			}
+		}
+	}
+}
+
 func TestFlushMetricsIntervalImmediate(t *testing.T) {
 	// Test immediate flush when interval = 0
 	r, err := newTelemetryAPIReceiver(
@@ -359,6 +419,7 @@ func TestCreateLogs(t *testing.T) {
 		containsRequestId bool
 		requestId         string
 		severityNumber    plog.SeverityNumber
+		attributes        map[string]interface{}
 	}
 
 	testCases := []struct {
@@ -473,6 +534,137 @@ func TestCreateLogs(t *testing.T) {
 					body:              "Hello world, I am a function!",
 					containsRequestId: true,
 					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
+		},
+		{
+			desc: "function json with extra fields",
+			slice: []event{
+				{
+					Time: "2026-02-26T20:15:32.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp":              "2026-02-26T20:15:32.000Z",
+						"level":                  "INFO",
+						"requestId":              "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":                "Hello world, I am a function with extra data!",
+						"extraString":            "stringValue",
+						"extraNumber":            float64(2217),
+						"extraFloat":             3.14,
+						"extraBoolean":           true,
+						"extraNull":              nil,
+						"extraArrayOfStrings":    []any{"stringValue", "stringValue"},
+						"extraArrayOfNumbers":    []any{float64(2217), float64(2217)},
+						"extraArrayOfMixedTypes": []any{"stringValue", float64(2217), true, nil},
+						"extraArrayWithNesting":  []any{"stringValue", []any{float64(2217), []any{true, nil}}},
+						"extraObject": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+						},
+						"extraObjectWithNesting": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+							"arrayValue":   []any{"stringValue", float64(2217)},
+							"objectValue": map[string]any{
+								"stringValue": "stringValue",
+								"numberValue": float64(2217),
+							},
+						},
+					},
+				},
+			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2026-02-26T20:15:32.000Z",
+					body:              "Hello world, I am a function with extra data!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+					attributes: map[string]any{
+						"extraString":  "stringValue",
+						"extraNumber":  float64(2217),
+						"extraFloat":   float64(3.14),
+						"extraBoolean": true,
+						"extraNull":    nil,
+						"extraArrayOfStrings": []any{
+							"stringValue",
+							"stringValue",
+						},
+						"extraArrayOfNumbers": []any{
+							float64(2217),
+							float64(2217),
+						},
+						"extraArrayOfMixedTypes": []any{
+							"stringValue",
+							float64(2217),
+							true,
+							nil,
+						},
+						"extraArrayWithNesting": []any{
+							"stringValue",
+							[]any{
+								float64(2217),
+								[]any{
+									true, nil,
+								},
+							},
+						},
+						"extraObject": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+						},
+						"extraObjectWithNesting": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+							"arrayValue": []any{
+								"stringValue",
+								float64(2217),
+							},
+							"objectValue": map[string]any{
+								"stringValue": "stringValue",
+								"numberValue": float64(2217),
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			desc: "function json with keeping reserved fields intact",
+			slice: []event{
+				{
+					Time: "2026-02-26T20:15:32.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp": "2026-02-26T20:15:32.000Z",
+						"level":     "INFO",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":   "Hello world, I am a function with overriden type field!",
+						"type":      "override",
+					},
+				},
+			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2026-02-26T20:15:32.000Z",
+					body:              "Hello world, I am a function with overriden type field!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
 					severityText:      "Info",
 					severityNumber:    plog.SeverityNumberInfo,
 				},
@@ -820,6 +1012,13 @@ func TestCreateLogs(t *testing.T) {
 				require.Equal(t, expected.severityText, logRecord.SeverityText())
 				require.Equal(t, expected.severityNumber, logRecord.SeverityNumber())
 				require.Equal(t, expected.body, logRecord.Body().Str())
+
+				// Check expected attributes
+				for key, value := range expected.attributes {
+					attr, ok := logRecord.Attributes().Get(key)
+					require.True(t, ok, "expected attribute %s not found", key)
+					require.Equal(t, value, attr.AsRaw(), "expected attribute %s to have value %v, got %v", key, value, attr.AsRaw())
+				}
 			}
 		})
 	}

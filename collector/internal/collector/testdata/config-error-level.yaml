@@ -1,0 +1,14 @@
+receivers:
+  nop:
+
+exporters:
+  nop:
+
+service:
+  telemetry:
+    logs:
+      level: error
+  pipelines:
+    traces:
+      receivers: [nop]
+      exporters: [nop]
