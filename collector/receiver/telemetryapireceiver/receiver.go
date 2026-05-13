@@ -241,12 +241,6 @@ func (r *telemetryAPIReceiver) httpHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	for i := range slice {
-		if t, err := time.Parse(time.RFC3339, slice[i].Time); err == nil {
-			slice[i].parsedTime = t
-		}
-	}
-
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -369,11 +363,7 @@ func (r *telemetryAPIReceiver) recordMetrics(slice []event) {
 			continue
 		}
 
-		t := el.parsedTime
-		if t.IsZero() {
-			t, _ = time.Parse(time.RFC3339, el.Time)
-		}
-		if !t.IsZero() {
+		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
 			if ets := pcommon.NewTimestampFromTime(t); ets > r.lastEventTime {
 				r.lastEventTime = ets
 			}
@@ -448,16 +438,13 @@ func (r *telemetryAPIReceiver) createLogs(slice []event) (plog.Logs, error) {
 		r.logger.Debug(fmt.Sprintf("Event: %s", el.Type), zap.Any("event", el))
 		logRecord := scopeLog.LogRecords().AppendEmpty()
 		logRecord.Attributes().PutStr("type", el.Type)
-		t := el.parsedTime
-		if t.IsZero() {
-			var err error
-			if t, err = time.Parse(time.RFC3339, el.Time); err != nil {
-				r.logger.Error("error parsing time", zap.Error(err))
-				return plog.Logs{}, err
-			}
+		if t, err := time.Parse(time.RFC3339, el.Time); err == nil {
+			logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
+			logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
+		} else {
+			r.logger.Error("error parsing time", zap.Error(err))
+			return plog.Logs{}, err
 		}
-		logRecord.SetTimestamp(pcommon.NewTimestampFromTime(t))
-		logRecord.SetObservedTimestamp(pcommon.NewTimestampFromTime(time.Now()))
 		if record, ok := el.Record.(map[string]interface{}); ok {
 			requestId := r.getRecordRequestId(record)
 
