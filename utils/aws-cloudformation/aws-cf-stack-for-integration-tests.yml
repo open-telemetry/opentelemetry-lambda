@@ -45,7 +45,6 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:IntegrationTest-*"
                   - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:layer:IntegrationTest-*"
-                  - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:layer:IntegrationTest-*:*"
               - Sid: CloudWatchLogs
                 Effect: Allow
                 Action:
@@ -59,7 +58,6 @@ Resources:
                   - "logs:ListTagsForResource"
                 Resource:
                   - !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:log-group:IntegrationTest-*"
-                  - !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:log-group:IntegrationTest-*:*"
               - Sid: CloudFormation
                 Effect: Allow
                 Action:

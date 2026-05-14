@@ -19,11 +19,13 @@ export class IntegrationTestStack extends Stack {
     });
 
     const collectorLayer = new lambda.LayerVersion(this, "CollectorLayer", {
+      layerVersionName: `${this.stackName}-CollectorLayer`,
       code: lambda.Code.fromAsset(props.collectorLayerZipPath),
       compatibleArchitectures: [lambda.Architecture.X86_64],
     });
 
     const instrumentationLayer = new lambda.LayerVersion(this, "InstrumentationLayer", {
+      layerVersionName: `${this.stackName}-InstrumentationLayer`,
       code: lambda.Code.fromAsset(props.instrumentationLayerZipPath),
       compatibleArchitectures: [lambda.Architecture.X86_64],
     });
