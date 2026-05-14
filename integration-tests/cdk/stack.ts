@@ -1,6 +1,6 @@
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import type { Construct } from "constructs";
-import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, CliCredentialsStackSynthesizer, Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 
 export interface IntegrationTestStackProps extends StackProps {
@@ -13,7 +13,10 @@ export interface IntegrationTestStackProps extends StackProps {
 
 export class IntegrationTestStack extends Stack {
   constructor(scope: Construct, id: string, props: IntegrationTestStackProps) {
-    super(scope, id, props);
+    super(scope, id, {
+      ...props,
+      synthesizer: new CliCredentialsStackSynthesizer(),
+    });
 
     const collectorLayer = new lambda.LayerVersion(this, "CollectorLayer", {
       code: lambda.Code.fromAsset(props.collectorLayerZipPath),
