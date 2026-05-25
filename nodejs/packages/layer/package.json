@@ -86,11 +86,11 @@
   "devDependencies": {
     "@types/mocha": "^10.0.9",
     "@types/sinon": "^21.0.1",
-    "mocha": "^11.0.1",
+    "mocha": "^11.7.6",
     "sinon": "^22.0.0",
     "ts-loader": "^9.5.7",
     "ts-node": "^10.9.2",
-    "webpack": "^5.106.2",
+    "webpack": "^5.107.2",
     "webpack-cli": "^7.0.2",
     "webpack-node-externals": "^3.0.0"
   },
