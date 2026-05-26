@@ -1,0 +1,30 @@
+name: 'Build Python Lambda Layer'
+description: 'Builds the OpenTelemetry Python Lambda layer'
+
+outputs:
+  artifact-path:
+    description: 'Absolute path to the layer zip artifact'
+    value: ${{ github.workspace }}/python/src/build/opentelemetry-python-layer.zip
+  component-version:
+    description: 'OpenTelemetry Python SDK version included in the layer'
+    value: ${{ steps.version.outputs.component-version }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      with:
+        python-version: '3.9'
+
+    - name: Save Python OpenTelemetry SDK version
+      id: version
+      shell: bash
+      working-directory: python/src
+      run: |
+        SDK_VERSION=$(grep opentelemetry-sdk otel/otel_sdk/requirements.txt | sed 's/.*==\([^ ]*\).*/\1/')
+        echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Build Python layer
+      shell: bash
+      working-directory: python/src
+      run: ./build.sh
