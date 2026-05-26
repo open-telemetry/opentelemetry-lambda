@@ -1,0 +1,26 @@
+name: 'Build OTel Lambda Layer'
+description: 'Dispatches to the matching build-<language>-layer composite action.'
+
+inputs:
+  language:
+    description: 'Language of the layer to build (nodejs, python)'
+    required: true
+
+outputs:
+  artifact-path:
+    description: 'Absolute path to the built layer zip'
+    value: ${{ steps.nodejs.outputs.artifact-path || steps.python.outputs.artifact-path }}
+  component-version:
+    description: 'SDK version included in the layer'
+    value: ${{ steps.nodejs.outputs.component-version || steps.python.outputs.component-version }}
+
+runs:
+  using: composite
+  steps:
+    - if: ${{ inputs.language == 'nodejs' }}
+      id: nodejs
+      uses: ./.github/actions/build-nodejs-layer
+
+    - if: ${{ inputs.language == 'python' }}
+      id: python
+      uses: ./.github/actions/build-python-layer
