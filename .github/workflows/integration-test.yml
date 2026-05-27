@@ -12,6 +12,17 @@ on:
           - nodejs
           - python
         default: all
+  workflow_call:
+    inputs:
+      language:
+        description: 'Language to test (or all)'
+        required: true
+        type: string
+      use-existing-layer-artifact:
+        description: 'Use an existing instrumentation layer artifact instead of building from scratch'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -45,6 +56,7 @@ jobs:
 
   build-layer:
     needs: prepare-languages
+    if: ${{ !inputs.use-existing-layer-artifact }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -66,7 +78,7 @@ jobs:
     if: |
       !cancelled() &&
       needs.build-collector.result == 'success' &&
-      needs.build-layer.result == 'success'
+      (needs.build-layer.result == 'success' || needs.build-layer.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
