@@ -3,16 +3,16 @@ description: 'Dispatches to the matching build-<language>-layer composite action
 
 inputs:
   language:
-    description: 'Language of the layer to build (nodejs, python)'
+    description: 'Language of the layer to build (nodejs, python, javaagent, javawrapper)'
     required: true
 
 outputs:
   artifact-path:
     description: 'Absolute path to the built layer zip'
-    value: ${{ steps.nodejs.outputs.artifact-path || steps.python.outputs.artifact-path }}
+    value: ${{ steps.nodejs.outputs.artifact-path || steps.python.outputs.artifact-path || (inputs.language == 'javaagent' && steps.java.outputs.javaagent-artifact-path || steps.java.outputs.javawrapper-artifact-path) }}
   component-version:
     description: 'SDK version included in the layer'
-    value: ${{ steps.nodejs.outputs.component-version || steps.python.outputs.component-version }}
+    value: ${{ steps.nodejs.outputs.component-version || steps.python.outputs.component-version || (inputs.language == 'javaagent' && steps.java.outputs.javaagent-version || steps.java.outputs.javawrapper-version) }}
 
 runs:
   using: composite
@@ -24,3 +24,7 @@ runs:
     - if: ${{ inputs.language == 'python' }}
       id: python
       uses: ./.github/actions/build-python-layer
+
+    - if: ${{ inputs.language == 'javaagent' || inputs.language == 'javawrapper' }}
+      id: java
+      uses: ./.github/actions/build-java-layer
