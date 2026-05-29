@@ -33,6 +33,18 @@ const LANGUAGE_CONFIG = {
     handler: "lambda_function.lambda_handler",
     handlerDir: "handlers/python",
   },
+  javaagent: {
+    runtime: Runtime.JAVA_21,
+    handler:
+      "io.opentelemetry.lambda.integrationtests.StsRequestHandler::handleRequest",
+    handlerDir: "handlers/java/build/libs/handler-all.jar",
+  },
+  javawrapper: {
+    runtime: Runtime.JAVA_21,
+    handler:
+      "io.opentelemetry.lambda.integrationtests.StsRequestHandler::handleRequest",
+    handlerDir: "handlers/java/build/libs/handler-all.jar",
+  },
 } satisfies Record<string, LanguageConfig>;
 
 type SupportedLanguage = keyof typeof LANGUAGE_CONFIG;
