@@ -11,6 +11,7 @@ on:
           - all
           - nodejs
           - python
+          - ruby
           - javaagent
           - javawrapper
         default: all
@@ -39,7 +40,7 @@ jobs:
         name: Prepare Languages
         run: |
           if [ "${{ inputs.language }}" = "all" ]; then
-            languages='["nodejs", "python", "javaagent", "javawrapper"]'
+            languages='["nodejs", "python", "ruby", "javaagent", "javawrapper"]'
           else
             languages='["${{ inputs.language }}"]'
           fi
