@@ -33,6 +33,11 @@ const LANGUAGE_CONFIG = {
     handler: "lambda_function.lambda_handler",
     handlerDir: "handlers/python",
   },
+  ruby: {
+    runtime: Runtime.RUBY_3_3,
+    handler: "lambda_function.handler",
+    handlerDir: "handlers/ruby",
+  },
   javaagent: {
     runtime: Runtime.JAVA_21,
     handler:
