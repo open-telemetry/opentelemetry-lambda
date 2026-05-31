@@ -44,7 +44,6 @@ describe("Ruby Lambda layer", () => {
       (match) => match[1]
     );
     expect(instrumentationScopes).toEqual([
-      "OpenTelemetry::Instrumentation::AwsSdk",
       "OpenTelemetry::Instrumentation::AwsLambda",
     ]);
   });

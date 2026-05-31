@@ -45,7 +45,7 @@ describe("Java wrapper Lambda layer", () => {
     );
     expect(instrumentationScopes).toEqual([
       "io.opentelemetry.aws-sdk-2.2",
-      "io.opentelemetry.aws-lambda-events-3.11",
+      "io.opentelemetry.aws-lambda-core-1.0",
     ]);
   });
 });
