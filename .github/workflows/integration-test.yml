@@ -109,7 +109,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
-          role-to-assume: ${{ secrets.OTEL_LAMBDA_INTEG_TEST_ROLE_ARN }}
+          role-to-assume: ${{ secrets.INTEGRATION_TEST_ROLE_ARN }}
           role-duration-seconds: 1200
           aws-region: us-east-1
 

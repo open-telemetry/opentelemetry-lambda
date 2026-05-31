@@ -34,7 +34,7 @@ The tests run in CI under an AWS account that needs a one-time setup.
 
    > If the account already has a `token.actions.githubusercontent.com` OIDC provider, drop the `GithubOIDC` resource from the template and point the role's trust policy at the existing one — only one OIDC provider per URL is allowed per account. The other `utils/aws-cloudformation-aws-cf-stack-for-layer-publish.yml` sets this up as well.
 
-3. Set the stack's `RoleARN` output as the repository secret **`OTEL_LAMBDA_INTEG_TEST_ROLE_ARN`** (consumed by `.github/workflows/integration-test.yml`).
+3. Set the stack's `RoleARN` output as the repository secret **`INTEGRATION_TEST_ROLE_ARN`** (consumed by `.github/workflows/integration-test.yml`).
 
 ## Running tests locally
 
