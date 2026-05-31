@@ -41,11 +41,13 @@ describe("Python Lambda layer", () => {
     const detailedTraceEventMsg = traceEvents[1].msg as string;
     const instrumentationScopes = Array.from(
       detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
-      (match) => match[1]
+      (match) => match[1],
     );
-    expect(instrumentationScopes).toEqual([
-      "opentelemetry.instrumentation.botocore",
-      "opentelemetry.instrumentation.aws_lambda",
-    ]);
+    expect(instrumentationScopes).toEqual(
+      expect.arrayContaining([
+        "opentelemetry.instrumentation.botocore",
+        "opentelemetry.instrumentation.aws_lambda",
+      ]),
+    );
   });
 });

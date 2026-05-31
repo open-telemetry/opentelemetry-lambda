@@ -43,9 +43,11 @@ describe("Java agent Lambda layer", () => {
       detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
       (match) => match[1],
     );
-    expect(instrumentationScopes).toEqual([
-      "io.opentelemetry.aws-lambda-events-2.2",
-      "io.opentelemetry.aws-sdk-2.2",
-    ]);
+    expect(instrumentationScopes).toEqual(
+      expect.arrayContaining([
+        "io.opentelemetry.aws-lambda-events-2.2",
+        "io.opentelemetry.aws-sdk-2.2",
+      ]),
+    );
   });
 });

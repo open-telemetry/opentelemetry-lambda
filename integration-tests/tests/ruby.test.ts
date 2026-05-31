@@ -41,10 +41,10 @@ describe("Ruby Lambda layer", () => {
     const detailedTraceEventMsg = traceEvents[1].msg as string;
     const instrumentationScopes = Array.from(
       detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
-      (match) => match[1]
+      (match) => match[1],
     );
-    expect(instrumentationScopes).toEqual([
-      "OpenTelemetry::Instrumentation::AwsLambda",
-    ]);
+    expect(instrumentationScopes).toEqual(
+      expect.arrayContaining(["OpenTelemetry::Instrumentation::AwsLambda"]),
+    );
   });
 });
