@@ -13,6 +13,8 @@ declare module "vitest" {
   export interface ProvidedContext {
     functionName: string;
     logGroupName: string;
+    language: string;
+    expectedInstrumentationScopes: string[];
   }
 }
 
@@ -20,6 +22,7 @@ type LanguageConfig = {
   runtime: Runtime;
   handler: string;
   handlerDir: string;
+  expectedInstrumentationScopes: string[];
 };
 
 const LANGUAGE_CONFIG = {
@@ -27,28 +30,45 @@ const LANGUAGE_CONFIG = {
     runtime: Runtime.NODEJS_24_X,
     handler: "index.handler",
     handlerDir: "handlers/nodejs",
+    expectedInstrumentationScopes: [
+      "@opentelemetry/instrumentation-aws-sdk",
+      "@opentelemetry/instrumentation-aws-lambda",
+    ],
   },
   python: {
     runtime: Runtime.PYTHON_3_14,
     handler: "lambda_function.lambda_handler",
     handlerDir: "handlers/python",
+    expectedInstrumentationScopes: [
+      "opentelemetry.instrumentation.botocore",
+      "opentelemetry.instrumentation.aws_lambda",
+    ],
   },
   ruby: {
     runtime: Runtime.RUBY_3_3,
     handler: "lambda_function.handler",
     handlerDir: "handlers/ruby",
+    expectedInstrumentationScopes: ["OpenTelemetry::Instrumentation::AwsLambda"],
   },
   javaagent: {
     runtime: Runtime.JAVA_21,
     handler:
       "io.opentelemetry.lambda.integrationtests.StsRequestHandler::handleRequest",
     handlerDir: "handlers/java/build/libs/handler-all.jar",
+    expectedInstrumentationScopes: [
+      "io.opentelemetry.aws-lambda-events-2.2",
+      "io.opentelemetry.aws-sdk-2.2",
+    ],
   },
   javawrapper: {
     runtime: Runtime.JAVA_21,
     handler:
       "io.opentelemetry.lambda.integrationtests.StsRequestHandler::handleRequest",
     handlerDir: "handlers/java/build/libs/handler-all.jar",
+    expectedInstrumentationScopes: [
+      "io.opentelemetry.aws-sdk-2.2",
+      "io.opentelemetry.aws-lambda-core-1.0",
+    ],
   },
 } satisfies Record<string, LanguageConfig>;
 
@@ -125,6 +145,8 @@ export async function setup({ provide }: TestProject) {
 
   provide("functionName", FunctionName);
   provide("logGroupName", LogGroupName);
+  provide("language", language);
+  provide("expectedInstrumentationScopes", config.expectedInstrumentationScopes);
 
   return async () => {
     await toolkit.destroy(source, {

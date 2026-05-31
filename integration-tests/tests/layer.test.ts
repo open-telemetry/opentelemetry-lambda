@@ -4,10 +4,15 @@ import { waitForSpans as waitForLogs } from "../helpers/cloudwatch.js";
 
 const lambdaClient = new LambdaClient({});
 
-describe("Ruby Lambda layer", () => {
+const language = inject("language");
+
+describe(`${language} Lambda layer`, () => {
   it("produces STS spans", async () => {
     const functionName = inject("functionName");
     const logGroupName = inject("logGroupName");
+    const expectedInstrumentationScopes = inject(
+      "expectedInstrumentationScopes",
+    );
 
     const startTime = Date.now();
 
@@ -44,7 +49,7 @@ describe("Ruby Lambda layer", () => {
       (match) => match[1],
     );
     expect(instrumentationScopes).toEqual(
-      expect.arrayContaining(["OpenTelemetry::Instrumentation::AwsLambda"]),
+      expect.arrayContaining(expectedInstrumentationScopes),
     );
   });
 });
