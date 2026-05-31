@@ -36,7 +36,16 @@ describe("Java wrapper Lambda layer", () => {
         return JSON.parse(event.message) as Record<string, unknown>;
       })
       .filter((span) => span["otelcol.signal"] === "traces");
-    // TODO(discovery): assert exact InstrumentationScope names once captured from a real run
-    expect(traceEvents.length).toBeGreaterThan(0);
+    expect(traceEvents).toHaveLength(2); // debug exporter emits 1 summary and 1 detailed log event
+
+    const detailedTraceEventMsg = traceEvents[1].msg as string;
+    const instrumentationScopes = Array.from(
+      detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
+      (match) => match[1]
+    );
+    expect(instrumentationScopes).toEqual([
+      "io.opentelemetry.aws-sdk-2.2",
+      "io.opentelemetry.aws-lambda-events-3.11",
+    ]);
   });
 });
