@@ -67,7 +67,7 @@ jobs:
     needs: [build-layer, create-release]
     strategy:
       matrix:
-        aws_region: 
+        aws_region:
           - af-south-1
           - ap-east-1
           - ap-east-2
