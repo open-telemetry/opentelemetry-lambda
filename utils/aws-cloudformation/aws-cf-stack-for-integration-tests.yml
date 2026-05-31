@@ -6,6 +6,16 @@ Parameters:
     Description: Name of the GitHub repository
     Type: String
     Default: "opentelemetry-lambda"
+  GithubOIDCProviderArn:
+    Description: >-
+      ARN of an existing GitHub Actions OIDC provider in this AWS account. An account
+      can only have one provider per URL, so set this when the provider already exists
+      (e.g. created by the layer-publish stack). Leave empty to create a new one.
+    Type: String
+    Default: ""
+
+Conditions:
+  CreateOIDCProvider: !Equals [!Ref GithubOIDCProviderArn, ""]
 
 Resources:
   Role:
@@ -17,7 +27,10 @@ Resources:
           - Effect: Allow
             Action: sts:AssumeRoleWithWebIdentity
             Principal:
-              Federated: !Ref GithubOIDC
+              Federated: !If
+                - CreateOIDCProvider
+                - !Ref GithubOIDC
+                - !Ref GithubOIDCProviderArn
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
@@ -103,6 +116,7 @@ Resources:
 
   GithubOIDC:
     Type: AWS::IAM::OIDCProvider
+    Condition: CreateOIDCProvider
     Properties:
       Url: "https://token.actions.githubusercontent.com"
       ClientIdList:
