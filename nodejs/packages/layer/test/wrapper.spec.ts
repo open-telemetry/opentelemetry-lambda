@@ -2,11 +2,13 @@ import { init, wrap, unwrap } from '../src/wrapper';
 
 import {
   defaultTextMapGetter,
+  metrics,
   ROOT_CONTEXT,
   TextMapPropagator,
   trace,
   TraceFlags,
 } from '@opentelemetry/api';
+import { logs } from '@opentelemetry/api-logs';
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
 import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
@@ -191,6 +193,8 @@ describe('wrapper', async () => {
 
   describe('exporters', () => {
     let providerSpy: SinonSpy;
+    let meterProviderSpy: SinonSpy;
+    let loggerProviderSpy: SinonSpy;
 
     before(() => {
       // TODO: Does this belong here
@@ -199,10 +203,14 @@ describe('wrapper', async () => {
 
     beforeEach(() => {
       providerSpy = spy(NodeTracerProvider.prototype, 'register');
+      meterProviderSpy = spy(metrics, 'setGlobalMeterProvider');
+      loggerProviderSpy = spy(logs, 'setGlobalLoggerProvider');
     });
 
     afterEach(() => {
       providerSpy.restore();
+      meterProviderSpy.restore();
+      loggerProviderSpy.restore();
     });
 
     const testConfiguredExporter = async (
@@ -236,6 +244,30 @@ describe('wrapper', async () => {
         ['console', 'otlp'],
         [ConsoleSpanExporter, OTLPTraceExporter],
       );
+    });
+
+    it('disables traces for case-insensitive none values', async () => {
+      process.env.OTEL_TRACES_EXPORTER = ' NoNe ';
+
+      await wrap();
+
+      assert.equal(providerSpy.called, false);
+    });
+
+    it('disables metrics for case-insensitive none values', async () => {
+      process.env.OTEL_METRICS_EXPORTER = ' NoNe ';
+
+      await wrap();
+
+      assert.equal(meterProviderSpy.called, false);
+    });
+
+    it('disables logs for case-insensitive none values', async () => {
+      process.env.OTEL_LOGS_EXPORTER = ' NoNe ';
+
+      await wrap();
+
+      assert.equal(loggerProviderSpy.called, false);
     });
   });
 });

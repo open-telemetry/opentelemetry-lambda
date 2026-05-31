@@ -108,6 +108,18 @@ function getActiveInstrumentations(): Set<string> {
   return instrumentationSet;
 }
 
+function getNormalizedEnvList(name: string): string[] {
+  const value = process.env[name];
+  if (value == null || value.trim() === '') {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map(item => item.toLowerCase().trim())
+    .filter(item => item !== '');
+}
+
 async function defaultConfigureInstrumentations() {
   const instrumentations = [];
   const activeInstrumentations = getActiveInstrumentations();
@@ -283,10 +295,10 @@ async function createInstrumentations() {
 }
 
 function getPropagator(): TextMapPropagator {
-  if (
-    process.env.OTEL_PROPAGATORS == null ||
-    process.env.OTEL_PROPAGATORS.trim() === ''
-  ) {
+  const propagatorsFromEnv = Array.from(
+    new Set(getNormalizedEnvList('OTEL_PROPAGATORS')),
+  );
+  if (propagatorsFromEnv.length === 0) {
     return new CompositePropagator({
       propagators: [
         new W3CTraceContextPropagator(),
@@ -294,13 +306,6 @@ function getPropagator(): TextMapPropagator {
       ],
     });
   }
-  const propagatorsFromEnv = Array.from(
-    new Set(
-      process.env.OTEL_PROPAGATORS?.split(',').map(value =>
-        value.toLowerCase().trim(),
-      ),
-    ),
-  );
   const propagators = propagatorsFromEnv.flatMap(propagatorName => {
     if (propagatorName === 'none') {
       diag.info(
@@ -321,13 +326,11 @@ function getPropagator(): TextMapPropagator {
 }
 
 function getExportersFromEnv(): SpanExporter[] | null {
-  if (
-    process.env.OTEL_TRACES_EXPORTER == null ||
-    process.env.OTEL_TRACES_EXPORTER.trim() === ''
-  ) {
+  const exporterNames = getNormalizedEnvList('OTEL_TRACES_EXPORTER');
+  if (exporterNames.length === 0) {
     return [];
   }
-  if (process.env.OTEL_TRACES_EXPORTER.includes('none')) {
+  if (exporterNames.includes('none')) {
     return null;
   }
 
@@ -336,8 +339,7 @@ function getExportersFromEnv(): SpanExporter[] | null {
     ['console', () => new ConsoleSpanExporter()],
   ]);
   const exporters: SpanExporter[] = [];
-  process.env.OTEL_TRACES_EXPORTER.split(',').map(exporterName => {
-    exporterName = exporterName.toLowerCase().trim();
+  exporterNames.map(exporterName => {
     const exporter = stringToExporter.get(exporterName);
     if (exporter) {
       exporters.push(exporter());
@@ -409,7 +411,7 @@ async function initializeTracerProvider(
 async function initializeMeterProvider(
   resource: Resource,
 ): Promise<unknown | undefined> {
-  if (process.env.OTEL_METRICS_EXPORTER === 'none') {
+  if (getNormalizedEnvList('OTEL_METRICS_EXPORTER').includes('none')) {
     return;
   }
 
@@ -450,7 +452,7 @@ async function initializeMeterProvider(
 async function initializeLoggerProvider(
   resource: Resource,
 ): Promise<unknown | undefined> {
-  if (process.env.OTEL_LOGS_EXPORTER === 'none') {
+  if (getNormalizedEnvList('OTEL_LOGS_EXPORTER').includes('none')) {
     return;
   }
 
