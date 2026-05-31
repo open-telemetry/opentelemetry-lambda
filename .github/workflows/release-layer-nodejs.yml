@@ -44,12 +44,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  integration-test:
+    permissions:
+      contents: read
+      id-token: write
+    needs: build-layer
+    uses: ./.github/workflows/integration-test.yml
+    with:
+      language: nodejs
+      use-existing-layer-artifact: true
+    secrets: inherit
+
   publish-layer:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
     uses: ./.github/workflows/layer-publish.yml
-    needs: build-layer
+    needs: [build-layer, integration-test]
     strategy:
       matrix:
         aws_region:
