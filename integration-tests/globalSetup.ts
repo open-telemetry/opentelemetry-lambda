@@ -48,7 +48,9 @@ const LANGUAGE_CONFIG = {
     runtime: Runtime.RUBY_3_3,
     handler: "lambda_function.handler",
     handlerDir: "handlers/ruby",
-    expectedInstrumentationScopes: ["OpenTelemetry::Instrumentation::AwsLambda"],
+    expectedInstrumentationScopes: [
+      "OpenTelemetry::Instrumentation::AwsLambda",
+    ],
   },
   javaagent: {
     runtime: Runtime.JAVA_21,
@@ -90,9 +92,7 @@ export async function setup({ provide }: TestProject) {
   }
 
   if (!isSupportedLanguage(language)) {
-    throw new Error(
-      `Unsupported language: ${language}`
-    )
+    throw new Error(`Unsupported language: ${language}`);
   }
   const config = LANGUAGE_CONFIG[language];
 
@@ -146,7 +146,10 @@ export async function setup({ provide }: TestProject) {
   provide("functionName", FunctionName);
   provide("logGroupName", LogGroupName);
   provide("language", language);
-  provide("expectedInstrumentationScopes", config.expectedInstrumentationScopes);
+  provide(
+    "expectedInstrumentationScopes",
+    config.expectedInstrumentationScopes,
+  );
 
   return async () => {
     await toolkit.destroy(source, {
