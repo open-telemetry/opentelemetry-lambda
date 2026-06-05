@@ -4,7 +4,7 @@ import {
   NonInteractiveIoHost,
   StackSelectionStrategy,
 } from "@aws-cdk/toolkit-lib";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Architecture, Runtime } from "aws-cdk-lib/aws-lambda";
 import type { TestProject } from "vitest/node";
 import { IntegrationTestStack } from "./cdk/stack.js";
 import { App, Tags } from "aws-cdk-lib";
@@ -75,32 +75,59 @@ const LANGUAGE_CONFIG = {
 } satisfies Record<string, LanguageConfig>;
 
 type SupportedLanguage = keyof typeof LANGUAGE_CONFIG;
+type SupportedArchitecture = "amd64" | "arm64";
 
 function isSupportedLanguage(language: string): language is SupportedLanguage {
   return language in LANGUAGE_CONFIG;
 }
 
+function isSupportedArchitecture(
+  architecture: string,
+): architecture is SupportedArchitecture {
+  return architecture === "amd64" || architecture === "arm64";
+}
+
+function resolveArchitecture(
+  architecture: SupportedArchitecture,
+): Architecture {
+  switch (architecture) {
+    case "amd64":
+      return Architecture.X86_64;
+    case "arm64":
+      return Architecture.ARM_64;
+  }
+}
+
 export async function setup({ provide }: TestProject) {
   const language = process.env.TEST_LANGUAGE;
+  const testArchitecture = process.env.TEST_ARCHITECTURE;
   const collectorZip = process.env.COLLECTOR_LAYER_ZIP;
   const instrumentationZip = process.env.INSTRUMENTATION_LAYER_ZIP;
 
-  if (!language || !collectorZip || !instrumentationZip) {
+  if (!language || !testArchitecture || !collectorZip || !instrumentationZip) {
     throw new Error(
-      "Required env vars: TEST_LANGUAGE, COLLECTOR_LAYER_ZIP, INSTRUMENTATION_LAYER_ZIP",
+      "Required env vars: TEST_LANGUAGE, TEST_ARCHITECTURE, COLLECTOR_LAYER_ZIP, INSTRUMENTATION_LAYER_ZIP",
     );
   }
 
   if (!isSupportedLanguage(language)) {
     throw new Error(`Unsupported language: ${language}`);
   }
+
+  if (!isSupportedArchitecture(testArchitecture)) {
+    throw new Error(
+      `Unsupported architecture: ${testArchitecture}. Expected amd64 or arm64.`,
+    );
+  }
+
   const config = LANGUAGE_CONFIG[language];
+  const architecture = resolveArchitecture(testArchitecture);
 
   const runId = process.env.GITHUB_RUN_ID;
   const runAttempt = process.env.GITHUB_RUN_ATTEMPT;
   const stackName = runId
-    ? `IntegrationTest-${language}-${runId}-${runAttempt}`
-    : `IntegrationTest-${language}`;
+    ? `IntegrationTest-${language}-${testArchitecture}-${runId}-${runAttempt}`
+    : `IntegrationTest-${language}-${testArchitecture}`;
 
   const toolkit = new Toolkit({
     ioHost: new NonInteractiveIoHost(),
@@ -111,6 +138,7 @@ export async function setup({ provide }: TestProject) {
 
     Tags.of(app).add("Purpose", "integration-test");
     Tags.of(app).add("Language", language);
+    Tags.of(app).add("Architecture", testArchitecture);
     if (runId) {
       Tags.of(app).add("GitHubRunId", runId);
       Tags.of(app).add("GitHubRunAttempt", runAttempt ?? "1");
@@ -119,6 +147,7 @@ export async function setup({ provide }: TestProject) {
     new IntegrationTestStack(app, stackName, {
       runtime: config.runtime,
       handler: config.handler,
+      architecture,
       handlerCodePath: resolve(config.handlerDir),
       collectorLayerZipPath: resolve(collectorZip),
       instrumentationLayerZipPath: resolve(instrumentationZip),

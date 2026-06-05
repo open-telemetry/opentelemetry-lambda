@@ -54,6 +54,7 @@ Build the layer zips you want to test (collector + the language's instrumentatio
 
 ```
 TEST_LANGUAGE=nodejs \
+TEST_ARCHITECTURE=amd64 \
 COLLECTOR_LAYER_ZIP=/path/to/opentelemetry-collector-layer-amd64.zip \
 INSTRUMENTATION_LAYER_ZIP=/path/to/opentelemetry-nodejs-layer.zip \
 npm test
