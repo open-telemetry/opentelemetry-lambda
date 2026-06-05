@@ -64,6 +64,7 @@ jobs:
     with:
       language: ${{ matrix.flavor }}
       use-existing-layer-artifact: true
+      collector-artifact-name: opentelemetry-collector-layer-amd64-${{ matrix.flavor }}.zip
     secrets: inherit
 
   publish-javaagent-layer:
@@ -173,4 +174,3 @@ jobs:
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets: inherit
-
