@@ -1,0 +1,51 @@
+name: 'Build Java Lambda Layer'
+description: 'Builds the OpenTelemetry Java javaagent and javawrapper Lambda layers'
+
+outputs:
+  javaagent-artifact-path:
+    description: 'Absolute path to the javaagent layer zip artifact'
+    value: ${{ github.workspace }}/java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
+  javawrapper-artifact-path:
+    description: 'Absolute path to the javawrapper layer zip artifact'
+    value: ${{ github.workspace }}/java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+  javaagent-version:
+    description: 'OpenTelemetry Java agent version included in the layer'
+    value: ${{ steps.javaagent-version.outputs.javaagent-version }}
+  javawrapper-version:
+    description: 'OpenTelemetry Java instrumentation version included in the wrapper layer'
+    value: ${{ steps.javawrapper-version.outputs.javawrapper-version }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      with:
+        distribution: corretto
+        java-version: 17
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+      with:
+        cache-provider: basic # MIT licensed (see https://github.com/gradle/actions/releases/tag/v6.1.0)
+
+    - name: Execute Gradle build
+      shell: bash
+      run: |
+        cd java
+        ./gradlew :layer-javaagent:assemble :layer-wrapper:assemble --scan --stacktrace
+
+    - name: Save Javaagent Version
+      id: javaagent-version
+      shell: bash
+      run: |
+        unzip java/layer-javaagent/build/distributions/opentelemetry-javaagent-layer.zip
+        JAVAAGENT_VERSION=$(java -jar ./opentelemetry-javaagent.jar)
+        echo "javaagent-version=$JAVAAGENT_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Save Java Wrapper Version
+      id: javawrapper-version
+      shell: bash
+      run: |
+        cd java
+        JAVAWRAPPER_VERSION=$(./gradlew layer-wrapper:printOtelJavaInstrumentationVersion -q)
+        echo "javawrapper-version=$JAVAWRAPPER_VERSION" >> "$GITHUB_OUTPUT"

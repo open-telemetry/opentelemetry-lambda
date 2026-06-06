@@ -1,0 +1,28 @@
+name: 'Build Ruby Lambda Layer'
+description: 'Builds the OpenTelemetry Ruby Lambda layer'
+
+outputs:
+  artifact-path:
+    description: 'Absolute path to the layer zip artifact'
+    value: ${{ github.workspace }}/ruby/src/build/opentelemetry-ruby-layer.zip
+  component-version:
+    description: 'OpenTelemetry Ruby SDK version included in the layer'
+    value: ${{ steps.version.outputs.component-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build Ruby layer
+      shell: bash
+      working-directory: ruby/src
+      run: ./build.sh
+
+    - name: Save Ruby OpenTelemetry SDK version
+      id: version
+      shell: bash
+      working-directory: ruby/src
+      run: |
+        unzip -q build/opentelemetry-ruby-layer.zip
+        export GEM_PATH=$PWD/ruby/gems/3.3.0/
+        SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
+        echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
