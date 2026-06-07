@@ -34,7 +34,7 @@ func NewLogger() *zap.Logger {
 	l := zap.New(NewCore(lvl))
 
 	if err != nil {
-		l.Warn("unable to parse log level from environment", zap.Error(err))
+		l.Warn("unable to parse log level from environment, falling back to default log level", zap.Error(err), zap.Stringer("default_level", lvl))
 	}
 	return l
 }
