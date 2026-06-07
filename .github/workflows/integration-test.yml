@@ -1,0 +1,153 @@
+name: "Integration Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Language to test (or all)'
+        required: true
+        type: choice
+        options:
+          - all
+          - nodejs
+          - python
+          - ruby
+          - javaagent
+          - javawrapper
+        default: all
+  workflow_call:
+    inputs:
+      language:
+        description: 'Language to test (or all)'
+        required: true
+        type: string
+      use-existing-layer-artifact:
+        description: 'Use an existing instrumentation layer artifact instead of building from scratch'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-languages:
+    runs-on: ubuntu-latest
+    outputs:
+      languages: ${{ steps.prepare-languages.outputs.languages }}
+    steps:
+      - id: prepare-languages
+        name: Prepare Languages
+        run: |
+          if [ "${{ inputs.language }}" = "all" ]; then
+            languages='["nodejs", "python", "ruby", "javaagent", "javawrapper"]'
+          else
+            languages='["${{ inputs.language }}"]'
+          fi
+          echo "languages=${languages}" >> "$GITHUB_OUTPUT"
+
+  build-collector:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/build-collector-layer
+        id: build
+        with:
+          architecture: ${{ matrix.architecture }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}-${{ inputs.language }}.zip
+          path: ${{ steps.build.outputs.artifact-path }}
+
+  build-layer:
+    needs: prepare-languages
+    if: ${{ !inputs.use-existing-layer-artifact }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.prepare-languages.outputs.languages) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/build-layer
+        id: build
+        with:
+          language: ${{ matrix.language }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: opentelemetry-${{ matrix.language }}-layer.zip
+          path: ${{ steps.build.outputs.artifact-path }}
+
+  test:
+    needs: [prepare-languages, build-collector, build-layer]
+    if: |
+      !cancelled() &&
+      needs.build-collector.result == 'success' &&
+      (needs.build-layer.result == 'success' || needs.build-layer.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.prepare-languages.outputs.languages) }}
+        architecture: [amd64, arm64]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: opentelemetry-collector-layer-${{ matrix.architecture }}-${{ inputs.language }}.zip
+          path: artifacts/
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: opentelemetry-${{ matrix.language }}-layer.zip
+          path: artifacts/
+
+      - uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: ${{ secrets.INTEGRATION_TEST_ROLE_ARN }}
+          role-duration-seconds: 1200
+          aws-region: us-east-1
+
+      - if: ${{ startsWith(matrix.language, 'java') }}
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: corretto
+          java-version: 17
+
+      - name: Setup Gradle
+        if: ${{ startsWith(matrix.language, 'java') }}
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+        with:
+          cache-provider: basic # MIT licensed (see https://github.com/gradle/actions/releases/tag/v6.1.0)
+
+      - name: Build Java handler jar
+        if: ${{ startsWith(matrix.language, 'java') }}
+        run: ./gradlew shadowJar
+        working-directory: integration-tests/handlers/java
+
+      - name: Install integration test dependencies
+        run: npm ci
+        working-directory: integration-tests
+
+      - name: Run integration tests
+        run: npx vitest run --config vitest.config.ts
+        working-directory: integration-tests
+        env:
+          TEST_LANGUAGE: ${{ matrix.language }}
+          TEST_ARCHITECTURE: ${{ matrix.architecture }}
+          COLLECTOR_LAYER_ZIP: ${{ github.workspace }}/artifacts/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
+          INSTRUMENTATION_LAYER_ZIP: ${{ github.workspace }}/artifacts/opentelemetry-${{ matrix.language }}-layer.zip
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}

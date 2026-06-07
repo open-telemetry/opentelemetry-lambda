@@ -1,0 +1,146 @@
+Parameters:
+  GitHubOrgName:
+    Description: Name of the GitHub organization/user
+    Type: String
+  RepositoryName:
+    Description: Name of the GitHub repository
+    Type: String
+    Default: "opentelemetry-lambda"
+  GithubOIDCProviderArn:
+    Description: >-
+      ARN of an existing GitHub Actions OIDC provider in this AWS account. An account
+      can only have one provider per URL, so set this when the provider already exists
+      (e.g. created by the layer-publish stack). Leave empty to create a new one.
+    Type: String
+    Default: ""
+
+Conditions:
+  CreateOIDCProvider: !Equals [!Ref GithubOIDCProviderArn, ""]
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "github-otel-lambda-integration-test-role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !If
+                - CreateOIDCProvider
+                - !Ref GithubOIDC
+                - !Ref GithubOIDCProviderArn
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrgName}/${RepositoryName}:*"
+      Policies:
+        - PolicyName: "github-otel-lambda-integration-test-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: Lambda
+                Effect: Allow
+                Action:
+                  - "lambda:CreateFunction"
+                  - "lambda:DeleteFunction"
+                  - "lambda:GetFunction"
+                  - "lambda:GetFunctionConfiguration"
+                  - "lambda:InvokeFunction"
+                  - "lambda:TagResource"
+                  - "lambda:UntagResource"
+                  - "lambda:ListTags"
+                  - "lambda:PublishLayerVersion"
+                  - "lambda:DeleteLayerVersion"
+                  - "lambda:GetLayerVersion"
+                Resource:
+                  - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:function:IntegrationTest-*"
+                  - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:layer:IntegrationTest-*"
+              - Sid: CloudWatchLogs
+                Effect: Allow
+                Action:
+                  - "logs:FilterLogEvents"
+                  - "logs:DescribeLogGroups"
+                  - "logs:CreateLogGroup"
+                  - "logs:DeleteLogGroup"
+                  - "logs:PutRetentionPolicy"
+                  - "logs:TagResource"
+                  - "logs:UntagResource"
+                  - "logs:ListTagsForResource"
+                Resource:
+                  - !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:log-group:IntegrationTest-*"
+              - Sid: CloudFormation
+                Effect: Allow
+                Action:
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:GetTemplate"
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DeleteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
+                  - "cloudformation:GetTemplateSummary"
+                Resource:
+                  - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/IntegrationTest-*/*"
+              - Sid: IAMRoleLifecycle
+                Effect: Allow
+                Action:
+                  - "iam:CreateRole"
+                  - "iam:DeleteRole"
+                  - "iam:GetRole"
+                  - "iam:TagRole"
+                  - "iam:UntagRole"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/IntegrationTest-*"
+              - Sid: IAMBasicExecutionPolicyAttachment
+                Effect: Allow
+                Action:
+                  - "iam:AttachRolePolicy"
+                  - "iam:DetachRolePolicy"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/IntegrationTest-*"
+                Condition:
+                  ArnEquals:
+                    iam:PolicyARN: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              - Sid: IAMPassRoleToLambda
+                Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/IntegrationTest-*"
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: "lambda.amazonaws.com"
+              - Sid: STS
+                Effect: Allow
+                Action:
+                  - "sts:GetCallerIdentity"
+                Resource: "*"
+              - Sid: S3CDKAssets
+                Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:ListBucket"
+                  - "s3:GetBucketLocation"
+                Resource:
+                  - !Sub "arn:aws:s3:::cdk-*-assets-${AWS::AccountId}-us-east-1"
+                  - !Sub "arn:aws:s3:::cdk-*-assets-${AWS::AccountId}-us-east-1/*"
+
+  GithubOIDC:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateOIDCProvider
+    Properties:
+      Url: "https://token.actions.githubusercontent.com"
+      ClientIdList:
+        - "sts.amazonaws.com"
+      ThumbprintList:
+        - "ffffffffffffffffffffffffffffffffffffffff"
+
+Outputs:
+  RoleARN:
+    Description: "ARN of the IAM role for integration tests"
+    Value: !GetAtt Role.Arn

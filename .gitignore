@@ -20,3 +20,7 @@ build.toml
 *.zip
 
 collector/VERSION
+
+# Integration tests
+integration-tests/cdk.out/
+integration-tests/node_modules/
