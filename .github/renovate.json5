@@ -7,6 +7,10 @@
   ],
   packageRules: [
     {
+      "matchPaths": ["**/tests/**"],
+      "enabled": true
+    },
+    {
       groupName: "opentelemetry-deps-collector",
       labels: ["go"],
       matchDepNames: ["*opentelemetry*"],
