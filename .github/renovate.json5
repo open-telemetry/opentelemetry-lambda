@@ -74,7 +74,7 @@
     {
       groupName: "actions",
       labels: ["github_actions"],
-      matchManager: ["github-actions"],
+      matchManagers: ["github-actions"],
       schedule: ["before 8am on Monday"],
     }
   ],
