@@ -23,37 +23,35 @@ import (
 
 const extensionLogLevelEnvVar = "OPENTELEMETRY_EXTENSION_LOG_LEVEL"
 
-type CoreFunc func(zapcore.LevelEnabler) zapcore.Core
-
 var (
 	encoderConfig = zap.NewProductionEncoderConfig()
 	stdoutSyncer  = zapcore.Lock(zapcore.AddSync(os.Stdout))
 )
 
 func NewLogger() *zap.Logger {
-	return newLogger(os.Getenv(extensionLogLevelEnvVar), NewCore)
+	lvl, err := parseLevel(os.Getenv(extensionLogLevelEnvVar))
+
+	l := zap.New(NewCore(lvl))
+
+	if err != nil {
+		l.Warn("unable to parse log level from environment", zap.Error(err))
+	}
+	return l
 }
 
 func NewCore(levelEnabler zapcore.LevelEnabler) zapcore.Core {
 	return zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), stdoutSyncer, levelEnabler)
 }
 
-func newLogger(envLvl string, coreFunc CoreFunc) *zap.Logger {
-	lvl := zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	var err error
-	if envLvl != "" {
-		var userLvl zap.AtomicLevel
-		userLvl, err = zap.ParseAtomicLevel(envLvl)
-		if err == nil {
-			lvl = userLvl
-		}
+// parseLevel resolves the extension log level from the env var value,
+// falling back to INFO and returning an error if the value is invalid.
+func parseLevel(envLvl string) (zap.AtomicLevel, error) {
+	if envLvl == "" {
+		return zap.NewAtomicLevelAt(zapcore.InfoLevel), nil
 	}
-
-	l := zap.New(coreFunc(lvl))
-
-	if err != nil && envLvl != "" {
-		l.Warn("unable to parse log level from environment", zap.Error(err))
+	userLvl, err := zap.ParseAtomicLevel(envLvl)
+	if err != nil {
+		return zap.NewAtomicLevelAt(zapcore.InfoLevel), err
 	}
-
-	return l
+	return userLvl, nil
 }

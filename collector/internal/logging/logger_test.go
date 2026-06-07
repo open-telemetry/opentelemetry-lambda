@@ -18,34 +18,24 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
-func TestNewLoggerWarnsForInvalidExtensionLogLevel(t *testing.T) {
-	observedCore, logs := observer.New(zapcore.DebugLevel)
-
-	logger := newLogger("not-a-level", func(zapcore.LevelEnabler) zapcore.Core {
-		return observedCore
-	})
-
-	logger.Info("extension info")
-
-	assert.Len(t, logs.FilterMessage("unable to parse log level from environment").All(), 1)
-	assert.Len(t, logs.FilterMessage("extension info").All(), 1)
+func TestParseLevelDefaultsToInfoWhenUnset(t *testing.T) {
+	lvl, err := parseLevel("")
+	require.NoError(t, err)
+	assert.Equal(t, zapcore.InfoLevel, lvl.Level())
 }
 
-func TestNewLoggerAppliesValidExtensionLogLevel(t *testing.T) {
-	logs := &observer.ObservedLogs{}
-	logger := newLogger("error", func(levelEnabler zapcore.LevelEnabler) zapcore.Core {
-		observedCore, observedLogs := observer.New(levelEnabler)
-		logs = observedLogs
-		return observedCore
-	})
+func TestParseLevelAppliesValidLevel(t *testing.T) {
+	lvl, err := parseLevel("error")
+	require.NoError(t, err)
+	assert.Equal(t, zapcore.ErrorLevel, lvl.Level())
+}
 
-	logger.Info("extension info")
-	logger.Error("extension error")
-
-	assert.Empty(t, logs.FilterMessage("extension info").All())
-	assert.Len(t, logs.FilterMessage("extension error").All(), 1)
+func TestParseLevelFallsBackToInfoAndErrorsOnInvalid(t *testing.T) {
+	lvl, err := parseLevel("not-a-level")
+	require.Error(t, err)
+	assert.Equal(t, zapcore.InfoLevel, lvl.Level(), "should fall back to INFO")
 }

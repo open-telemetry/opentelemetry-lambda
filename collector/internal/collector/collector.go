@@ -46,7 +46,7 @@ type Collector struct {
 	stopped   bool
 	logger    *zap.Logger
 	version   string
-	coreFunc  logging.CoreFunc
+	coreFunc  func(zapcore.LevelEnabler) zapcore.Core
 }
 
 func getConfig(logger *zap.Logger) string {
