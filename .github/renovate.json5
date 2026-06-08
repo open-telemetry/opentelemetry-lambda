@@ -40,13 +40,17 @@
       groupName: "opentelemetry-deps-nodejs",
       labels: ["javascript"],
       matchDepNames: ["@opentelemetry/*"],
-      matchCategories: ["node"],
+      matchCategories: [
+        'js'
+      ],
       schedule: ["before 8am on Monday"],
     },
     {
       groupName: "nodejs-other",
       labels: ["javascript"],
-      matchCategories: ["node"],
+      matchCategories: [
+        'js'
+      ],
       schedule: ["before 8am on Monday"],
     },
     {
