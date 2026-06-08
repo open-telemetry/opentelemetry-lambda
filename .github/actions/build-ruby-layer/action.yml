@@ -1,28 +1,49 @@
 name: 'Build Ruby Lambda Layer'
 description: 'Builds the OpenTelemetry Ruby Lambda layer'
 
+inputs:
+  architecture:
+    description: 'Target architecture (amd64 or arm64)'
+    required: false
+    default: amd64
+
 outputs:
   artifact-path:
     description: 'Absolute path to the layer zip artifact'
-    value: ${{ github.workspace }}/ruby/src/build/opentelemetry-ruby-layer.zip
+    value: ${{ github.workspace }}/ruby/src/build/opentelemetry-ruby-layer-${{ inputs.architecture }}.zip
   component-version:
     description: 'OpenTelemetry Ruby SDK version included in the layer'
-    value: ${{ steps.version.outputs.component-version }}
+    value: ${{ steps.version.outputs.component-version || steps.version-skip.outputs.component-version }}
 
 runs:
   using: composite
   steps:
+    - name: Set up QEMU for cross-platform builds
+      uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
     - name: Build Ruby layer
       shell: bash
       working-directory: ruby/src
+      env:
+        ARCH: ${{ inputs.architecture }}
       run: ./build.sh
 
     - name: Save Ruby OpenTelemetry SDK version
+      if: ${{ inputs.architecture == 'amd64' }}
       id: version
       shell: bash
       working-directory: ruby/src
       run: |
-        unzip -q build/opentelemetry-ruby-layer.zip
+        unzip -q build/opentelemetry-ruby-layer-amd64.zip
         export GEM_PATH=$PWD/ruby/gems/3.3.0/
         SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
         echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Skip version output for non-amd64
+      if: ${{ inputs.architecture != 'amd64' }}
+      id: version-skip
+      shell: bash
+      run: echo "component-version=" >> "$GITHUB_OUTPUT"
