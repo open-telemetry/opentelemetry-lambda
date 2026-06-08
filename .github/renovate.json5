@@ -11,6 +11,23 @@
       "enabled": true
     },
     {
+      groupName: "opentelemetry-deps-dotnet",
+      labels: ["dotnet"],
+      matchDepNames: ["OpenTelemetry.*"],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: ["before 8am on Monday"],
+    },
+    {
+      groupName: "dotnet-other",
+      labels: ["dotnet"],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: ["before 8am on Monday"],
+    },
+    {
       groupName: "opentelemetry-deps-collector",
       labels: ["go"],
       matchDepNames: ["*opentelemetry*"],
