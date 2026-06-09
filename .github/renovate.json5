@@ -194,8 +194,8 @@
     ],
   },
   semanticCommits: 'enabled',
-  semanticCommitType: "build",
-  semanticCommitScope: "deps",
+  semanticCommitType: 'build',
+  semanticCommitScope: 'deps',
   labels: [
     'dependencies',
   ],
