@@ -45,7 +45,8 @@
         'go',
       ],
       matchDepNames: [
-        '*opentelemetry*',
+        'go.opentelemetry.io/*',
+        'github.com/open-telemetry/*'
       ],
       matchCategories: [
         'golang',
