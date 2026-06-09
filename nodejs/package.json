@@ -30,7 +30,7 @@
   "author": "OpenTelemetry Authors",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/aws-lambda": "8.10.161",
+    "@types/aws-lambda": "8.10.162",
     "bestzip": "3.0.1",
     "copyfiles": "2.4.1",
     "eslint": "^10.4.1",
@@ -41,6 +41,6 @@
     "typescript-eslint": "^8.60.1"
   },
   "overrides": {
-    "@types/aws-lambda": "8.10.161"
+    "@types/aws-lambda": "8.10.162"
   }
 }
