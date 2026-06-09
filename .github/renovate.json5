@@ -5,39 +5,13 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
+  prHourlyLimit: 10,
   packageRules: [
     {
       matchFileNames: [
         '**/tests/**',
       ],
       enabled: true,
-    },
-    {
-      groupName: 'opentelemetry-deps-dotnet',
-      labels: [
-        'dotnet'
-      ],
-      matchDepNames: [
-        'OpenTelemetry.*'
-      ],
-      matchCategories: [
-        'dotnet'
-      ],
-      schedule: [
-        'before 8am on Monday'
-      ],
-    },
-    {
-      groupName: 'dotnet-other',
-      labels: [
-        'dotnet'
-      ],
-      matchCategories: [
-        'dotnet'
-      ],
-      schedule: [
-        'before 8am on Monday'
-      ],
     },
     {
       groupName: 'opentelemetry-deps-collector',
@@ -65,6 +39,33 @@
       ],
       schedule: [
         'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-dotnet',
+      labels: [
+        'dotnet'
+      ],
+      matchDepNames: [
+        'OpenTelemetry.*'
+      ],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: [
+        'before 8am on Monday'
+      ],
+    },
+    {
+      groupName: 'dotnet-other',
+      labels: [
+        'dotnet'
+      ],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: [
+        'before 8am on Monday'
       ],
     },
     {
@@ -182,6 +183,18 @@
       ],
       matchManagers: [
         'github-actions',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'terraform',
+      labels: [
+        'terraform',
+      ],
+      matchManagers: [
+        'terraform',
       ],
       schedule: [
         'before 8am on Monday',
