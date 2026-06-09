@@ -1,114 +1,202 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
-    "config:best-practices",
-    "helpers:pinGitHubActionDigestsToSemver",
-    ":separateMultipleMajorReleases",
+    'config:best-practices',
+    'helpers:pinGitHubActionDigestsToSemver',
+    ':separateMultipleMajorReleases',
   ],
   packageRules: [
     {
-      "matchPaths": ["**/tests/**"],
-      "enabled": true
+      matchFileNames: [
+        '**/tests/**',
+      ],
+      enabled: true,
     },
     {
-      groupName: "opentelemetry-deps-dotnet",
-      labels: ["dotnet"],
-      matchDepNames: ["OpenTelemetry.*"],
+      groupName: 'opentelemetry-deps-dotnet',
+      labels: [
+        'dotnet'
+      ],
+      matchDepNames: [
+        'OpenTelemetry.*'
+      ],
       matchCategories: [
         'dotnet'
       ],
-      schedule: ["before 8am on Monday"],
+      schedule: [
+        'before 8am on Monday'
+      ],
     },
     {
-      groupName: "dotnet-other",
-      labels: ["dotnet"],
+      groupName: 'dotnet-other',
+      labels: [
+        'dotnet'
+      ],
       matchCategories: [
         'dotnet'
       ],
-      schedule: ["before 8am on Monday"],
-    },
-    {
-      groupName: "opentelemetry-deps-collector",
-      labels: ["go"],
-      matchDepNames: ["*opentelemetry*"],
-      matchCategories: ["golang"],
-      schedule: ["before 8am on Monday"],
-    },
-    {
-      groupName: "collector-other",
-      labels: ["go"],
-      matchCategories: ["golang"],
-      schedule: ["before 8am on Monday"],
-    },
-    {
-      groupName: "opentelemetry-deps-java",
-      labels: ["java"],
-      matchDepNames: ["io.opentelemetry.*"],
-      matchCategories: ["java"],
-      schedule: ["before 8am on Monday"],
-    },
-    {
-      groupName: "java-other",
-      labels: ["java"],
-      matchCategories: ["java"],
-      schedule: ["before 8am on Monday"],
-    },
-    {
-      groupName: "opentelemetry-deps-nodejs",
-      labels: ["javascript"],
-      matchDepNames: ["@opentelemetry/*"],
-      matchCategories: [
-        'js'
+      schedule: [
+        'before 8am on Monday'
       ],
-      schedule: ["before 8am on Monday"],
     },
     {
-      groupName: "nodejs-other",
-      labels: ["javascript"],
-      matchCategories: [
-        'js'
+      groupName: 'opentelemetry-deps-collector',
+      labels: [
+        'go',
       ],
-      schedule: ["before 8am on Monday"],
+      matchDepNames: [
+        '*opentelemetry*',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
     },
     {
-      groupName: "opentelemetry-deps-python",
-      labels: ["python"],
-      matchDepNames: ["opentelemetry-*"],
-      matchCategories: ["python"],
-      schedule: ["before 8am on Monday"],
+      groupName: 'collector-other',
+      labels: [
+        'go',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
     },
     {
-      groupName: "python-other",
-      labels: ["python"],
-      matchCategories: ["python"],
-      schedule: ["before 8am on Monday"],
+      groupName: 'opentelemetry-deps-java',
+      labels: [
+        'java',
+      ],
+      matchDepNames: [
+        'io.opentelemetry.*',
+      ],
+      matchCategories: [
+        'java',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
     },
     {
-      groupName: "opentelemetry-deps-ruby",
-      labels: ["ruby"],
-      matchDepNames: ["opentelemetry-*"],
-      matchCategories: ["ruby"],
-      schedule: ["before 8am on Monday"],
+      groupName: 'java-other',
+      labels: [
+        'java',
+      ],
+      matchCategories: [
+        'java',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
     },
     {
-      groupName: "ruby-other",
-      labels: ["ruby"],
-      matchCategories: ["ruby"],
-      schedule: ["before 8am on Monday"],
+      groupName: 'opentelemetry-deps-nodejs',
+      labels: [
+        'javascript',
+      ],
+      matchDepNames: [
+        '@opentelemetry/*',
+      ],
+      matchCategories: [
+        'js',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
     },
     {
-      groupName: "actions",
-      labels: ["github_actions"],
-      matchManagers: ["github-actions"],
-      schedule: ["before 8am on Monday"],
-    }
+      groupName: 'nodejs-other',
+      labels: [
+        'javascript',
+      ],
+      matchCategories: [
+        'js',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-python',
+      labels: [
+        'python',
+      ],
+      matchDepNames: [
+        'opentelemetry-*',
+      ],
+      matchCategories: [
+        'python',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'python-other',
+      labels: [
+        'python',
+      ],
+      matchCategories: [
+        'python',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-ruby',
+      labels: [
+        'ruby',
+      ],
+      matchDepNames: [
+        'opentelemetry-*',
+      ],
+      matchCategories: [
+        'ruby',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'ruby-other',
+      labels: [
+        'ruby',
+      ],
+      matchCategories: [
+        'ruby',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'actions',
+      labels: [
+        'github_actions',
+      ],
+      matchManagers: [
+        'github-actions',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
   ],
   lockFileMaintenance: {
     enabled: true,
-    schedule: ["before 8am on Monday"],
+    schedule: [
+      'before 8am on Monday',
+    ],
   },
   semanticCommits: 'enabled',
   semanticCommitType: "build",
   semanticCommitScope: "deps",
-  labels: ["dependencies"],
+  labels: [
+    'dependencies',
+  ],
 }
