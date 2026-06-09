@@ -5,6 +5,7 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
+  prHourlyLimit: 10,
   packageRules: [
     {
       matchFileNames: [
@@ -18,7 +19,8 @@
         'go',
       ],
       matchDepNames: [
-        '*opentelemetry*',
+        'go.opentelemetry.io/*',
+        'github.com/open-telemetry/*'
       ],
       matchCategories: [
         'golang',
@@ -37,6 +39,33 @@
       ],
       schedule: [
         'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-dotnet',
+      labels: [
+        'dotnet'
+      ],
+      matchDepNames: [
+        'OpenTelemetry.*'
+      ],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: [
+        'before 8am on Monday'
+      ],
+    },
+    {
+      groupName: 'dotnet-other',
+      labels: [
+        'dotnet'
+      ],
+      matchCategories: [
+        'dotnet'
+      ],
+      schedule: [
+        'before 8am on Monday'
       ],
     },
     {
@@ -75,7 +104,7 @@
         '@opentelemetry/*',
       ],
       matchCategories: [
-        'node',
+        'js',
       ],
       schedule: [
         'before 8am on Monday',
@@ -87,7 +116,7 @@
         'javascript',
       ],
       matchCategories: [
-        'node',
+        'js',
       ],
       schedule: [
         'before 8am on Monday',
@@ -159,14 +188,28 @@
         'before 8am on Monday',
       ],
     },
+    {
+      groupName: 'terraform',
+      labels: [
+        'terraform',
+      ],
+      matchManagers: [
+        'terraform',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
   ],
   lockFileMaintenance: {
     enabled: true,
     schedule: [
-      'before 8am on Monday',
+      'before 8am on Wednesday',
     ],
   },
+  semanticCommits: 'enabled',
   semanticCommitType: 'build',
+  semanticCommitScope: 'deps',
   labels: [
     'dependencies',
   ],
