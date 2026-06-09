@@ -8,13 +8,13 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.4.0" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.2.0" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.0.10" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.8.0" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.3.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.AWS" Version="1.0.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.1.0-beta1" />
-    <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.AWSLambda" Version="1.1.0-beta1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AWS" Version="1.15.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AWSLambda" Version="1.15.1" />
   </ItemGroup>
 </Project>
