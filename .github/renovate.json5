@@ -191,7 +191,7 @@
   lockFileMaintenance: {
     enabled: true,
     schedule: [
-      'before 8am on Monday',
+      'before 8am on Wednesday',
     ],
   },
   semanticCommits: 'enabled',
