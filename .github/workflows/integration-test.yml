@@ -66,7 +66,7 @@ jobs:
   build-layer:
     needs: prepare-languages
     if: ${{ !inputs.use-existing-layer-artifact }}
-    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
