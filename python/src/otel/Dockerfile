@@ -1,6 +1,4 @@
-ARG runtime=python3.14
-
-FROM public.ecr.aws/sam/build-${runtime}
+FROM public.ecr.aws/sam/build-python3.14:latest@sha256:784b06dbc173e9e2c4ebf09890f951cb67419229c9247eb4c58e0e5afe582872
 
 ADD . /workspace
 
