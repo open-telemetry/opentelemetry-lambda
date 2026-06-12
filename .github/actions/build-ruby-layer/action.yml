@@ -13,7 +13,7 @@ outputs:
     value: ${{ github.workspace }}/ruby/src/build/opentelemetry-ruby-layer-${{ inputs.architecture }}.zip
   component-version:
     description: 'OpenTelemetry Ruby SDK version included in the layer'
-    value: ${{ steps.version.outputs.component-version || steps.version-skip.outputs.component-version }}
+    value: ${{ steps.version.outputs.component-version }}
 
 runs:
   using: composite
@@ -35,9 +35,3 @@ runs:
         export GEM_PATH=$PWD/ruby/gems/3.3.0/
         SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
         echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
-
-    - name: Skip version output for non-amd64
-      if: ${{ inputs.architecture != 'amd64' }}
-      id: version-skip
-      shell: bash
-      run: echo "component-version=" >> "$GITHUB_OUTPUT"
