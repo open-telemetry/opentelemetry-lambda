@@ -66,19 +66,21 @@ jobs:
   build-layer:
     needs: prepare-languages
     if: ${{ !inputs.use-existing-layer-artifact }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
         language: ${{ fromJson(needs.prepare-languages.outputs.languages) }}
-        runner: ["ubuntu-latest"]
-        include:
-          - language: ruby
-            architecture: amd64
-            runner: ubuntu-latest
-          - language: ruby
+        architecture: [amd64, arm64]
+        exclude:
+          - language: nodejs
             architecture: arm64
-            runner: ubuntu-24.04-arm
+          - language: python
+            architecture: arm64
+          - language: javaagent
+            architecture: arm64
+          - language: javawrapper
+            architecture: arm64
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: ./.github/actions/build-layer
