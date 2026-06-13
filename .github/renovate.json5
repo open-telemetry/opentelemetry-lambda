@@ -69,6 +69,7 @@
       labels: [
         'github_actions',
       ],
+      semanticCommitType: 'build',
       matchManagers: [
         'github-actions',
       ],
