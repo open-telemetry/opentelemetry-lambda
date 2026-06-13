@@ -5,7 +5,8 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
-  prHourlyLimit: 10,
+  prHourlyLimit: 15,
+  prConcurrentLimit: 15,
   ignorePaths: [
     "!**/tests/**"
   ],
