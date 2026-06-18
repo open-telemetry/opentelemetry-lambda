@@ -76,7 +76,7 @@
     },
     {
       groupName: 'collector-other',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchCategories: [
@@ -88,7 +88,7 @@
     },
     {
       groupName: 'opentelemetry-deps-collector',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchPackageNames: [
@@ -104,7 +104,7 @@
     },
     {
       groupName: 'dotnet-other',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchCategories: [
@@ -170,7 +170,7 @@
     },
     {
       groupName: 'opentelemetry-deps-nodejs',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchDepNames: [
@@ -185,7 +185,7 @@
     },
     {
       groupName: 'python-other',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchCategories: [
@@ -197,7 +197,7 @@
     },
     {
       groupName: 'opentelemetry-deps-python',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchDepNames: [
@@ -212,7 +212,7 @@
     },
     {
       groupName: 'ruby-other',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchCategories: [
@@ -224,7 +224,7 @@
     },
     {
       groupName: 'opentelemetry-deps-ruby',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchDepNames: [
@@ -239,7 +239,7 @@
     },
     {
       groupName: 'actions',
-      updateTypes: [
+      matchUpdateTypes: [
         '!major'
       ],
       matchManagers: [
@@ -250,7 +250,7 @@
       ],
     },
     {
-      updateTypes: [
+      matchUpdateTypes: [
         'major'
       ],
       matchManagers: [
@@ -273,7 +273,7 @@
       ],
     },
     {
-      updateTypes: [
+      matchUpdateTypes: [
         'major'
       ],
       "dependencyDashboardApproval": true,
