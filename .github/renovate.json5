@@ -262,6 +262,7 @@
       matchManagers: [
         'github-actions',
       ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday',
       ],
@@ -274,6 +275,7 @@
       matchManagers: [
         'terraform',
       ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday',
       ],
@@ -281,6 +283,9 @@
     {
       matchUpdateTypes: [
         'major'
+      ],
+      matchManagers: [
+        '!github-actions',
       ],
       "dependencyDashboardApproval": true,
     },
