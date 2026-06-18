@@ -5,34 +5,79 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
-  prHourlyLimit: 10,
+  prHourlyLimit: 15,
+  prConcurrentLimit: 15,
+  ignorePaths: [
+    "!**/tests/**"
+  ],
   packageRules: [
     {
-      matchFileNames: [
-        '**/tests/**',
-      ],
-      enabled: true,
-    },
-    {
-      groupName: 'opentelemetry-deps-collector',
       labels: [
         'go',
       ],
-      matchDepNames: [
-        'go.opentelemetry.io/*',
-        'github.com/open-telemetry/*'
-      ],
+      semanticCommitType: 'build',
       matchCategories: [
         'golang',
       ],
-      schedule: [
-        'before 8am on Monday',
+    },
+    {
+      labels: [
+        'dotnet'
+      ],
+      semanticCommitType: 'build',
+      matchCategories: [
+        'dotnet'
+      ],
+    },
+    {
+      labels: [
+        'java',
+      ],
+      semanticCommitType: 'build',
+      matchCategories: [
+        'java',
+      ],
+    },
+    {
+      labels: [
+        'javascript',
+      ],
+      semanticCommitType: 'build',
+      matchCategories: [
+        'js',
+      ],
+    },
+    {
+      labels: [
+        'python',
+      ],
+      semanticCommitType: 'build',
+      matchCategories: [
+        'python',
+      ],
+    },
+    {
+      labels: [
+        'ruby',
+      ],
+      semanticCommitType: 'build',
+      matchCategories: [
+        'ruby',
+      ],
+    },
+    {
+      labels: [
+        'github_actions',
+      ],
+      semanticCommitType: 'build',
+      matchManagers: [
+        'github-actions',
       ],
     },
     {
       groupName: 'collector-other',
-      labels: [
-        'go',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchCategories: [
         'golang',
@@ -42,24 +87,25 @@
       ],
     },
     {
-      groupName: 'opentelemetry-deps-dotnet',
-      labels: [
-        'dotnet'
+      groupName: 'opentelemetry-deps-collector',
+      matchUpdateTypes: [
+        '!major'
       ],
-      matchDepNames: [
-        'OpenTelemetry.*'
+      matchPackageNames: [
+        'go.opentelemetry.io{/,}**',
+        'github.com/open-telemetry{/,}**'
       ],
       matchCategories: [
-        'dotnet'
+        'golang',
       ],
       schedule: [
-        'before 8am on Monday'
+        'before 8am on Monday',
       ],
     },
     {
       groupName: 'dotnet-other',
-      labels: [
-        'dotnet'
+      matchUpdateTypes: [
+        '!major'
       ],
       matchCategories: [
         'dotnet'
@@ -69,24 +115,24 @@
       ],
     },
     {
-      groupName: 'opentelemetry-deps-java',
-      labels: [
-        'java',
+      groupName: 'opentelemetry-deps-dotnet',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchDepNames: [
-        'io.opentelemetry.*',
+        'OpenTelemetry.**'
       ],
       matchCategories: [
-        'java',
+        'dotnet'
       ],
       schedule: [
-        'before 8am on Monday',
+        'before 8am on Monday'
       ],
     },
     {
       groupName: 'java-other',
-      labels: [
-        'java',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchCategories: [
         'java',
@@ -96,15 +142,15 @@
       ],
     },
     {
-      groupName: 'opentelemetry-deps-nodejs',
-      labels: [
-        'javascript',
+      groupName: 'opentelemetry-deps-java',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchDepNames: [
-        '@opentelemetry/*',
+        'io.opentelemetry.**',
       ],
       matchCategories: [
-        'js',
+        'java',
       ],
       schedule: [
         'before 8am on Monday',
@@ -112,8 +158,8 @@
     },
     {
       groupName: 'nodejs-other',
-      labels: [
-        'javascript',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchCategories: [
         'js',
@@ -123,15 +169,15 @@
       ],
     },
     {
-      groupName: 'opentelemetry-deps-python',
-      labels: [
-        'python',
+      groupName: 'opentelemetry-deps-nodejs',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchDepNames: [
-        'opentelemetry-*',
+        '@opentelemetry/**',
       ],
       matchCategories: [
-        'python',
+        'js',
       ],
       schedule: [
         'before 8am on Monday',
@@ -139,8 +185,8 @@
     },
     {
       groupName: 'python-other',
-      labels: [
-        'python',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchCategories: [
         'python',
@@ -150,15 +196,15 @@
       ],
     },
     {
-      groupName: 'opentelemetry-deps-ruby',
-      labels: [
-        'ruby',
+      groupName: 'opentelemetry-deps-python',
+      matchUpdateTypes: [
+        '!major'
       ],
       matchDepNames: [
-        'opentelemetry-*',
+        'opentelemetry-**',
       ],
       matchCategories: [
-        'ruby',
+        'python',
       ],
       schedule: [
         'before 8am on Monday',
@@ -166,8 +212,23 @@
     },
     {
       groupName: 'ruby-other',
-      labels: [
+      matchUpdateTypes: [
+        '!major'
+      ],
+      matchCategories: [
         'ruby',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-ruby',
+      matchUpdateTypes: [
+        '!major'
+      ],
+      matchDepNames: [
+        'opentelemetry-**',
       ],
       matchCategories: [
         'ruby',
@@ -178,8 +239,19 @@
     },
     {
       groupName: 'actions',
-      labels: [
-        'github_actions',
+      matchUpdateTypes: [
+        '!major'
+      ],
+      matchManagers: [
+        'github-actions',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      matchUpdateTypes: [
+        'major'
       ],
       matchManagers: [
         'github-actions',
@@ -199,6 +271,12 @@
       schedule: [
         'before 8am on Monday',
       ],
+    },
+    {
+      matchUpdateTypes: [
+        'major'
+      ],
+      "dependencyDashboardApproval": true,
     },
   ],
   lockFileMaintenance: {
