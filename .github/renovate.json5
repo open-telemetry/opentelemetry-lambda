@@ -296,6 +296,9 @@
       'before 8am on Wednesday',
     ],
   },
+  postUpdateOptions: [
+		"gomodTidy"
+	],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
   semanticCommitScope: 'deps',
