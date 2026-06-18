@@ -8,7 +8,13 @@
   prHourlyLimit: 15,
   prConcurrentLimit: 15,
   ignorePaths: [
-    "!**/tests/**"
+    // re‑declare everything best-practices ignores
+    "**/vendor/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+    "**/.cache/**",
   ],
   packageRules: [
     {
