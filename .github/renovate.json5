@@ -272,7 +272,7 @@
       labels: [
         'docker',
       ],
-      matchManagers: [
+      matchCategories: [
         'docker',
       ],
       semanticCommitType: 'build',
@@ -285,7 +285,7 @@
       labels: [
         'terraform',
       ],
-      matchManagers: [
+      matchCategories: [
         'terraform',
       ],
       semanticCommitType: 'build',
