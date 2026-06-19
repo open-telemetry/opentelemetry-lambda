@@ -268,11 +268,24 @@
       ],
     },
     {
+      groupName: 'docker',
+      labels: [
+        'docker',
+      ],
+      matchCategories: [
+        'docker',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
       groupName: 'terraform',
       labels: [
         'terraform',
       ],
-      matchManagers: [
+      matchCategories: [
         'terraform',
       ],
       semanticCommitType: 'build',
