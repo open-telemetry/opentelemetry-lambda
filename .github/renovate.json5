@@ -19,6 +19,7 @@
   packageRules: [
     {
       labels: [
+        'dependencies',
         'go',
       ],
       semanticCommitType: 'build',
@@ -28,6 +29,7 @@
     },
     {
       labels: [
+        'dependencies',
         'dotnet'
       ],
       semanticCommitType: 'build',
@@ -37,6 +39,7 @@
     },
     {
       labels: [
+        'dependencies',
         'java',
       ],
       semanticCommitType: 'build',
@@ -46,6 +49,7 @@
     },
     {
       labels: [
+        'dependencies',
         'javascript',
       ],
       semanticCommitType: 'build',
@@ -55,6 +59,7 @@
     },
     {
       labels: [
+        'dependencies',
         'python',
       ],
       semanticCommitType: 'build',
@@ -64,6 +69,7 @@
     },
     {
       labels: [
+        'dependencies',
         'ruby',
       ],
       semanticCommitType: 'build',
@@ -73,6 +79,7 @@
     },
     {
       labels: [
+        'dependencies',
         'github_actions',
       ],
       semanticCommitType: 'build',
@@ -270,6 +277,7 @@
     {
       groupName: 'docker',
       labels: [
+        'dependencies',
         'docker',
       ],
       matchCategories: [
@@ -283,6 +291,7 @@
     {
       groupName: 'terraform',
       labels: [
+        'dependencies',
         'terraform',
       ],
       matchCategories: [
