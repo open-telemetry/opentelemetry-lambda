@@ -16,6 +16,7 @@ package collector
 
 import (
 	"context"
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -98,6 +99,69 @@ func TestCollectorLogLevelDoesNotSuppressExtensionLogs(t *testing.T) {
 
 	assert.Len(t, extensionLogs.FilterMessage("extension log").All(), 1,
 		"extension logs should be controlled by the extension logger, not collector config")
+}
+
+func TestCollectorConfigContentStartsCollector(t *testing.T) {
+	yamlContent := `
+receivers:
+  nop:
+exporters:
+  nop:
+service:
+  telemetry:
+    logs:
+      level: info
+  pipelines:
+    traces:
+      receivers: [nop]
+      exporters: [nop]
+`
+	t.Setenv(envCollectorConfigContent, base64.StdEncoding.EncodeToString([]byte(yamlContent)))
+
+	core, logs := observer.New(zapcore.InfoLevel)
+	col := NewCollector(zap.New(core), testFactories(t), "test")
+
+	ctx := context.Background()
+	err := col.Start(ctx)
+	require.NoError(t, err)
+
+	err = col.Stop()
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, logs.FilterMessage("Using inline config from "+envCollectorConfigContent).All())
+}
+
+func TestCollectorConfigURITakesPrecedenceOverContent(t *testing.T) {
+	t.Setenv(envCollectorConfigURI, "file:testdata/config-info-level.yaml")
+	t.Setenv(envCollectorConfigContent, base64.StdEncoding.EncodeToString([]byte("irrelevant: true")))
+
+	core, logs := observer.New(zapcore.WarnLevel)
+	col := NewCollector(zap.New(core), testFactories(t), "test")
+
+	ctx := context.Background()
+	err := col.Start(ctx)
+	require.NoError(t, err)
+
+	err = col.Stop()
+	require.NoError(t, err)
+
+	warnLogs := logs.FilterMessageSnippet(envCollectorConfigContent + " are set").All()
+	assert.NotEmpty(t, warnLogs, "expected a warning about both env vars being set")
+}
+
+func TestCollectorConfigContentInvalidBase64FallsBack(t *testing.T) {
+	t.Setenv(envCollectorConfigContent, "not-valid-base64!@#$")
+
+	core, logs := observer.New(zapcore.ErrorLevel)
+	col := NewCollector(zap.New(core), testFactories(t), "test")
+
+	ctx := context.Background()
+	// Collector will fall back to the default path which won't exist — expect start error
+	err := col.Start(ctx)
+	assert.Error(t, err, "expected collector to fail when falling back to missing default config")
+
+	errorLogs := logs.FilterMessageSnippet("Failed to decode").All()
+	assert.NotEmpty(t, errorLogs, "expected an error log about invalid Base64")
 }
 
 func testFactories(t *testing.T) otelcol.Factories {

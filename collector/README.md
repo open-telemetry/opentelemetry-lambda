@@ -176,14 +176,40 @@ from an S3 object using a CloudFormation template:
 
 Loading configuration from S3 will require that the IAM role attached to your function includes read access to the relevant bucket.
 
+### Inline configuration via Base64
+
+You can supply the collector configuration inline as a Base64-encoded string using `OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT`. This is useful when you want to avoid deploying a config file or referencing an external URI:
+
+```
+aws lambda update-function-configuration --function-name Function \
+  --environment Variables={OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT=$(base64 < collector.yaml)}
+```
+
+Or in a CloudFormation template:
+
+```yaml
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      ...
+      Environment:
+        Variables:
+          OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT: <output of `base64 < collector.yaml`>
+```
+
+Use the standard Base64 alphabet (as produced by `base64` on Linux/macOS or `openssl base64`). URL-safe Base64 is not supported.
+
+`OPENTELEMETRY_COLLECTOR_CONFIG_URI` takes precedence if both variables are set.
+
 ## Environment Variables
 
 The following environment variables can be used to configure the OpenTelemetry Collector Lambda extension:
 
-| Variable Name                        | Value                                                                          | Description                                                                                                                                                                                                                                                 |
-| ------------------------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENTELEMETRY_COLLECTOR_CONFIG_URI` | URI (e.g., `/var/task/collector.yaml`, `http://...`, `s3://...`)               | Specifies the location of the OpenTelemetry Collector configuration file. This can be a path within the function's deployment package, an HTTP URI, or an S3 URI. If loading from S3, the function's IAM role needs read access to the specified S3 object. |
-| `OPENTELEMETRY_EXTENSION_LOG_LEVEL`  | `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal` (Default: `info`) | Controls the logging level of the OpenTelemetry Lambda extension itself.                                                                                                                                                                                    |
+| Variable Name                           | Value                                                                          | Description                                                                                                                                                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENTELEMETRY_COLLECTOR_CONFIG_URI`    | URI (e.g., `/var/task/collector.yaml`, `http://...`, `s3://...`)               | Specifies the location of the OpenTelemetry Collector configuration file. This can be a path within the function's deployment package, an HTTP URI, or an S3 URI. If loading from S3, the function's IAM role needs read access to the specified S3 object.    |
+| `OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT`| Base64-encoded YAML                                                            | Supplies the collector configuration inline. The value must be standard Base64-encoded YAML. Ignored if `OPENTELEMETRY_COLLECTOR_CONFIG_URI` is also set (a warning is logged). If decoding fails, an error is logged and the extension falls back to the URI or default path. |
+| `OPENTELEMETRY_EXTENSION_LOG_LEVEL`     | `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal` (Default: `info`) | Controls the logging level of the OpenTelemetry Lambda extension itself.                                                                                                                                                                                       |
 
 ## Auto-Configuration
 

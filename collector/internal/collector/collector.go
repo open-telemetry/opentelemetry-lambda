@@ -16,8 +16,10 @@ package collector
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/secretsmanagerprovider"
@@ -49,23 +51,42 @@ type Collector struct {
 	coreFunc  func(zapcore.LevelEnabler) zapcore.Core
 }
 
+const (
+	envCollectorConfigURI     = "OPENTELEMETRY_COLLECTOR_CONFIG_URI"
+	envCollectorConfigContent = "OPENTELEMETRY_COLLECTOR_CONFIG_CONTENT"
+	envCollectorConfigFile    = "OPENTELEMETRY_COLLECTOR_CONFIG_FILE" // deprecated
+)
+
 func getConfig(logger *zap.Logger) string {
-	val, ex := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_URI")
-	if ex {
+	if val, ex := os.LookupEnv(envCollectorConfigURI); ex {
+		if _, also := os.LookupEnv(envCollectorConfigContent); also {
+			logger.Warn("Both " + envCollectorConfigURI + " and " + envCollectorConfigContent + " are set; using " + envCollectorConfigURI)
+		}
 		logger.Info("Using config URI from environment variable", zap.String("uri", val))
 		return val
 	}
 
+	if raw, ex := os.LookupEnv(envCollectorConfigContent); ex {
+		if trimmed := strings.TrimSpace(raw); trimmed != "" {
+			decoded, err := base64.StdEncoding.DecodeString(trimmed)
+			if err != nil {
+				logger.Error("Failed to decode "+envCollectorConfigContent+" as Base64; ignoring", zap.Error(err))
+			} else {
+				logger.Info("Using inline config from " + envCollectorConfigContent)
+				return "yaml:" + string(decoded)
+			}
+		}
+	}
+
 	// The name of the environment variable was changed
 	// This is the old name, kept for backwards compatibility
-	oldVal, oldEx := os.LookupEnv("OPENTELEMETRY_COLLECTOR_CONFIG_FILE")
-	if oldEx {
+	if oldVal, oldEx := os.LookupEnv(envCollectorConfigFile); oldEx {
 		logger.Info("Using config URI from deprecated environment variable", zap.String("uri", oldVal))
-		logger.Warn("The OPENTELEMETRY_COLLECTOR_CONFIG_FILE environment variable is deprecated. Please use OPENTELEMETRY_COLLECTOR_CONFIG_URI instead.")
+		logger.Warn("The " + envCollectorConfigFile + " environment variable is deprecated. Please use " + envCollectorConfigURI + " instead.")
 		return oldVal
 	}
 
-	// If neither environment variable is set, use the default
+	// If no environment variable is set, use the default
 	defaultVal := "/opt/collector-config/config.yaml"
 	logger.Info("Using default config URI", zap.String("uri", defaultVal))
 	return defaultVal
