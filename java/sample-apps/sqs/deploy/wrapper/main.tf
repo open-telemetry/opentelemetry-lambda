@@ -1,6 +1,6 @@
 module "hello-lambda-function" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "7.2.1"
+  version = "7.21.1"
 
   architectures = compact([var.architecture])
   function_name = var.name
