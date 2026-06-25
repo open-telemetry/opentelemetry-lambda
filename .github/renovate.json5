@@ -95,6 +95,9 @@
       matchCategories: [
         'golang',
       ],
+      postUpdateOptions: [
+		'gomodTidy',
+	  ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -111,6 +114,9 @@
       matchCategories: [
         'golang',
       ],
+      postUpdateOptions: [
+		'gomodTidy',
+	  ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -319,8 +325,8 @@
     ],
   },
   postUpdateOptions: [
-		"gomodTidy"
-	],
+	'gomodTidy',
+  ],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
   semanticCommitScope: 'deps',
