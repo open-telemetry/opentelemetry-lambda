@@ -18,6 +18,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
@@ -44,9 +45,10 @@ func main() {
 	}
 
 	logger := logging.NewLogger()
+	startTime := time.Now()
 	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
-	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version)
+	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version, startTime)
 
 	// Set the new lifecycle manager as the lifecycle notifier for all other components.
 	lambdalifecycle.SetNotifier(lm)

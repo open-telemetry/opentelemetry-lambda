@@ -24,14 +24,100 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
+
+const startupCompleteMsg = "OpenTelemetry Lambda extension startup complete"
+
+func TestRunLogsStartupDuration(t *testing.T) {
+	shutdownServer := func(t *testing.T) *httptest.Server {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+			_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
+			require.NoError(t, err)
+			_, err = io.ReadAll(r.Body)
+			require.NoError(t, err, "failed to read request body: %v", err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+	extensionEventTypes := []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}
+
+	t.Run("emits a single startup-complete log with a startup_duration field", func(t *testing.T) {
+		core, logs := observer.New(zap.InfoLevel)
+		logger := zap.New(core)
+
+		server := shutdownServer(t)
+		u, err := url.Parse(server.URL)
+		require.NoError(t, err)
+
+		lm := manager{
+			collector:       &MockCollector{},
+			logger:          logger,
+			listener:        telemetryapi.NewListener(logger),
+			extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
+			startTime:       time.Now(),
+		}
+		require.NoError(t, lm.Run(context.Background()))
+
+		entries := logs.FilterMessage(startupCompleteMsg).All()
+		require.Len(t, entries, 1, "expected exactly one startup-complete log")
+		field, ok := entries[0].ContextMap()["startup_duration"]
+		require.True(t, ok, "startup-complete log must carry a startup_duration field")
+		duration, ok := field.(time.Duration)
+		require.True(t, ok, "startup_duration must be a duration field")
+		assert.GreaterOrEqual(t, duration, time.Duration(0), "startup_duration must be non-negative")
+	})
+
+	t.Run("zero-value start time produces a valid duration without panicking", func(t *testing.T) {
+		core, logs := observer.New(zap.InfoLevel)
+		logger := zap.New(core)
+
+		server := shutdownServer(t)
+		u, err := url.Parse(server.URL)
+		require.NoError(t, err)
+
+		lm := manager{
+			collector:       &MockCollector{},
+			logger:          logger,
+			listener:        telemetryapi.NewListener(logger),
+			extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
+			// startTime intentionally left as the zero value.
+		}
+		require.NotPanics(t, func() {
+			require.NoError(t, lm.Run(context.Background()))
+		})
+
+		entries := logs.FilterMessage(startupCompleteMsg).All()
+		require.Len(t, entries, 1)
+		duration, ok := entries[0].ContextMap()["startup_duration"].(time.Duration)
+		require.True(t, ok)
+		assert.GreaterOrEqual(t, duration, time.Duration(0))
+	})
+
+	t.Run("does not emit startup-complete log when collector start fails", func(t *testing.T) {
+		core, logs := observer.New(zap.InfoLevel)
+		logger := zap.New(core)
+
+		lm := manager{
+			collector:       &MockCollector{err: fmt.Errorf("test start error")},
+			logger:          logger,
+			extensionClient: extensionapi.NewClient(logger, "", extensionEventTypes),
+			startTime:       time.Now(),
+		}
+		require.Error(t, lm.Run(context.Background()))
+		assert.Equal(t, 0, logs.FilterMessage(startupCompleteMsg).Len(), "no startup-complete log on failure")
+	})
+}
 
 type MockCollector struct {
 	err error
