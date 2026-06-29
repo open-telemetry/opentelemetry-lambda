@@ -95,6 +95,9 @@
       matchCategories: [
         'golang',
       ],
+      postUpdateOptions: [
+		'gomodTidy',
+	  ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -111,6 +114,9 @@
       matchCategories: [
         'golang',
       ],
+      postUpdateOptions: [
+		'gomodTidy',
+	  ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -141,6 +147,18 @@
       schedule: [
         'before 8am on Monday'
       ],
+    },
+    {
+      matchPackageNames: [
+        'io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha',
+        'io.opentelemetry.contrib:opentelemetry-aws-resources',
+      ],
+      // Renovate's default behavior is only to update from unstable -> unstable if it's for the
+      // major.minor.patch, under the assumption that you would want to update to the stable version
+      // of that release instead of the unstable version for a future release (but there's never any
+      // stable version of opentelemetry-instrumentation-bom-alpha so this logic doesn't apply
+      ignoreUnstable: false,
+      allowedVersions: '!/\\-SNAPSHOT$/'
     },
     {
       groupName: 'java-other',
@@ -319,8 +337,8 @@
     ],
   },
   postUpdateOptions: [
-		"gomodTidy"
-	],
+	'gomodTidy',
+  ],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
   semanticCommitScope: 'deps',
