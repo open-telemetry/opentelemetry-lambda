@@ -36,7 +36,7 @@
   ],
   "devDependencies": {
     "@aws-sdk/client-sts": "^3.1058.0",
-    "@types/node": "25.9.1",
+    "@types/node": "26.0.1",
     "aws-cdk-lib": "^2.253.0",
     "bestzip": "3.0.1",
     "copyfiles": "2.4.1",
