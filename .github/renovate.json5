@@ -152,6 +152,7 @@
       matchPackageNames: [
         'io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha',
         'io.opentelemetry.contrib:opentelemetry-aws-resources',
+        'opentelemetry-*',
       ],
       // Renovate's default behavior is only to update from unstable -> unstable if it's for the
       // major.minor.patch, under the assumption that you would want to update to the stable version
