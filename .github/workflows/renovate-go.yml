@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add semantic_conventions/
+          git add collector/
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
