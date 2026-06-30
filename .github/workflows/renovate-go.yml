@@ -1,4 +1,4 @@
-name: Renovate Go Post-Update
+name: Renovate Post-Update Tasks
 
 on:
   pull_request:
