@@ -2,7 +2,7 @@ plugins {
     `java-library`
 }
 
-val agentClasspath by configurations.creating {
+val agentClasspath = configurations.create("agentClasspath") {
     extendsFrom(configurations["implementation"])
     isCanBeConsumed = false
     isCanBeResolved = true
@@ -17,7 +17,7 @@ dependencies {
 }
 
 tasks {
-    val createLayer by registering(Zip::class) {
+    val createLayer = register<Zip>("createLayer") {
         archiveFileName.set("opentelemetry-javaagent-layer.zip")
         destinationDirectory.set(file("$buildDir/distributions"))
 
