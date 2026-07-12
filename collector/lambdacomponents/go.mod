@@ -264,7 +264,7 @@ require (
 //        cloud.google.com/go
 //        cloud.google.com/go/compute
 // Force cloud.google.com/go to be at least v0.107.0, so that the metadata is not present.
-replace cloud.google.com/go => cloud.google.com/go v0.107.0
+replace cloud.google.com/go => cloud.google.com/go v0.123.0
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../
 
