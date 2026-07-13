@@ -22,9 +22,14 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/zap"
 )
+
+// TODO: faas.execution was renamed to faas.invocation_id in semconv v1.17.0.
+// Node.js instrumentation still emits the old name, so we accept both for now.
+// Remove this fallback once the JS layer migrates to faas.invocation_id.
+const attributeFaaSExecutionDeprecated = "faas.execution"
 
 type faasExecution struct {
 	span     ptrace.Span
@@ -52,7 +57,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 				if p.reported {
 					return false
 				}
-				if attr, ok := span.Attributes().Get(semconv.AttributeFaaSColdstart); ok && attr.Bool() {
+				if attr, ok := span.Attributes().Get(string(semconv.FaaSColdstartKey)); ok && attr.Bool() {
 					if p.faasExecution == nil {
 						sp := ptrace.NewSpan()
 						p.coldstartSpan = &sp
@@ -67,7 +72,11 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 						return false
 					}
 				}
-				if _, ok := span.Attributes().Get(semconv.AttributeFaaSExecution); ok {
+				_, hasInvocationID := span.Attributes().Get(string(semconv.FaaSInvocationIDKey))
+				if !hasInvocationID {
+					_, hasInvocationID = span.Attributes().Get(attributeFaaSExecutionDeprecated)
+				}
+				if hasInvocationID {
 					if p.coldstartSpan == nil {
 						p.faasExecution = &faasExecution{
 							span:     ptrace.NewSpan(),
