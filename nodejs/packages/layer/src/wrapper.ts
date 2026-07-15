@@ -476,12 +476,18 @@ async function initializeLoggerProvider(
 
   loggerConfig.processors = loggerConfig.processors || [];
   if (loggerConfig.processors.length === 0) {
-    loggerConfig.processors.push(new BatchLogRecordProcessor(logExporter));
+    loggerConfig.processors.push(
+      new BatchLogRecordProcessor({
+        exporter: logExporter,
+      }),
+    );
   }
   // Logging for debug
   if (logLevel === DiagLogLevel.DEBUG) {
     loggerConfig.processors.push(
-      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
+      new SimpleLogRecordProcessor({
+        exporter: new ConsoleLogRecordExporter()
+      }),
     );
   }
 
