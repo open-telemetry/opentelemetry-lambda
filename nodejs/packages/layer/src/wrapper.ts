@@ -80,7 +80,7 @@ declare global {
 
   // No explicit logger type here, but "unknown" type.
   // Because logger packages are important dynamically.
-  function configureLogger(defaultConfig: LoggerConfig): LoggerConfig;
+  function configureLogger(defaultConfig: unknown): unknown;
   // No explicit log type here, but "unknown" type.
   // Because log packages are important dynamically.
   /**
