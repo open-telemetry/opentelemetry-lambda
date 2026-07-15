@@ -486,7 +486,7 @@ async function initializeLoggerProvider(
   if (logLevel === DiagLogLevel.DEBUG) {
     loggerConfig.processors.push(
       new SimpleLogRecordProcessor({
-        exporter: new ConsoleLogRecordExporter()
+        exporter: new ConsoleLogRecordExporter(),
       }),
     );
   }
