@@ -80,7 +80,7 @@ declare global {
 
   // No explicit logger type here, but "unknown" type.
   // Because logger packages are important dynamically.
-  function configureLogger(defaultConfig: unknown): unknown;
+  function configureLogger(defaultConfig: LoggerConfig): LoggerConfig;
   // No explicit log type here, but "unknown" type.
   // Because log packages are important dynamically.
   /**
@@ -471,7 +471,13 @@ async function initializeLoggerProvider(
     processors: [],
   };
   if (typeof configureLogger === 'function') {
-    loggerConfig = configureLogger(loggerConfig);
+    const updated = configureLogger(loggerConfig);
+
+    loggerConfig = {
+      ...loggerConfig,
+      ...updated,
+      resource: updated.resource ?? loggerConfig.resource,
+    };
   }
 
   loggerConfig.processors = loggerConfig.processors || [];
