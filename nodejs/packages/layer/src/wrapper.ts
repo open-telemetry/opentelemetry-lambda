@@ -80,13 +80,18 @@ declare global {
 
   // No explicit logger type here, but "unknown" type.
   // Because logger packages are important dynamically.
-  function configureLogger(defaultConfig: unknown): unknown;
+  function configureLogger(defaultConfig: LoggerConfig): LoggerConfig;
   // No explicit log type here, but "unknown" type.
   // Because log packages are important dynamically.
   /**
    * @deprecated please use {@link configureLogger} instead.
    */
   function configureLoggerProvider(loggerProvider: unknown): void;
+}
+
+interface LoggerConfig {
+  resource: Resource;
+  processors: unknown[];
 }
 
 function getActiveInstrumentations(): Set<string> {
