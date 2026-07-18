@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.3" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.8.1" />
-    <PackageReference Include="AWSSDK.S3" Version="4.0.25.3" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.101.3" />
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="2.2.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AWS" Version="1.16.0" />
