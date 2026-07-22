@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
@@ -53,9 +54,10 @@ type manager struct {
 	wg                 sync.WaitGroup
 	lifecycleListeners []lambdalifecycle.Listener
 	initType           lambdalifecycle.InitType
+	startTime          time.Time
 }
 
-func NewManager(ctx context.Context, logger *zap.Logger, version string) (context.Context, *manager) {
+func NewManager(ctx context.Context, logger *zap.Logger, version string, startTime time.Time) (context.Context, *manager) {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sigs := make(chan os.Signal, 1)
@@ -102,6 +104,7 @@ func NewManager(ctx context.Context, logger *zap.Logger, version string) (contex
 		extensionClient: extensionClient,
 		listener:        listener,
 		initType:        initType,
+		startTime:       startTime,
 	}
 
 	factories, _ := lambdacomponents.Components(res.ExtensionID)
@@ -118,6 +121,8 @@ func (lm *manager) Run(ctx context.Context) error {
 		}
 		return err
 	}
+
+	lm.logger.Info("OpenTelemetry Lambda extension startup complete", zap.Duration("startup_duration", time.Since(lm.startTime)))
 
 	lm.wg.Add(1)
 	go func() {
