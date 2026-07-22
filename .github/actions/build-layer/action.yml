@@ -5,6 +5,10 @@ inputs:
   language:
     description: 'Language of the layer to build (nodejs, python, ruby, javaagent, javawrapper)'
     required: true
+  architecture:
+    description: 'Target architecture (amd64 or arm64). Only used for ruby.'
+    required: false
+    default: amd64
 
 outputs:
   artifact-path:
@@ -28,6 +32,8 @@ runs:
     - if: ${{ inputs.language == 'ruby' }}
       id: ruby
       uses: ./.github/actions/build-ruby-layer
+      with:
+        architecture: ${{ inputs.architecture }}
 
     - if: ${{ inputs.language == 'javaagent' || inputs.language == 'javawrapper' }}
       id: java
