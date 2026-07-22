@@ -169,11 +169,12 @@ func TestRun(t *testing.T) {
 		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
 	}
 	lm.wg.Add(1)
+	runErr := make(chan error, 1)
 	go func() {
-		require.NoError(t, lm.Run(ctx))
+		runErr <- lm.Run(ctx)
 	}()
 	lm.wg.Done()
-
+	assert.NoError(t, <-runErr)
 }
 
 func TestProcessEvents(t *testing.T) {
