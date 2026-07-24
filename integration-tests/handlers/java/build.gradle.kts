@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.gradleup.shadow") version "9.5.1"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 repositories {
@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    implementation(platform("software.amazon.awssdk:bom:2.47.5"))
+    implementation(platform("software.amazon.awssdk:bom:2.49.2"))
     implementation("software.amazon.awssdk:sts")
     implementation("com.amazonaws:aws-lambda-java-core:1.4.0")
     implementation("com.amazonaws:aws-lambda-java-events:3.16.1")
