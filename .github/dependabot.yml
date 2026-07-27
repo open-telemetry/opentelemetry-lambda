@@ -2,16 +2,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directories:
-      - "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      actions:
-        patterns:
-          - "*"
-
   - package-ecosystem: "gomod"
     directories:
       - "/collector"
@@ -36,7 +26,7 @@ updates:
     directories:
       - "/java"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       opentelemetry-deps-java:
         patterns:
@@ -51,7 +41,7 @@ updates:
       - "/nodejs/packages/layer"
       - "/nodejs/sample-apps/aws-sdk"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       opentelemetry-deps-nodejs:
         patterns:
@@ -67,7 +57,7 @@ updates:
       - "/python/src/otel/otel_sdk"
       - "/python/src/otel/tests"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       opentelemetry-deps-python:
         patterns:
@@ -81,7 +71,7 @@ updates:
       - "/ruby/src/otel/layer"
       - "/ruby/sample-apps/function"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       opentelemetry-deps-ruby:
         patterns:
