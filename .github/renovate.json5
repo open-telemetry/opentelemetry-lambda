@@ -25,62 +25,13 @@
   ],
   packageRules: [
     {
-      labels: [
-        'dependencies',
-        'go',
-      ],
       semanticCommitType: 'build',
       matchCategories: [
+        'dotnet',
         'golang',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'dotnet'
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'dotnet'
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
         'java',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'java',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'javascript',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
         'js',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
         'python',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'python',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'ruby',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
         'ruby',
       ],
     },
@@ -302,10 +253,6 @@
     },
     {
       groupName: 'docker',
-      labels: [
-        'dependencies',
-        'docker',
-      ],
       matchCategories: [
         'docker',
       ],
@@ -316,10 +263,6 @@
     },
     {
       groupName: 'terraform',
-      labels: [
-        'dependencies',
-        'terraform',
-      ],
       matchCategories: [
         'terraform',
       ],
