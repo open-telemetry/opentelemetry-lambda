@@ -189,27 +189,13 @@
       ],
     },
     {
-      groupName: 'docker',
-      labels: [
-        'dependencies',
-        'docker',
-      ],
+      groupName: '{{categories}}',
       matchCategories: [
         'docker',
-      ],
-      semanticCommitType: 'build',
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'terraform',
-      labels: [
-        'dependencies',
         'terraform',
       ],
-      matchCategories: [
-        'terraform',
+      matchUpdateTypes: [
+        '!lockFileMaintenance',
       ],
       semanticCommitType: 'build',
       schedule: [
