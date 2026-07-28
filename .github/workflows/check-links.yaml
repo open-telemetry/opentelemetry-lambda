@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/check-links.yaml"
+      - ".github/lychee.toml"
       - "**/*.md"
 
 concurrency:
@@ -31,7 +32,7 @@ jobs:
         run: |
           files=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | xargs)
 
-          if [ -z "$files" ] && git diff --name-only $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep -q ".github/workflows/check-links.yaml"; then
+          if [ -z "$files" ] then
             files="**/*.md"
           fi
 
