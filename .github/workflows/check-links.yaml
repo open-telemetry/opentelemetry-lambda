@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+    paths:
+      - ".github/workflows/check-links.yaml"
+      - ".github/lychee.toml"
+      - "**/*.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -28,7 +32,7 @@ jobs:
         run: |
           files=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | xargs)
 
-          if [ -z "$files" ] && git diff --name-only $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep -q "package.json"; then
+          if [ -z "$files" ]; then
             files="**/*.md"
           fi
 
