@@ -345,6 +345,8 @@
         'golang',
       ],
       enabled: true,
+      separateMajorMinor: false,
+      separateMultipleMajor: false,
       schedule: [
         'before 8am on Wednesday',
       ],
