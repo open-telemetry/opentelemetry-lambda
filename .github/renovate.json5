@@ -337,6 +337,20 @@
       ],
       "dependencyDashboardApproval": true,
     },
+    {
+      groupName: "Lock file maintenance golang",
+      matchDepTypes: ["indirect"],
+      matchCategories: [
+        'golang',
+      ],
+      enabled: true,
+      schedule: [
+        'before 8am on Wednesday',
+      ],
+      postUpdateOptions: [
+        'gomodTidy',
+      ],
+    }
   ],
   lockFileMaintenance: {
     enabled: true,
