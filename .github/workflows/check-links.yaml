@@ -32,7 +32,7 @@ jobs:
         run: |
           files=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | xargs)
 
-          if [ -z "$files" ] then
+          if [ -z "$files" ]; then
             files="**/*.md"
           fi
 
