@@ -103,8 +103,8 @@
         'golang',
       ],
       postUpdateOptions: [
-		'gomodTidy',
-	  ],
+        'gomodTidy',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -122,8 +122,8 @@
         'golang',
       ],
       postUpdateOptions: [
-		'gomodTidy',
-	  ],
+        'gomodTidy',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -284,6 +284,7 @@
       matchManagers: [
         'github-actions',
       ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday',
       ],
@@ -340,12 +341,13 @@
   ],
   lockFileMaintenance: {
     enabled: true,
+    commitMessageAction: "Lock file maintenance {{categories}}",
     schedule: [
       'before 8am on Wednesday',
     ],
   },
   postUpdateOptions: [
-	'gomodTidy',
+    'gomodTidy',
   ],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
