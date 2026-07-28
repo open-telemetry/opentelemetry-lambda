@@ -36,16 +36,6 @@
       ],
     },
     {
-      labels: [
-        'dependencies',
-        'github_actions',
-      ],
-      semanticCommitType: 'build',
-      matchManagers: [
-        'github-actions',
-      ],
-    },
-    {
       groupName: 'collector-other',
       matchUpdateTypes: [
         '!major'
@@ -235,6 +225,11 @@
       matchManagers: [
         'github-actions',
       ],
+      semanticCommitType: 'build',
+      labels: [
+        'dependencies',
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -247,6 +242,10 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
+      labels: [
+        'dependencies',
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
