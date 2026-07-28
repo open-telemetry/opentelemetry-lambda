@@ -126,7 +126,8 @@
     {
       groupName: '{{categories}}-other',
       matchUpdateTypes: [
-        '!major'
+        '!major',
+        '!lockFileMaintenance',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -136,7 +137,8 @@
     {
       groupName: 'opentelemetry-deps-{{categories}}',
       matchUpdateTypes: [
-        '!major'
+        '!major',
+        '!lockFileMaintenance',
       ],
       matchDepNames: [
         '@opentelemetry/**',
@@ -226,6 +228,7 @@
   ],
   lockFileMaintenance: {
     enabled: true,
+    branchTopic: 'lock-file-maintenance-{{categories}}',
     schedule: [
       'before 8am on Wednesday',
     ],
