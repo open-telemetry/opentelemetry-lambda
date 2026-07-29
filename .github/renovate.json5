@@ -226,8 +226,7 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
-      labels: [
-        'dependencies',
+      addLabels: [
         'github_actions',
       ],
       schedule: [
@@ -242,8 +241,7 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
-      labels: [
-        'dependencies',
+      addLabels: [
         'github_actions',
       ],
       schedule: [
