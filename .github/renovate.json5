@@ -340,7 +340,7 @@
     },
     {
       groupName: "Lock file maintenance golang",
-      matchDepTypes: ["indirect"],
+      matchDepTypes: ["indirect", "replace"],
       matchCategories: [
         'golang',
       ],
