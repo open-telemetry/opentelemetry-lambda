@@ -25,73 +25,14 @@
   ],
   packageRules: [
     {
-      labels: [
-        'dependencies',
-        'go',
-      ],
       semanticCommitType: 'build',
       matchCategories: [
+        'dotnet',
         'golang',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'dotnet'
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'dotnet'
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
         'java',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'java',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'javascript',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
         'js',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
         'python',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'python',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
         'ruby',
-      ],
-      semanticCommitType: 'build',
-      matchCategories: [
-        'ruby',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'github_actions',
-      ],
-      semanticCommitType: 'build',
-      matchManagers: [
-        'github-actions',
       ],
     },
     {
@@ -285,6 +226,9 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -297,16 +241,15 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
     },
     {
       groupName: 'docker',
-      labels: [
-        'dependencies',
-        'docker',
-      ],
       matchCategories: [
         'docker',
       ],
@@ -317,10 +260,6 @@
     },
     {
       groupName: 'terraform',
-      labels: [
-        'dependencies',
-        'terraform',
-      ],
       matchCategories: [
         'terraform',
       ],
