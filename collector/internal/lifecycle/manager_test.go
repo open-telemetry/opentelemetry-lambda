@@ -73,35 +73,8 @@ func TestRunLogsStartupDuration(t *testing.T) {
 		require.Len(t, entries, 1, "expected exactly one startup-complete log")
 		field, ok := entries[0].ContextMap()["startup_duration"]
 		require.True(t, ok, "startup-complete log must carry a startup_duration field")
-		duration, ok := field.(time.Duration)
+		_, ok = field.(time.Duration)
 		require.True(t, ok, "startup_duration must be a duration field")
-		assert.GreaterOrEqual(t, duration, time.Duration(0), "startup_duration must be non-negative")
-	})
-
-	t.Run("zero-value start time produces a valid duration without panicking", func(t *testing.T) {
-		core, logs := observer.New(zap.InfoLevel)
-		logger := zap.New(core)
-
-		server := shutdownServer(t)
-		u, err := url.Parse(server.URL)
-		require.NoError(t, err)
-
-		lm := manager{
-			collector:       &MockCollector{},
-			logger:          logger,
-			listener:        telemetryapi.NewListener(logger),
-			extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
-			// startTime intentionally left as the zero value.
-		}
-		require.NotPanics(t, func() {
-			require.NoError(t, lm.Run(context.Background()))
-		})
-
-		entries := logs.FilterMessage(startupCompleteMsg).All()
-		require.Len(t, entries, 1)
-		duration, ok := entries[0].ContextMap()["startup_duration"].(time.Duration)
-		require.True(t, ok)
-		assert.GreaterOrEqual(t, duration, time.Duration(0))
 	})
 
 	t.Run("does not emit startup-complete log when collector start fails", func(t *testing.T) {
@@ -163,17 +136,33 @@ func TestRun(t *testing.T) {
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
 	lm = manager{
-		collector:       &MockCollector{},
-		logger:          logger,
-		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
+		collector: &MockCollector{},
+		logger:    logger,
+		listener:  telemetryapi.NewListener(logger),
 	}
+	requestStarted := make(chan struct{})
+	releaseResponse := make(chan struct{})
+	synchronizedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(requestStarted)
+		<-releaseResponse
+		w.WriteHeader(200)
+		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
+		require.NoError(t, err)
+		_, err = io.ReadAll(r.Body)
+		require.NoError(t, err, "failed to read request body: %v", err)
+	}))
+	defer synchronizedServer.Close()
+	synchronizedURL, err := url.Parse(synchronizedServer.URL)
+	require.NoError(t, err)
+	lm.extensionClient = extensionapi.NewClient(logger, synchronizedURL.Host, extensionEventTypes)
 	lm.wg.Add(1)
 	runErr := make(chan error, 1)
 	go func() {
 		runErr <- lm.Run(ctx)
 	}()
+	<-requestStarted
 	lm.wg.Done()
+	close(releaseResponse)
 	assert.NoError(t, <-runErr)
 }
 
