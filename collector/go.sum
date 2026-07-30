@@ -398,8 +398,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceproc
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourceprocessor v0.157.0/go.mod h1:cPxgDMlPPudhjnyVTg7xU6DwA7464hcLN2duzhriHFU=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.157.0 h1:ppT4R+dRl8EPuNFnCsHVcsWnqtgpW5S/qK3/A+RlFK0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.157.0/go.mod h1:tfsfIbNm8OmtpOqmK2v2y/OlKSZAbQj1qZhrpD450yY=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.156.0 h1:PemclN+hp3CHgyRXPLRn/olUM18BeSnlXM7Ve2wDq14=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.156.0/go.mod h1:r/Vw3bhK6mN0ndTUl2PAAVe0H7guJ70q4ytflj5CEpY=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.157.0 h1:t+LSRJWumgjzw0eq93ASQgZqCYW22QjxFSR6xBlnr30=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.157.0/go.mod h1:RkKB14MfCoVJI7aGLePPWq/eiYX2c2rJh5XdoGgDbjg=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
