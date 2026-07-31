@@ -272,13 +272,22 @@
       matchUpdateTypes: [
         'major'
       ],
-      matchDepTypes: [
-        '!require',
-      ],
       matchManagers: [
         '!github-actions',
       ],
-      "dependencyDashboardApproval": true,
+      dependencyDashboardApproval: true,
+    },
+    {
+      matchManagers: [
+        "gomod"
+      ],
+      matchUpdateTypes: [
+        "major"
+      ],
+      dependencyDashboardApproval: false,
+      prBodyNotes: [
+        ":warning: MAJOR VERSION UPDATE :warning: - if diff is empty, revert last commit, manually update the imports within this project to the new version and re-run go mod tidy."
+      ],
     },
     {
       groupName: "Lock file maintenance golang",
