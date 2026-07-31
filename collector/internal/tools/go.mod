@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 go 1.26.1
 
 require (
-	github.com/golangci/golangci-lint v1.64.8
+	github.com/golangci/golangci-lint/v2 v2.12.2
 	github.com/google/addlicense v1.2.0
 	github.com/jcchavezs/porto v0.7.0
 	github.com/pavius/impi v0.0.3
