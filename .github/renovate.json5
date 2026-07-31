@@ -25,69 +25,6 @@
   ],
   packageRules: [
     {
-      labels: [
-        'dependencies',
-        'go',
-      ],
-      matchCategories: [
-        'golang',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'dotnet'
-      ],
-      matchCategories: [
-        'dotnet'
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'java',
-      ],
-      matchCategories: [
-        'java',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'javascript',
-      ],
-      matchCategories: [
-        'js',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'python',
-      ],
-      matchCategories: [
-        'python',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'ruby',
-      ],
-      matchCategories: [
-        'ruby',
-      ],
-    },
-    {
-      labels: [
-        'dependencies',
-        'github_actions',
-      ],
-      matchManagers: [
-        'github-actions',
-      ],
-    },
-    {
       groupName: 'collector-other',
       matchUpdateTypes: [
         '!major'
@@ -173,6 +110,9 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -185,6 +125,9 @@
         'github-actions',
       ],
       semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
       schedule: [
         'before 8am on Monday',
       ],
@@ -207,6 +150,9 @@
       matchUpdateTypes: [
         'major'
       ],
+      matchDepTypes: [
+        '!require',
+      ],
       matchManagers: [
         '!github-actions',
       ],
@@ -214,11 +160,13 @@
     },
     {
       groupName: "Lock file maintenance golang",
-      matchDepTypes: ["indirect"],
+      matchDepTypes: ["indirect", "replace"],
       matchCategories: [
         'golang',
       ],
       enabled: true,
+      separateMajorMinor: false,
+      separateMultipleMajor: false,
       schedule: [
         'before 8am on Wednesday',
       ],
