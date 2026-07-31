@@ -25,17 +25,6 @@
   ],
   packageRules: [
     {
-      semanticCommitType: 'build',
-      matchCategories: [
-        'dotnet',
-        'golang',
-        'java',
-        'js',
-        'python',
-        'ruby',
-      ],
-    },
-    {
       groupName: 'collector-other',
       matchUpdateTypes: [
         '!major'
@@ -46,6 +35,7 @@
       postUpdateOptions: [
         'gomodTidy',
       ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday',
       ],
@@ -65,36 +55,38 @@
       postUpdateOptions: [
         'gomodTidy',
       ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday',
       ],
     },
     {
-      groupName: 'dotnet-other',
+      groupName: '{{categories}}-other',
       matchUpdateTypes: [
-        '!major'
+        '!major',
+        '!lockFileMaintenance',
       ],
-      matchCategories: [
-        'dotnet'
-      ],
+      semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday'
       ],
     },
     {
-      groupName: 'opentelemetry-deps-dotnet',
+      groupName: 'opentelemetry-deps-{{categories}}',
       matchUpdateTypes: [
-        '!major'
+        '!major',
+        '!lockFileMaintenance',
       ],
       matchDepNames: [
-        'OpenTelemetry.**'
-      ],
-      matchCategories: [
-        'dotnet'
+        '@opentelemetry/**',
+        'io.opentelemetry.**',
+        'OpenTelemetry.**',
+        'opentelemetry-**',
       ],
       schedule: [
         'before 8am on Monday'
       ],
+      semanticCommitType: 'build',
     },
     {
       matchPackageNames: [
@@ -108,114 +100,6 @@
       // stable version of opentelemetry-instrumentation-bom-alpha so this logic doesn't apply
       ignoreUnstable: false,
       allowedVersions: '!/\\-SNAPSHOT$/'
-    },
-    {
-      groupName: 'java-other',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchCategories: [
-        'java',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'opentelemetry-deps-java',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchDepNames: [
-        'io.opentelemetry.**',
-      ],
-      matchCategories: [
-        'java',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'nodejs-other',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchCategories: [
-        'js',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'opentelemetry-deps-nodejs',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchDepNames: [
-        '@opentelemetry/**',
-      ],
-      matchCategories: [
-        'js',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'python-other',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchCategories: [
-        'python',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'opentelemetry-deps-python',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchDepNames: [
-        'opentelemetry-**',
-      ],
-      matchCategories: [
-        'python',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'ruby-other',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchCategories: [
-        'ruby',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'opentelemetry-deps-ruby',
-      matchUpdateTypes: [
-        '!major'
-      ],
-      matchDepNames: [
-        'opentelemetry-**',
-      ],
-      matchCategories: [
-        'ruby',
-      ],
-      schedule: [
-        'before 8am on Monday',
-      ],
     },
     {
       groupName: 'actions',
@@ -249,19 +133,13 @@
       ],
     },
     {
-      groupName: 'docker',
+      groupName: '{{categories}}',
       matchCategories: [
         'docker',
-      ],
-      semanticCommitType: 'build',
-      schedule: [
-        'before 8am on Monday',
-      ],
-    },
-    {
-      groupName: 'terraform',
-      matchCategories: [
         'terraform',
+      ],
+      matchUpdateTypes: [
+        '!lockFileMaintenance',
       ],
       semanticCommitType: 'build',
       schedule: [
