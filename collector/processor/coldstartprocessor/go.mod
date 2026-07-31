@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/cespare/xxhash v1.1.0
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.63.0
 	go.opentelemetry.io/collector/consumer v1.63.0
@@ -18,7 +19,6 @@ require (
 )
 
 require (
-	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
