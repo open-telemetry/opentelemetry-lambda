@@ -43,9 +43,9 @@ func TestRunLogsStartupDuration(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			_, err = io.ReadAll(r.Body)
-			require.NoError(t, err, "failed to read request body: %v", err)
+			assert.NoError(t, err, "failed to read request body: %v", err)
 		}))
 		t.Cleanup(server.Close)
 		return server
@@ -73,8 +73,15 @@ func TestRunLogsStartupDuration(t *testing.T) {
 		require.Len(t, entries, 1, "expected exactly one startup-complete log")
 		field, ok := entries[0].ContextMap()["startup_duration"]
 		require.True(t, ok, "startup-complete log must carry a startup_duration field")
-		_, ok = field.(time.Duration)
+		d, ok := field.(time.Duration)
 		require.True(t, ok, "startup_duration must be a duration field")
+		// startTime is time.Now() just above, so a correct duration is small and
+		// positive. Asserting only the type cannot fail: zap.Duration always
+		// yields a Duration, and time.Since(time.Time{}) clamps to the max
+		// duration rather than erroring, so the bound is what catches an unset
+		// startTime.
+		require.GreaterOrEqual(t, d, time.Duration(0), "startup_duration must not be negative")
+		require.Less(t, d, time.Minute, "startup_duration must be real elapsed time, not time.Since(zero)")
 	})
 
 	t.Run("does not emit startup-complete log when collector start fails", func(t *testing.T) {
@@ -110,9 +117,9 @@ func TestRun(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		_, err = io.ReadAll(r.Body)
-		require.NoError(t, err, "failed to read request body: %v", err)
+		assert.NoError(t, err, "failed to read request body: %v", err)
 	}))
 	defer server.Close()
 	u, err := url.Parse(server.URL)
@@ -147,9 +154,9 @@ func TestRun(t *testing.T) {
 		<-releaseResponse
 		w.WriteHeader(200)
 		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		_, err = io.ReadAll(r.Body)
-		require.NoError(t, err, "failed to read request body: %v", err)
+		assert.NoError(t, err, "failed to read request body: %v", err)
 	}))
 	defer synchronizedServer.Close()
 	synchronizedURL, err := url.Parse(synchronizedServer.URL)
@@ -210,9 +217,9 @@ func TestProcessEvents(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
 				_, err := w.Write([]byte(tc.serverResponse))
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				_, err = io.ReadAll(r.Body)
-				require.NoError(t, err, "failed to read request body: %v", err)
+				assert.NoError(t, err, "failed to read request body: %v", err)
 			}))
 			defer server.Close()
 			u, err := url.Parse(server.URL)
