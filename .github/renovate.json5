@@ -66,6 +66,9 @@
         '!major',
         '!lockFileMaintenance',
       ],
+      matchCategories: [
+        '!golang',
+      ],
       semanticCommitType: 'build',
       schedule: [
         'before 8am on Monday'
@@ -76,6 +79,9 @@
       matchUpdateTypes: [
         '!major',
         '!lockFileMaintenance',
+      ],
+      matchCategories: [
+        '!golang',
       ],
       matchDepNames: [
         '@opentelemetry/**',

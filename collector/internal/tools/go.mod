@@ -21,6 +21,7 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.4.0 // indirect
 	4d63.com/gochecknoglobals v0.2.2 // indirect
 	dario.cat/mergo v1.0.2 // indirect
+	dev.gaijin.team/go/exhaustruct/v5 v5.0.2 //indirect
 	github.com/4meepo/tagalign v1.4.3 // indirect
 	github.com/Abirdcfly/dupword v0.1.8 // indirect
 	github.com/Antonboom/errname v1.1.2 // indirect
@@ -29,7 +30,6 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/Crocmagnon/fatcontext v0.10.0 // indirect
 	github.com/Djarvur/go-err113 v0.1.1 // indirect
-	github.com/GaijinEntertainment/go-exhaustruct/v5 v5.0.2 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
