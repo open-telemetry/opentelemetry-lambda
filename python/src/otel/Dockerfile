@@ -1,4 +1,4 @@
-FROM public.ecr.aws/sam/build-python3.14:latest@sha256:784b06dbc173e9e2c4ebf09890f951cb67419229c9247eb4c58e0e5afe582872
+FROM public.ecr.aws/sam/build-python3.14:latest@sha256:08e8b22da8e66ee265e38d8aadbe3e700eb3d3c58325b7ad12ef4113d1ba7487
 
 ADD . /workspace
 

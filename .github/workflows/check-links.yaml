@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+    paths:
+      - ".github/workflows/check-links.yaml"
+      - ".github/lychee.toml"
+      - "**/*.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -20,7 +24,7 @@ jobs:
       files: ${{ steps.changes.outputs.files }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Get changed files
@@ -28,7 +32,7 @@ jobs:
         run: |
           files=$(git diff --name-only --diff-filter=ACMRTUXB $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep .md$ | xargs)
 
-          if [ -z "$files" ] && git diff --name-only $(git merge-base origin/main $PR_HEAD) $PR_HEAD | grep -q "package.json"; then
+          if [ -z "$files" ]; then
             files="**/*.md"
           fi
 
@@ -39,13 +43,13 @@ jobs:
     if: ${{needs.changedfiles.outputs.files}}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8
         with:
           args: "--verbose --no-progress ${{needs.changedfiles.outputs.files}} --config .github/lychee.toml"
           failIfEmpty: false

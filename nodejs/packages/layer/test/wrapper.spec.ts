@@ -216,7 +216,7 @@ describe('wrapper', async () => {
       await wrap();
       assert(providerSpy.calledOnce);
       const tracer = providerSpy.getCall(0).thisValue;
-      const spanProcessors = tracer._config.spanProcessors;
+      const spanProcessors = tracer._activeSpanProcessor._spanProcessors;
 
       for (const [i, processor] of spanProcessors.entries()) {
         assert.ok(processor._exporter instanceof expectedExporters[i]);

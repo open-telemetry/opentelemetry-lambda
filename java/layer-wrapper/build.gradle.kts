@@ -14,7 +14,7 @@ dependencies {
 }
 
 tasks {
-    val createLayer by registering(Zip::class) {
+    val createLayer = register<Zip>("createLayer") {
         archiveFileName.set("opentelemetry-javawrapper-layer.zip")
         destinationDirectory.set(file("$buildDir/distributions"))
 
