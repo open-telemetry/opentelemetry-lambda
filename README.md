@@ -141,18 +141,17 @@ For more information about the maintainer role, see the [community repository](h
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
-### Emeritus Maintainers
+### Emeritus
 
-- [Alex Boten](https://github.com/codeboten)
-- [Anthony Mirabella](https://github.com/Aneurysm9)
-- [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
-
-For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
-
-### Emeritus Approvers
-
-- [Lei Wang](https://github.com/wangzlei)
-- [Nathaniel Ruiz Nowell](https://github.com/NathanielRN)
-- [Tristan Sloughter](https://github.com/tsloughter)
+- [Alex Boten](https://github.com/codeboten), Maintainer
+- [Anthony Mirabella](https://github.com/Aneurysm9), Maintainer
+- [Lei Wang](https://github.com/wangzlei), Approver
+- [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), Approver
+- [Raphael Philipe Mendes da Silva](https://github.com/rapphil), Maintainer
+- [Tristan Sloughter](https://github.com/tsloughter), Approver
 
 For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
+
+### Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-lambda)](https://github.com/open-telemetry/opentelemetry-lambda/graphs/contributors)
