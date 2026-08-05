@@ -12,7 +12,7 @@ require (
 	go.opentelemetry.io/collector/processor v1.63.0
 	go.opentelemetry.io/collector/processor/processorhelper v0.157.0
 	go.opentelemetry.io/collector/processor/processortest v0.157.0
-	go.opentelemetry.io/collector/semconv v0.128.0
+	go.opentelemetry.io/otel v1.44.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.28.0
 )
@@ -37,7 +37,6 @@ require (
 	go.opentelemetry.io/collector/pdata/testdata v0.157.0 // indirect
 	go.opentelemetry.io/collector/pipeline v1.63.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.157.0 // indirect
-	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
