@@ -81,7 +81,8 @@
     "@opentelemetry/resources": "^2.0.0",
     "@opentelemetry/sdk-logs": "^0.221.0",
     "@opentelemetry/sdk-metrics": "^2.0.0",
-    "@opentelemetry/sdk-trace-node": "^2.0.0"
+    "@opentelemetry/sdk-trace-node": "^2.0.0",
+    "@opentelemetry/winston-transport": "^0.31.0"
   },
   "devDependencies": {
     "@types/mocha": "10.0.10",
@@ -92,7 +93,8 @@
     "ts-node": "10.9.2",
     "webpack": "5.109.2",
     "webpack-cli": "7.2.2",
-    "webpack-node-externals": "3.0.0"
+    "webpack-node-externals": "3.0.0",
+    "winston": "^3.19.0"
   },
   "sideEffects": false
 }
