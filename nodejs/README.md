@@ -38,6 +38,7 @@ Following instrumentations from the metapackage are included:
 - `net` *- default*
 - `pg` *- default*
 - `pino`
+- `prisma`
 - `redis` *- default*
 - `restify`
 - `socket.io`
