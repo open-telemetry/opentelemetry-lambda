@@ -135,6 +135,7 @@ For more information about the maintainer role, see the [community repository](h
 ### Approvers
 
 - [Ivan Santos](https://github.com/pragmaticivan)
+- [James Thompson](https://github.com/thompson-tomo)
 - [Lukas Hering](https://github.com/herin049)
 - [Maxime David](https://github.com/maxday)
 - [Raphael Manke](https://github.com/raphaelmanke)
