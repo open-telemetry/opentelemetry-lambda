@@ -22,9 +22,23 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
+	semconvlegacy "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.uber.org/zap"
 )
+
+// faasInvocationID reports the invocation identifier of an execution span, looking up both the
+// current attribute and the one it replaced.
+//
+// faas.execution was renamed to faas.invocation_id in semantic conventions v1.19.0. Current
+// instrumentations set only the new name, while older ones set only the old name, so both have
+// to be accepted for the cold start span to be paired with its execution span.
+func faasInvocationID(span ptrace.Span) (pcommon.Value, bool) {
+	if attr, ok := span.Attributes().Get(string(semconv.FaaSInvocationIDKey)); ok {
+		return attr, true
+	}
+	return span.Attributes().Get(string(semconvlegacy.FaaSExecutionKey))
+}
 
 type faasExecution struct {
 	span     ptrace.Span
@@ -52,7 +66,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 				if p.reported {
 					return false
 				}
-				if attr, ok := span.Attributes().Get(semconv.AttributeFaaSColdstart); ok && attr.Bool() {
+				if attr, ok := span.Attributes().Get(string(semconv.FaaSColdstartKey)); ok && attr.Bool() {
 					if p.faasExecution == nil {
 						sp := ptrace.NewSpan()
 						p.coldstartSpan = &sp
@@ -67,7 +81,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 						return false
 					}
 				}
-				if _, ok := span.Attributes().Get(semconv.AttributeFaaSExecution); ok {
+				if _, ok := faasInvocationID(span); ok {
 					if p.coldstartSpan == nil {
 						p.faasExecution = &faasExecution{
 							span:     ptrace.NewSpan(),
