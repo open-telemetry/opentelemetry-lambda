@@ -191,6 +191,7 @@
       enabled: true,
       separateMajorMinor: false,
       separateMultipleMajor: false,
+      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
       abandonmentThreshold: "50 years",
       schedule: [
         'before 8am on Wednesday',
