@@ -83,7 +83,7 @@ func (p *coldstartProcessor) processTraces(ctx context.Context, td ptrace.Traces
 				}
 				_, hasInvocationID := span.Attributes().Get(string(semconv.FaaSInvocationIDKey))
 				if !hasInvocationID {
-					_, hasInvocationID = span.Attributes().Get(attributeFaaSExecutionDeprecated)
+					_, hasInvocationID = span.Attributes().Get(string(semconvlegacy.FaaSExecutionKey))
 				}
 				if hasInvocationID {
 					if p.coldstartSpan == nil {
