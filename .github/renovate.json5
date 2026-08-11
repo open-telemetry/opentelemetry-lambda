@@ -162,6 +162,15 @@
       dependencyDashboardApproval: true,
     },
     {
+      matchUpdateTypes: [
+        'major'
+      ],
+      matchDepNames: [
+        'node',
+      ],
+      dependencyDashboardApproval: true,
+    },
+    {
       matchManagers: [
         "gomod"
       ],
@@ -182,6 +191,7 @@
       enabled: true,
       separateMajorMinor: false,
       separateMultipleMajor: false,
+      abandonmentThreshold: "50 years",
       schedule: [
         'before 8am on Wednesday',
       ],
