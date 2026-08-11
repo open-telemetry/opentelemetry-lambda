@@ -111,7 +111,7 @@ func TestLoadConfig(t *testing.T) {
 			sub, err := cm.Sub(tt.id.String())
 			require.NoError(t, err)
 			require.NoError(t, sub.Unmarshal(cfg))
-			require.NoError(t, confmap.Validate(sub, cfg))
+			require.NoError(t, confmap.Validate(cfg))
 
 			require.Equal(t, tt.expected, cfg)
 		})
