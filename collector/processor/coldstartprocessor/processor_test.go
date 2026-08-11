@@ -78,7 +78,7 @@ func TestProcessor(t *testing.T) {
 			}(),
 		},
 		{
-			desc: "faas.execution and faas.coldstart with coldstart is first",
+			desc: "faas.invocation_id and faas.coldstart with coldstart is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				span := td.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
@@ -101,7 +101,7 @@ func TestProcessor(t *testing.T) {
 			reported: true,
 		},
 		{
-			desc: "faas.execution and faas.coldstart with execution is first",
+			desc: "faas.invocation_id and faas.coldstart with execution is first",
 			input: func() ptrace.Traces {
 				td := ptrace.NewTraces()
 				addExecutionSpan(td, executionTraceID)
@@ -268,12 +268,12 @@ func addExecutionSpan(td ptrace.Traces, id pcommon.TraceID) {
 	ss.Scope().SetName("app/execution")
 	span := ss.Spans().AppendEmpty()
 	span.SetTraceID(id)
-	span.Attributes().PutStr(string(semconvlegacy.FaaSExecutionKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
 func executionSpan(span ptrace.Span, id pcommon.TraceID) {
 	span.SetTraceID(id)
-	span.Attributes().PutStr(string(semconvlegacy.FaaSExecutionKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+	span.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
 }
 
 func initializationSpan(span ptrace.Span, id pcommon.TraceID) {
