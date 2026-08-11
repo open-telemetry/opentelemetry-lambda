@@ -27,13 +27,14 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/cespare/xxhash"
+	"github.com/cespare/xxhash/v2"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	"go.opentelemetry.io/collector/processor/processortest"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	semconvlegacy "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.uber.org/multierr"
 )
 
@@ -141,6 +142,48 @@ func TestProcessor(t *testing.T) {
 			require.Equal(t, tc.reported, c.reported)
 			require.NoError(t, compareTraces(tc.expected, td))
 		})
+	}
+}
+
+// TestPairingByInvocationID covers the current semantic convention attribute. faas.execution was
+// renamed to faas.invocation_id in v1.19.0 and current instrumentations set only the new name, so a
+// cold start span must still be paired when the execution span carries it.
+func TestPairingByInvocationID(t *testing.T) {
+	c, err := newColdstartProcessor(
+		nil,
+		nil,
+		processortest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	// The cold start span arrives first and is held back until its execution span shows up.
+	input := ptrace.NewTraces()
+	span := input.ResourceSpans().AppendEmpty().ScopeSpans().AppendEmpty().Spans().AppendEmpty()
+	span.Attributes().PutBool(string(semconv.FaaSColdstartKey), true)
+	output, err := c.processTraces(context.Background(), input)
+	require.ErrorIs(t, err, processorhelper.ErrSkipProcessingData)
+	require.Equal(t, 0, output.SpanCount())
+	require.False(t, c.reported)
+
+	executionTraceID := getTraceID()
+	input = ptrace.NewTraces()
+	rs := input.ResourceSpans().AppendEmpty()
+	rs.Resource().Attributes().PutStr("resource-attr", "faas-execution")
+	ss := rs.ScopeSpans().AppendEmpty()
+	ss.Scope().SetName("app/execution")
+	execSpan := ss.Spans().AppendEmpty()
+	execSpan.SetTraceID(executionTraceID)
+	execSpan.Attributes().PutStr(string(semconv.FaaSInvocationIDKey), "af9d5aa4-a685-4c5f-a22b-444f80b3cc28")
+
+	output, err = c.processTraces(context.Background(), input)
+	require.NoError(t, err)
+
+	// The held cold start span is released alongside the execution span and joins its trace.
+	require.Equal(t, 2, output.SpanCount())
+	require.True(t, c.reported)
+	spans := output.ResourceSpans().At(0).ScopeSpans().At(0).Spans()
+	for i := 0; i < spans.Len(); i++ {
+		require.Equal(t, executionTraceID, spans.At(i).TraceID())
 	}
 }
 

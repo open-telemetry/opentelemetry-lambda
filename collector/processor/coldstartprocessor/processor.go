@@ -22,14 +22,23 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	semconvlegacy "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.uber.org/zap"
 )
 
-// TODO: faas.execution was renamed to faas.invocation_id in semconv v1.17.0.
-// Node.js instrumentation still emits the old name, so we accept both for now.
-// Remove this fallback once the JS layer migrates to faas.invocation_id.
-const attributeFaaSExecutionDeprecated = "faas.execution"
+// faasInvocationID reports the invocation identifier of an execution span, looking up both the
+// current attribute and the one it replaced.
+//
+// faas.execution was renamed to faas.invocation_id in semantic conventions v1.19.0. Current
+// instrumentations set only the new name, while older ones set only the old name, so both have
+// to be accepted for the cold start span to be paired with its execution span.
+func faasInvocationID(span ptrace.Span) (pcommon.Value, bool) {
+	if attr, ok := span.Attributes().Get(string(semconv.FaaSInvocationIDKey)); ok {
+		return attr, true
+	}
+	return span.Attributes().Get(string(semconvlegacy.FaaSExecutionKey))
+}
 
 type faasExecution struct {
 	span     ptrace.Span

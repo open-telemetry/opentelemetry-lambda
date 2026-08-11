@@ -23,7 +23,7 @@ allprojects {
             afterEvaluate {
                 configurations.configureEach {
                     if (!isCanBeResolved && !isCanBeConsumed) {
-                        add(name, enforcedPlatform(project(":dependencyManagement")))
+                        add(name, enforcedPlatform(this@dependencies.project(":dependencyManagement")))
                     }
                 }
             }
