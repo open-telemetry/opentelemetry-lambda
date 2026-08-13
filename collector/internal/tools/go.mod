@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 go 1.26.1
 
 require (
-	github.com/golangci/golangci-lint v1.64.8
+	github.com/golangci/golangci-lint/v2 v2.12.2
 	github.com/google/addlicense v1.2.0
 	github.com/jcchavezs/porto v0.7.0
 	github.com/pavius/impi v0.0.3
@@ -85,7 +85,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofrs/flock v0.12.1 // indirect
+	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golangci/dupl v0.0.0-20260401084720-c99c5cf5c202 // indirect
@@ -226,7 +226,6 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.7.0 // indirect
 	mvdan.cc/gofumpt v0.11.0 // indirect
