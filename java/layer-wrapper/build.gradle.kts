@@ -14,10 +14,7 @@ dependencies {
 }
 
 tasks {
-    val createLayer = register<Zip>("createLayer") {
-        archiveFileName.set("opentelemetry-javawrapper-layer.zip")
-        destinationDirectory.set(file("$buildDir/distributions"))
-
+    val layerContents = copySpec {
         from(configurations["runtimeClasspath"]) {
             into("java/lib")
         }
@@ -30,8 +27,21 @@ tasks {
         from("scripts")
     }
 
+    val createZipLayer = register<Zip>("createLayer") {
+        archiveFileName.set("opentelemetry-javawrapper-layer.zip")
+        destinationDirectory.set(file("$buildDir/distributions"))
+        with(layerContents)
+    }
+
+    val createTarLayer = register<Tar>("createTarLayer") {
+        archiveFileName.set("opentelemetry-javawrapper-layer.tar.gz")
+        destinationDirectory.set(file("$buildDir/distributions"))
+        compression = Compression.GZIP
+        with(layerContents)
+    }
+
     named("assemble") {
-        dependsOn(createLayer)
+        dependsOn(createZipLayer, createTarLayer)
     }
 }
 

@@ -46,9 +46,15 @@ jobs:
           name: opentelemetry-javawrapper-layer.zip
           path: ${{ steps.build.outputs.javawrapper-artifact-path }}
 
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        name: Save javawrapper layer tar.gz to build
+        with:
+          name: opentelemetry-javawrapper-layer.tar.gz
+          path: ${{ steps.build.outputs.javawrapper-targz-artifact-path }}
+
       - name: Add Binary to Release
         run: |
-          gh release upload ${{github.ref_name}} ${{ steps.build.outputs.javawrapper-artifact-path }}
+          gh release upload ${{github.ref_name}} ${{ steps.build.outputs.javawrapper-artifact-path }} ${{ steps.build.outputs.javawrapper-targz-artifact-path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

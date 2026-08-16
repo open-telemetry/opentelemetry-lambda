@@ -8,6 +8,9 @@ outputs:
   javawrapper-artifact-path:
     description: 'Absolute path to the javawrapper layer zip artifact'
     value: ${{ github.workspace }}/java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.zip
+  javawrapper-targz-artifact-path:
+    description: 'Absolute path to the javawrapper layer tar.gz artifact'
+    value: ${{ github.workspace }}/java/layer-wrapper/build/distributions/opentelemetry-javawrapper-layer.tar.gz
   javaagent-version:
     description: 'OpenTelemetry Java agent version included in the layer'
     value: ${{ steps.javaagent-version.outputs.javaagent-version }}
