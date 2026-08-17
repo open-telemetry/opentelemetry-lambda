@@ -236,6 +236,10 @@ async function defaultConfigureInstrumentations() {
       await import('@opentelemetry/instrumentation-pino');
     instrumentations.push(new PinoInstrumentation());
   }
+  if (activeInstrumentations.has('prisma')) {
+    const { PrismaInstrumentation } = await import('@prisma/instrumentation');
+    instrumentations.push(new PrismaInstrumentation());
+  }
   if (activeInstrumentations.has('redis')) {
     const { RedisInstrumentation } =
       await import('@opentelemetry/instrumentation-redis');
