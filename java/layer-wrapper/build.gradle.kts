@@ -24,7 +24,11 @@ tasks {
             into("java/lib")
         }
 
-        from("scripts")
+        from("scripts") {
+                filePermissions {
+                        unix("755")
+                }
+        }
     }
 
     val createZipLayer = register<Zip>("createLayer") {
