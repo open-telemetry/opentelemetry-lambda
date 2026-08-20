@@ -2,6 +2,8 @@ module github.com/open-telemetry/opentelemetry-lambda/collector
 
 go 1.26.1
 
+toolchain go1.26.7
+
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents => ./lambdacomponents
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle => ./lambdalifecycle
