@@ -169,12 +169,11 @@
     {
       groupName: "Lock file maintenance golang",
       matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: ["minor", "patch"],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      separateMajorMinor: false,
-      separateMultipleMajor: false,
       schedule: [
         'before 8am on Wednesday',
       ],
