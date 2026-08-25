@@ -33,7 +33,9 @@
         'golang',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -53,7 +55,9 @@
         'golang',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -186,7 +190,9 @@
         'before 8am on Wednesday',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
       ],
     }
   ],
@@ -199,7 +205,9 @@
     ],
   },
   postUpdateOptions: [
-    'gomodTidy',
+    'gomodTidyAll',
+    'gomodTidyE',
+    'gomodUpdateImportPaths',
   ],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
