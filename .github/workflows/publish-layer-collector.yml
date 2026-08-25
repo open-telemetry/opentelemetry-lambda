@@ -140,7 +140,7 @@ jobs:
           else
             aws_regions="[\"${GITHUB_EVENT_INPUTS_AWS_REGION}\"]"
           fi
-          echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'release_jobs={"architecture":%s,"aws_region":%s}\n' "$architectures" "$aws_regions" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
           GITHUB_EVENT_INPUTS_AWS_REGION: ${{ github.event.inputs.aws-region }}
