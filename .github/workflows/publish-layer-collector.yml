@@ -84,7 +84,7 @@ jobs:
           else
             architectures="[\"${GITHUB_EVENT_INPUTS_ARCHITECTURE}\"]"
           fi
-          echo "build_jobs={"architecture": ${architectures}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'build_jobs={"architecture":%s}\n' "$architectures" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
   build-layer:
