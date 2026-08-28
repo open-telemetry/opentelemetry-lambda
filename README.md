@@ -44,7 +44,7 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 
 * **What exporters/receivers/processors are included from the OpenTelemetry Collector?**
     > You can check out [the stripped-down collector's imports](https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/lambdacomponents/default.go) in this repository for a full list of currently included components.
-
+    >
     > Self-built binaries of the collector have **experimental** support for a custom set of connectors/exporters/receivers/processors. For more information, see [(Experimental) Customized collector build](./collector/README.md#experimental-customized-collector-build)
 * **Is the Lambda layer provided or do I need to build it and distribute it myself?**
     > This repository provides pre-built Lambda layers, their ARNs are available in the [Releases](https://github.com/open-telemetry/opentelemetry-lambda/releases). You can also build the layers manually and publish them in your AWS account. This repo has files to facilitate doing that. More information is provided in [the Collector folder's README](collector/README.md).
@@ -135,24 +135,24 @@ For more information about the maintainer role, see the [community repository](h
 ### Approvers
 
 - [Ivan Santos](https://github.com/pragmaticivan)
+- [James Thompson](https://github.com/thompson-tomo)
 - [Lukas Hering](https://github.com/herin049)
 - [Maxime David](https://github.com/maxday)
 - [Raphael Manke](https://github.com/raphaelmanke)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
-### Emeritus Maintainers
+### Emeritus
 
-- [Alex Boten](https://github.com/codeboten)
-- [Anthony Mirabella](https://github.com/Aneurysm9)
-- [Raphael Philipe Mendes da Silva](https://github.com/rapphil)
-
-For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
-
-### Emeritus Approvers
-
-- [Lei Wang](https://github.com/wangzlei)
-- [Nathaniel Ruiz Nowell](https://github.com/NathanielRN)
-- [Tristan Sloughter](https://github.com/tsloughter)
+- [Alex Boten](https://github.com/codeboten), Maintainer
+- [Anthony Mirabella](https://github.com/Aneurysm9), Maintainer
+- [Lei Wang](https://github.com/wangzlei), Approver
+- [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), Approver
+- [Raphael Philipe Mendes da Silva](https://github.com/rapphil), Maintainer
+- [Tristan Sloughter](https://github.com/tsloughter), Approver
 
 For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
+
+### Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-lambda)](https://github.com/open-telemetry/opentelemetry-lambda/graphs/contributors)

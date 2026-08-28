@@ -1,0 +1,46 @@
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "integration-tests/**"
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/Dockerfile"
+documentations:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs"
+go:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "collector/**"
+          - "go/**"
+java:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "java/**"
+          - "integration-tests/**/java/**"
+javascript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "nodejs/**"
+          - "integration-tests/**/nodejs/**"
+.NET:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "dotnet/**"
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "python/**"
+          - "integration-tests/**/python/**"
+ruby:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ruby/**"
+          - "integration-tests/**/ruby/**"
+terraform:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.tf"

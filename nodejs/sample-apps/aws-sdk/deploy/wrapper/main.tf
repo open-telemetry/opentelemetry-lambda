@@ -7,7 +7,7 @@ data "aws_region" "current" {}
 
 module "hello-lambda-function" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "7.21.1"
+  version = "8.8.0"
 
   architectures = compact([var.architecture])
   function_name = var.name

@@ -24,14 +24,80 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/extensionapi"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/telemetryapi"
 )
+
+const startupCompleteMsg = "OpenTelemetry Lambda extension startup complete"
+
+func TestRunLogsStartupDuration(t *testing.T) {
+	shutdownServer := func(t *testing.T) *httptest.Server {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+			_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
+			assert.NoError(t, err)
+			_, err = io.ReadAll(r.Body)
+			assert.NoError(t, err, "failed to read request body: %v", err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+	extensionEventTypes := []extensionapi.EventType{extensionapi.Invoke, extensionapi.Shutdown}
+
+	t.Run("emits a single startup-complete log with a startup_duration field", func(t *testing.T) {
+		core, logs := observer.New(zap.InfoLevel)
+		logger := zap.New(core)
+
+		server := shutdownServer(t)
+		u, err := url.Parse(server.URL)
+		require.NoError(t, err)
+
+		lm := manager{
+			collector:       &MockCollector{},
+			logger:          logger,
+			listener:        telemetryapi.NewListener(logger),
+			extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
+			startTime:       time.Now(),
+		}
+		require.NoError(t, lm.Run(context.Background()))
+
+		entries := logs.FilterMessage(startupCompleteMsg).All()
+		require.Len(t, entries, 1, "expected exactly one startup-complete log")
+		field, ok := entries[0].ContextMap()["startup_duration"]
+		require.True(t, ok, "startup-complete log must carry a startup_duration field")
+		d, ok := field.(time.Duration)
+		require.True(t, ok, "startup_duration must be a duration field")
+		// startTime is time.Now() just above, so a correct duration is small and
+		// positive. Asserting only the type cannot fail: zap.Duration always
+		// yields a Duration, and time.Since(time.Time{}) clamps to the max
+		// duration rather than erroring, so the bound is what catches an unset
+		// startTime.
+		require.GreaterOrEqual(t, d, time.Duration(0), "startup_duration must not be negative")
+		require.Less(t, d, time.Minute, "startup_duration must be real elapsed time, not time.Since(zero)")
+	})
+
+	t.Run("does not emit startup-complete log when collector start fails", func(t *testing.T) {
+		core, logs := observer.New(zap.InfoLevel)
+		logger := zap.New(core)
+
+		lm := manager{
+			collector:       &MockCollector{err: fmt.Errorf("test start error")},
+			logger:          logger,
+			extensionClient: extensionapi.NewClient(logger, "", extensionEventTypes),
+			startTime:       time.Now(),
+		}
+		require.Error(t, lm.Run(context.Background()))
+		assert.Equal(t, 0, logs.FilterMessage(startupCompleteMsg).Len(), "no startup-complete log on failure")
+	})
+}
 
 type MockCollector struct {
 	err error
@@ -51,9 +117,9 @@ func TestRun(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		_, err = io.ReadAll(r.Body)
-		require.NoError(t, err, "failed to read request body: %v", err)
+		assert.NoError(t, err, "failed to read request body: %v", err)
 	}))
 	defer server.Close()
 	u, err := url.Parse(server.URL)
@@ -77,17 +143,34 @@ func TestRun(t *testing.T) {
 	require.NoError(t, lm.Run(ctx))
 	// test with waitgroup counter incremented
 	lm = manager{
-		collector:       &MockCollector{},
-		logger:          logger,
-		listener:        telemetryapi.NewListener(logger),
-		extensionClient: extensionapi.NewClient(logger, u.Host, extensionEventTypes),
+		collector: &MockCollector{},
+		logger:    logger,
+		listener:  telemetryapi.NewListener(logger),
 	}
+	requestStarted := make(chan struct{})
+	releaseResponse := make(chan struct{})
+	synchronizedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(requestStarted)
+		<-releaseResponse
+		w.WriteHeader(200)
+		_, err := w.Write([]byte(`{"time":"2006-01-02T15:04:05.000Z", "eventType":"SHUTDOWN", "record":{}}`))
+		assert.NoError(t, err)
+		_, err = io.ReadAll(r.Body)
+		assert.NoError(t, err, "failed to read request body: %v", err)
+	}))
+	defer synchronizedServer.Close()
+	synchronizedURL, err := url.Parse(synchronizedServer.URL)
+	require.NoError(t, err)
+	lm.extensionClient = extensionapi.NewClient(logger, synchronizedURL.Host, extensionEventTypes)
 	lm.wg.Add(1)
+	runErr := make(chan error, 1)
 	go func() {
-		require.NoError(t, lm.Run(ctx))
+		runErr <- lm.Run(ctx)
 	}()
+	<-requestStarted
 	lm.wg.Done()
-
+	close(releaseResponse)
+	assert.NoError(t, <-runErr)
 }
 
 func TestProcessEvents(t *testing.T) {
@@ -134,9 +217,9 @@ func TestProcessEvents(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
 				_, err := w.Write([]byte(tc.serverResponse))
-				require.NoError(t, err)
+				assert.NoError(t, err)
 				_, err = io.ReadAll(r.Body)
-				require.NoError(t, err, "failed to read request body: %v", err)
+				assert.NoError(t, err, "failed to read request body: %v", err)
 			}))
 			defer server.Close()
 			u, err := url.Parse(server.URL)
