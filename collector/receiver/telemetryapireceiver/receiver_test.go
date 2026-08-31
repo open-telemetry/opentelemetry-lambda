@@ -28,7 +28,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	"go.opentelemetry.io/otel/semconv/v1.40.0/faasconv"
 )
 
 func TestListenOnAddress(t *testing.T) {
@@ -148,13 +149,13 @@ func TestRecordMetrics(t *testing.T) {
 	sm := rm.ScopeMetrics().At(0)
 	for i := 0; i < sm.Metrics().Len(); i++ {
 		m := sm.Metrics().At(i)
-		if m.Name() == semconv.FaaSColdstartsName {
+		if m.Name() == (faasconv.Coldstarts{}).Name() {
 			foundColdstart = true
 		}
-		if m.Name() == semconv.FaaSInvocationsName {
+		if m.Name() == (faasconv.Invocations{}).Name() {
 			foundInvocation = true
 		}
-		if m.Name() == semconv.FaaSInvokeDurationName {
+		if m.Name() == (faasconv.InvokeDuration{}).Name() {
 			foundDuration = true
 		}
 	}

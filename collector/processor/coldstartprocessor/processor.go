@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/processorhelper"
 	semconvlegacy "go.opentelemetry.io/otel/semconv/v1.18.0"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.uber.org/zap"
 )
 
