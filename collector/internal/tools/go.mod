@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 go 1.26.1
 
 require (
-	github.com/golangci/golangci-lint/v2 v2.13.1
+	github.com/golangci/golangci-lint/v2 v2.13.2
 	github.com/google/addlicense v1.2.0
 	github.com/jcchavezs/porto v0.7.0
 	github.com/pavius/impi v0.0.3
@@ -13,7 +13,7 @@ require (
 	go.opentelemetry.io/build-tools/crosslink v0.30.0
 	go.opentelemetry.io/build-tools/multimod v0.30.0
 	go.opentelemetry.io/build-tools/semconvgen v0.24.0
-	golang.org/x/exp v0.0.0-20260820142414-ca536658362e
+	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa
 	golang.org/x/tools v0.49.0
 )
 
