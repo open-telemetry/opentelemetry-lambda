@@ -1,6 +1,6 @@
 pluginManagement {
     plugins {
-        id("com.diffplug.spotless") version "8.10.0"
+        id("com.diffplug.spotless") version "8.10.2"
         id("com.github.ben-manes.versions") version "0.61.0"
         id("com.gradleup.shadow") version "9.6.1"
     }
