@@ -5,13 +5,6 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
-  gitIgnoredAuthors: [
-    "107717825+opentelemetrybot@users.noreply.github.com",
-    "107717825+opentelemetrybot[bot]@users.noreply.github.com",
-    "197425009+otelbot@users.noreply.github.com",
-    "197425009+otelbot[bot]@users.noreply.github.com",
-    "github-actions[bot]@users.noreply.github.com"
-  ],
   prHourlyLimit: 15,
   prConcurrentLimit: 15,
   ignorePaths: [
@@ -33,7 +26,7 @@
         'golang',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -53,7 +46,7 @@
         'golang',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -176,17 +169,16 @@
     {
       groupName: "Lock file maintenance golang",
       matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: ["minor", "patch"],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      separateMajorMinor: false,
-      separateMultipleMajor: false,
       schedule: [
         'before 8am on Wednesday',
       ],
       postUpdateOptions: [
-        'gomodTidy',
+        'gomodTidyAll',
       ],
     }
   ],
@@ -199,7 +191,7 @@
     ],
   },
   postUpdateOptions: [
-    'gomodTidy',
+    'gomodTidyAll',
   ],
   semanticCommits: 'enabled',
   semanticCommitType: 'build',
