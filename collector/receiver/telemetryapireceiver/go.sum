@@ -49,7 +49,7 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
-go.opentelemetry.io/collector v0.159.0 h1:gOWL2DGKrPSEdDJ++4NfNhx77A409SNrrZW18hE8dKY=
+go.opentelemetry.io/collector v0.160.0 h1:PnyWUf8vIViBWT8Klg50j0SbmUd5rkDjc2L/3jdRz3Y=
 go.opentelemetry.io/collector/component v1.66.0 h1:JaAwBPug6Wm5V0+4qHpWVcazabgZvEozfcMC8gmgIY4=
 go.opentelemetry.io/collector/component v1.66.0/go.mod h1:IIS7ZSCTijjAy5uaCwqAp6RKqOs1rzHl3EmwBZ6B0V4=
 go.opentelemetry.io/collector/component/componenttest v0.160.0 h1:vfe7NaNksFjFfsrD1dDTCp/oQmknfI19z7SLyE8XDFo=
