@@ -33,7 +33,7 @@
     "@types/aws-lambda": "8.10.163",
     "bestzip": "3.0.3",
     "copyfiles": "2.4.1",
-    "eslint": "10.9.1",
+    "eslint": "10.10.0",
     "globals": "17.12.0",
     "gts": "7.0.0",
     "rimraf": "6.1.3",

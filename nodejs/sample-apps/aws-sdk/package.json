@@ -35,9 +35,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@aws-sdk/client-sts": "3.1124.0",
+    "@aws-sdk/client-sts": "3.1127.0",
     "@types/node": "25.9.5",
-    "aws-cdk-lib": "2.267.0",
+    "aws-cdk-lib": "2.268.0",
     "bestzip": "3.0.3",
     "copyfiles": "2.4.1",
     "rimraf": "6.1.3",
