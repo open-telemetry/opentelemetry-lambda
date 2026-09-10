@@ -134,10 +134,8 @@ For more information about the maintainer role, see the [community repository](h
 
 ### Approvers
 
-- [Ivan Santos](https://github.com/pragmaticivan)
 - [James Thompson](https://github.com/thompson-tomo)
 - [Lukas Hering](https://github.com/herin049)
-- [Maxime David](https://github.com/maxday)
 - [Raphael Manke](https://github.com/raphaelmanke)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
@@ -146,7 +144,9 @@ For more information about the approver role, see the [community repository](htt
 
 - [Alex Boten](https://github.com/codeboten), Maintainer
 - [Anthony Mirabella](https://github.com/Aneurysm9), Maintainer
+- [Ivan Santos](https://github.com/pragmaticivan), Approver
 - [Lei Wang](https://github.com/wangzlei), Approver
+- [Maxime David](https://github.com/maxday), Approver
 - [Nathaniel Ruiz Nowell](https://github.com/NathanielRN), Approver
 - [Raphael Philipe Mendes da Silva](https://github.com/rapphil), Maintainer
 - [Tristan Sloughter](https://github.com/tsloughter), Approver
