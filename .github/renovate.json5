@@ -5,13 +5,6 @@
     'helpers:pinGitHubActionDigestsToSemver',
     ':separateMultipleMajorReleases',
   ],
-  gitIgnoredAuthors: [
-    "107717825+opentelemetrybot@users.noreply.github.com",
-    "107717825+opentelemetrybot[bot]@users.noreply.github.com",
-    "197425009+otelbot@users.noreply.github.com",
-    "197425009+otelbot[bot]@users.noreply.github.com",
-    "github-actions[bot]@users.noreply.github.com"
-  ],
   prHourlyLimit: 15,
   prConcurrentLimit: 15,
   ignorePaths: [
@@ -189,12 +182,11 @@
     {
       groupName: "Lock file maintenance golang",
       matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: ["minor", "patch"],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      separateMajorMinor: false,
-      separateMultipleMajor: false,
       prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
       abandonmentThreshold: "50 years",
       schedule: [
