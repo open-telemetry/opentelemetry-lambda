@@ -16,8 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Create Release
-        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
@@ -34,6 +36,8 @@ jobs:
       component-version: ${{ steps.build.outputs.component-version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/build-collector-layer
         id: build
         with:
@@ -43,9 +47,10 @@ jobs:
           name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
           path: ${{ steps.build.outputs.artifact-path }}
       - name: Add Binary to Release
-        run: gh release upload ${{ github.ref_name }} ${{ steps.build.outputs.artifact-path }}
+        run: gh release upload "$GITHUB_REF_NAME" "$STEPS_BUILD_OUTPUTS_ARTIFACT_PATH"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_BUILD_OUTPUTS_ARTIFACT_PATH: ${{ steps.build.outputs.artifact-path }}
 
   publish-layer:
     permissions: # required by the reusable workflow
@@ -100,4 +105,6 @@ jobs:
       architecture: ${{ matrix.architecture }}
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

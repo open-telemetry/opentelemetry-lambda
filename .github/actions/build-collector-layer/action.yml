@@ -24,7 +24,9 @@ runs:
 
     - name: Build collector layer
       shell: bash
-      run: make -C collector package GOARCH=${{ inputs.architecture }}
+      run: make -C collector package GOARCH="${INPUTS_ARCHITECTURE}"
+      env:
+        INPUTS_ARCHITECTURE: ${{ inputs.architecture }}
 
     - name: Save collector version
       if: ${{ inputs.architecture == 'amd64' }}

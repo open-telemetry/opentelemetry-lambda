@@ -79,12 +79,14 @@ jobs:
         name: Prepare Build Jobs
         run: |
           architectures=''
-          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+          if [ "${GITHUB_EVENT_INPUTS_ARCHITECTURE}" = 'all' ]; then
             architectures='["amd64", "arm64"]'
           else
-            architectures='["${{ github.event.inputs.architecture }}"]'
+            architectures="[\"${GITHUB_EVENT_INPUTS_ARCHITECTURE}\"]"
           fi
-          echo "build_jobs={"architecture": ${architectures}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'build_jobs={"architecture":%s}\n' "$architectures" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
   build-layer:
     needs: prepare-build-jobs
     runs-on: ubuntu-latest
@@ -93,20 +95,25 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: collector/go.mod
       - name: Build Collector
         run: |
-          if [[ -n "${{ inputs.build-tags }}" ]]; then
-            BUILDTAGS="${{ inputs.build-tags }}"
+          if [[ -n "${INPUTS_BUILD_TAGS}" ]]; then
+            BUILDTAGS="${INPUTS_BUILD_TAGS}"
             if [[ "$BUILDTAGS" != "lambdacomponents.custom"* ]]; then
               BUILDTAGS="lambdacomponents.custom,$BUILDTAGS"
             fi
           fi
           echo "Build tags: $BUILDTAGS"
-          make -C collector package GOARCH=${{ matrix.architecture }} BUILDTAGS=$BUILDTAGS
+          make -C collector package GOARCH="${MATRIX_ARCHITECTURE}" BUILDTAGS="$BUILDTAGS"
+        env:
+          INPUTS_BUILD_TAGS: ${{ inputs.build-tags }}
+          MATRIX_ARCHITECTURE: ${{ matrix.architecture }}
       - name: Upload Collector Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -122,18 +129,21 @@ jobs:
         name: Prepare Release Jobs
         run: |
           architectures=''
-          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+          if [ "${GITHUB_EVENT_INPUTS_ARCHITECTURE}" = 'all' ]; then
             architectures='["amd64", "arm64"]'
           else
-            architectures='["${{ github.event.inputs.architecture }}"]'
+            architectures="[\"${GITHUB_EVENT_INPUTS_ARCHITECTURE}\"]"
           fi
           aws_regions=''
-          if [ ${{ github.event.inputs.aws-region }} == 'all' ]; then
+          if [ "${GITHUB_EVENT_INPUTS_AWS_REGION}" = 'all' ]; then
             aws_regions='["af-south-1", "ap-east-1", "ap-east-2", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-south-2", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-4", "ap-southeast-5", "ap-southeast-6", "ap-southeast-7", "ca-central-1", "ca-west-1", "eu-central-1", "eu-central-2", "eu-north-1", "eu-south-1", "eu-south-2", "eu-west-1", "eu-west-2", "eu-west-3", "il-central-1", "me-central-1", "me-south-1", "mx-central-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
           else
-            aws_regions='["${{ github.event.inputs.aws-region }}"]'
+            aws_regions="[\"${GITHUB_EVENT_INPUTS_AWS_REGION}\"]"
           fi
-          echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'release_jobs={"architecture":%s,"aws_region":%s}\n' "$architectures" "$aws_regions" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
+          GITHUB_EVENT_INPUTS_AWS_REGION: ${{ github.event.inputs.aws-region }}
   release-layer:
     permissions: # required by the reusable workflow
       contents: read
@@ -152,4 +162,6 @@ jobs:
       role-arn: ${{ github.event.inputs.role-arn }}
       component-version: 'NA'
       layer-version: ${{ github.event.inputs.layer-version }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

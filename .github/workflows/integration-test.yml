@@ -26,6 +26,9 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      INTEGRATION_TEST_ROLE_ARN:
+        required: true
 
 permissions:
   contents: read
@@ -39,12 +42,14 @@ jobs:
       - id: prepare-languages
         name: Prepare Languages
         run: |
-          if [ "${{ inputs.language }}" = "all" ]; then
+          if [ "${INPUTS_LANGUAGE}" = "all" ]; then
             languages='["nodejs", "python", "ruby", "javaagent", "javawrapper"]'
           else
-            languages='["${{ inputs.language }}"]'
+            languages="[\"${INPUTS_LANGUAGE}\"]"
           fi
           echo "languages=${languages}" >> "$GITHUB_OUTPUT"
+        env:
+          INPUTS_LANGUAGE: ${{ inputs.language }}
 
   build-collector:
     runs-on: ubuntu-latest
@@ -54,6 +59,8 @@ jobs:
         architecture: [amd64, arm64]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/build-collector-layer
         id: build
         with:
@@ -73,6 +80,8 @@ jobs:
         language: ${{ fromJson(needs.prepare-languages.outputs.languages) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/build-layer
         id: build
         with:
@@ -99,6 +108,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
