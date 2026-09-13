@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 
-go 1.27.0
+go 1.26.1
 
 require (
 	github.com/golangci/golangci-lint v1.64.8
