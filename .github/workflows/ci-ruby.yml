@@ -1,0 +1,30 @@
+name: "Continuous Build (Ruby)"
+
+on:
+  push:
+    paths:
+      - 'ruby/**'
+      - '.github/workflows/ci-ruby.yml'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'ruby/**'
+      - '.github/workflows/ci-ruby.yml'
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+    - name: Build Ruby layer
+      shell: bash
+      working-directory: ruby/src
+      run: ./build.sh
