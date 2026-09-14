@@ -23,9 +23,6 @@
     "**/node_modules/**",
     "**/.cache/**",
   ],
-  constraints: {
-    go: "1.26"
-  },
   packageRules: [
     {
       groupName: 'collector-other',
