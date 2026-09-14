@@ -32,6 +32,7 @@
       matchUpdateTypes: [
         '!major'
       ],
+      matchDepTypes: ["!golang"],
       matchCategories: [
         'golang',
       ],
@@ -198,7 +199,7 @@
       enabled: true,
       separateMajorMinor: false,
       separateMultipleMajor: false,
-      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
+      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
       abandonmentThreshold: "50 years",
       schedule: [
         'before 8am on Wednesday',
@@ -219,13 +220,9 @@
       matchDepNames: ["go"],
       matchDepTypes: ["golang"],
       separateMultipleMinor: true,
+      separateMinorPatch: true,
       rangeStrategy: "bump",
-    },
-    {
-      matchManagers: ["gomod"],
-      matchDepNames: ["go"],
-      matchDepTypes: ["golang"],
-      matchUpdateTypes: ["!patch"],
+      allowedVersions: "/^[0-9]+\\.[0-9]+\\.0$/",
       dependencyDashboardApproval: "true",
     },
   ],
