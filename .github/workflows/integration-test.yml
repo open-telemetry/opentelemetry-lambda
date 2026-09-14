@@ -1,6 +1,12 @@
 name: "Integration Tests"
 
 on:
+  pull_request:
+    paths:
+      - 'integration-tests/**'
+      - '.github/workflows/integration-test.yml'
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       language:
@@ -49,7 +55,7 @@ jobs:
           fi
           echo "languages=${languages}" >> "$GITHUB_OUTPUT"
         env:
-          INPUTS_LANGUAGE: ${{ inputs.language }}
+          INPUTS_LANGUAGE: ${{ inputs.language || 'all' }}
 
   build-collector:
     runs-on: ubuntu-latest
