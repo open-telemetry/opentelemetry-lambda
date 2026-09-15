@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/build-python-layer
+      - uses: $/.github/actions/build-python-layer
         id: build
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -33,7 +33,7 @@ jobs:
       contents: read
       id-token: write
     needs: build-layer
-    uses: ./.github/workflows/integration-test.yml
+    uses: $/.github/workflows/integration-test.yml
     with:
       language: python
       use-existing-layer-artifact: true
@@ -68,7 +68,7 @@ jobs:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
-    uses: ./.github/workflows/layer-publish.yml
+    uses: $/.github/workflows/layer-publish.yml
     needs: [build-layer, create-release]
     strategy:
       matrix:

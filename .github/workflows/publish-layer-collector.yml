@@ -148,7 +148,7 @@ jobs:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
-    uses: ./.github/workflows/layer-publish.yml
+    uses: $/.github/workflows/layer-publish.yml
     needs: prepare-release-jobs
     strategy:
       matrix: ${{ fromJSON(needs.prepare-release-jobs.outputs.release_jobs) }}

@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/build-collector-layer
+      - uses: $/.github/actions/build-collector-layer
         id: build
         with:
           architecture: ${{ matrix.architecture }}
@@ -56,7 +56,7 @@ jobs:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
-    uses: ./.github/workflows/layer-publish.yml
+    uses: $/.github/workflows/layer-publish.yml
     needs: build-layer
     strategy:
       matrix:
