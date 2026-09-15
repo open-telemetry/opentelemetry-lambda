@@ -13,8 +13,8 @@ require (
 	go.opentelemetry.io/build-tools/crosslink v0.30.0
 	go.opentelemetry.io/build-tools/multimod v0.30.0
 	go.opentelemetry.io/build-tools/semconvgen v0.24.0
-	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa
-	golang.org/x/tools v0.49.0
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba
+	golang.org/x/tools v0.50.0
 )
 
 require (
