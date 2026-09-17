@@ -6,30 +6,31 @@
     ':separateMultipleMajorReleases',
   ],
   gitIgnoredAuthors: [
-    "107717825+opentelemetrybot@users.noreply.github.com",
-    "107717825+opentelemetrybot[bot]@users.noreply.github.com",
-    "197425009+otelbot@users.noreply.github.com",
-    "197425009+otelbot[bot]@users.noreply.github.com",
-    "github-actions[bot]@users.noreply.github.com"
+    '107717825+opentelemetrybot@users.noreply.github.com',
+    '107717825+opentelemetrybot[bot]@users.noreply.github.com',
+    '197425009+otelbot@users.noreply.github.com',
+    '197425009+otelbot[bot]@users.noreply.github.com',
+    'github-actions[bot]@users.noreply.github.com',
   ],
   prHourlyLimit: 15,
   prConcurrentLimit: 15,
   ignorePaths: [
-    // re‑declare everything best-practices ignores
-    "**/vendor/**",
-    "**/dist/**",
-    "**/build/**",
-    "**/coverage/**",
-    "**/node_modules/**",
-    "**/.cache/**",
+    '**/vendor/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/coverage/**',
+    '**/node_modules/**',
+    '**/.cache/**',
   ],
   packageRules: [
     {
       groupName: 'collector-other',
       matchUpdateTypes: [
-        '!major'
+        '!major',
       ],
-      matchDepTypes: ["!golang"],
+      matchDepTypes: [
+        '!golang',
+      ],
       matchCategories: [
         'golang',
       ],
@@ -45,13 +46,17 @@
     },
     {
       groupName: 'opentelemetry-deps-collector',
-      matchDepTypes: ['indirect', 'replace', 'require'],
+      matchDepTypes: [
+        'indirect',
+        'replace',
+        'require',
+      ],
       matchUpdateTypes: [
-        '!major'
+        '!major',
       ],
       matchPackageNames: [
         'go.opentelemetry.io{/,}**',
-        'github.com/open-telemetry{/,}**'
+        'github.com/open-telemetry{/,}**',
       ],
       matchCategories: [
         'golang',
@@ -78,7 +83,7 @@
       ],
       semanticCommitType: 'build',
       schedule: [
-        'before 8am on Monday'
+        'before 8am on Monday',
       ],
     },
     {
@@ -97,7 +102,7 @@
         'opentelemetry-**',
       ],
       schedule: [
-        'before 8am on Monday'
+        'before 8am on Monday',
       ],
       semanticCommitType: 'build',
     },
@@ -107,17 +112,13 @@
         'io.opentelemetry.contrib:opentelemetry-aws-resources',
         'opentelemetry-*',
       ],
-      // Renovate's default behavior is only to update from unstable -> unstable if it's for the
-      // major.minor.patch, under the assumption that you would want to update to the stable version
-      // of that release instead of the unstable version for a future release (but there's never any
-      // stable version of opentelemetry-instrumentation-bom-alpha so this logic doesn't apply
       ignoreUnstable: false,
-      allowedVersions: '!/\\-SNAPSHOT$/'
+      allowedVersions: '!/\\-SNAPSHOT$/',
     },
     {
       groupName: 'actions',
       matchUpdateTypes: [
-        '!major'
+        '!major',
       ],
       matchManagers: [
         'github-actions',
@@ -132,7 +133,7 @@
     },
     {
       matchUpdateTypes: [
-        'major'
+        'major',
       ],
       matchManagers: [
         'github-actions',
@@ -161,7 +162,7 @@
     },
     {
       matchUpdateTypes: [
-        'major'
+        'major',
       ],
       matchManagers: [
         '!github-actions',
@@ -170,7 +171,7 @@
     },
     {
       matchUpdateTypes: [
-        'major'
+        'major',
       ],
       matchDepNames: [
         'node',
@@ -179,26 +180,32 @@
     },
     {
       matchManagers: [
-        "gomod"
+        'gomod',
       ],
       matchUpdateTypes: [
-        "major"
+        'major',
       ],
       dependencyDashboardApproval: false,
       prBodyNotes: [
-        ":warning: MAJOR VERSION UPDATE :warning: - if diff is empty, revert last commit, manually update the imports within this project to the new version and re-run go mod tidy."
+        ':warning: MAJOR VERSION UPDATE :warning: - if diff is empty, revert last commit, manually update the imports within this project to the new version and re-run go mod tidy.',
       ],
     },
     {
-      groupName: "Lock file maintenance golang",
-      matchDepTypes: ["indirect", "replace"],
-      matchUpdateTypes: ["minor", "patch"],
+      groupName: 'Lock file maintenance golang',
+      matchDepTypes: [
+        'indirect',
+        'replace',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
-      abandonmentThreshold: "50 years",
+      prBodyTemplate: '{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}',
+      abandonmentThreshold: '50 years',
       schedule: [
         'before 8am on Wednesday',
       ],
@@ -209,25 +216,33 @@
       ],
     },
     {
-      description: "Ensure source compatibility with Go version used by this project",
-      matchManagers: ["gomod"],
-      constraintsFiltering: "strict"
+      description: 'Ensure source compatibility with Go version used by this project',
+      matchManagers: [
+        'gomod',
+      ],
+      constraintsFiltering: 'strict',
     },
     {
-      matchManagers: ["gomod"],
-      matchDepNames: ["go"],
-      matchDepTypes: ["golang"],
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'golang',
+      ],
       separateMultipleMinor: true,
       separateMinorPatch: true,
-      rangeStrategy: "bump",
-      allowedVersions: "/^[0-9]+\\.[0-9]+\\.0$/",
-      dependencyDashboardApproval: "true",
+      rangeStrategy: 'bump',
+      allowedVersions: '/^[0-9]+\\.[0-9]+\\.0$/',
+      dependencyDashboardApproval: true,
     },
   ],
   lockFileMaintenance: {
     enabled: true,
-    commitMessageAction: "Lock file maintenance {{categories}}",
-    branchTopic: "lock-file-maintenance-{{categories}}",
+    commitMessageAction: 'Lock file maintenance {{categories}}',
+    branchTopic: 'lock-file-maintenance-{{categories}}',
     schedule: [
       'before 8am on Wednesday',
     ],
