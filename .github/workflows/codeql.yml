@@ -120,7 +120,7 @@ jobs:
     - name: setup dotnet
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
-        dotnet-version: 6.x
+        global-json-file: dotnet/global.json
       if: ${{ matrix.target.language == 'csharp' }}
 
     - name: build dotnet
