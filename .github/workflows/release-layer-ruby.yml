@@ -16,6 +16,8 @@ jobs:
       component-version: ${{ steps.build.outputs.component-version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/build-ruby-layer
         id: build
@@ -35,7 +37,8 @@ jobs:
     with:
       language: ruby
       use-existing-layer-artifact: true
-    secrets: inherit
+    secrets:
+      INTEGRATION_TEST_ROLE_ARN: ${{ secrets.INTEGRATION_TEST_ROLE_ARN }}
 
   create-release:
     permissions:
@@ -44,9 +47,11 @@ jobs:
     needs: [build-layer, integration-test]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Create Release
-        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +60,7 @@ jobs:
           name: opentelemetry-ruby-layer.zip
 
       - name: Add Binary to Release
-        run: gh release upload ${{ github.ref_name }} opentelemetry-ruby-layer.zip
+        run: gh release upload "$GITHUB_REF_NAME" opentelemetry-ruby-layer.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -109,4 +114,6 @@ jobs:
       runtimes: ruby3.3 ruby3.4
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

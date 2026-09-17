@@ -16,8 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Create Release
-        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
@@ -30,6 +32,8 @@ jobs:
       JAVAWRAPPER_VERSION: ${{ steps.build.outputs.javawrapper-version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/build-java-layer
         id: build
@@ -54,9 +58,11 @@ jobs:
 
       - name: Add Binary to Release
         run: |
-          gh release upload ${{github.ref_name}} ${{ steps.build.outputs.javawrapper-artifact-path }} ${{ steps.build.outputs.javawrapper-targz-artifact-path }}
+          gh release upload "$GITHUB_REF_NAME" "$STEPS_BUILD_OUTPUTS_JAVAWRAPPER_ARTIFACT_PATH" "$STEPS_BUILD_OUTPUTS_JAVAWRAPPER_TARGZ_ARTIFACT_PATH"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_BUILD_OUTPUTS_JAVAWRAPPER_ARTIFACT_PATH: ${{ steps.build.outputs.javawrapper-artifact-path }}
+          STEPS_BUILD_OUTPUTS_JAVAWRAPPER_TARGZ_ARTIFACT_PATH: ${{ steps.build.outputs.javawrapper-targz-artifact-path }}
 
   integration-test:
     permissions:
@@ -70,7 +76,8 @@ jobs:
     with:
       language: ${{ matrix.flavor }}
       use-existing-layer-artifact: true
-    secrets: inherit
+    secrets:
+      INTEGRATION_TEST_ROLE_ARN: ${{ secrets.INTEGRATION_TEST_ROLE_ARN }}
 
   publish-javaagent-layer:
     permissions: # required by the reusable workflow
@@ -125,7 +132,9 @@ jobs:
       runtimes: java8.al2 java11 java17 java21
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}
 
   publish-javawrapper-layer:
     permissions: # required by the reusable workflow
@@ -178,4 +187,6 @@ jobs:
       runtimes: java8.al2 java11 java17
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

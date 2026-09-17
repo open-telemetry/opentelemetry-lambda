@@ -40,6 +40,11 @@ on:
         description: '(optional) Layer version to be used in the layer name. If no input is given, its value is tried to be extracted from the `GITHUB_REF_NAME` variable'
         required: false
         type: string
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN:
+        required: false
+      PROD_LAMBDA_ROLE_ARN:
+        required: false
 
 permissions:
   contents: read
@@ -55,27 +60,27 @@ jobs:
       - name: Construct Layer Name
         shell: bash
         run: |
-          LAYER_NAME=${{ inputs.layer-name }}
+          LAYER_NAME="${INPUTS_LAYER_NAME}"
           
-          if [[ -n "${{ inputs.architecture }}" ]]; then
-            LAYER_NAME=$LAYER_NAME-${{ inputs.architecture }}
-            ARCH=$(echo "${{ inputs.architecture }}" | sed -r 's/amd64/x86_64/g')
+          if [[ -n "${INPUTS_ARCHITECTURE}" ]]; then
+            LAYER_NAME="${LAYER_NAME}-${INPUTS_ARCHITECTURE}"
+            ARCH=$(echo "${INPUTS_ARCHITECTURE}" | sed -r 's/amd64/x86_64/g')
           else
             ARCH="x86_64 arm64"
           fi
           echo "ARCH=$ARCH" >> $GITHUB_ENV
           
-          if [[ -n "${{ inputs.runtimes }}" ]]; then
-            COMPATIBLE_RUNTIMES="--compatible-runtimes ${{ inputs.runtimes }}"
+          if [[ -n "${INPUTS_RUNTIMES}" ]]; then
+            COMPATIBLE_RUNTIMES="--compatible-runtimes ${INPUTS_RUNTIMES}"
           fi
           echo "COMPATIBLE_RUNTIMES=$COMPATIBLE_RUNTIMES" >> $GITHUB_ENV
           
-          if [[ "${{ inputs.release-group }}" != "prod" ]]; then
-            LAYER_NAME=$LAYER_NAME-${{ inputs.release-group }}
+          if [[ "${INPUTS_RELEASE_GROUP}" != "prod" ]]; then
+            LAYER_NAME="${LAYER_NAME}-${INPUTS_RELEASE_GROUP}"
           fi
           
-          if [[ -n "${{ inputs.layer-version }}" ]]; then
-            LAYER_VERSION="${{ inputs.layer-version }}"
+          if [[ -n "${INPUTS_LAYER_VERSION}" ]]; then
+            LAYER_VERSION="${INPUTS_LAYER_VERSION}"
           else
             LAYER_VERSION=$(echo "$GITHUB_REF_NAME" | sed -r 's/.*\/[^0-9\.]*//g')
           fi
@@ -88,6 +93,12 @@ jobs:
           
           echo GITHUB_ENV:
           cat $GITHUB_ENV
+        env:
+          INPUTS_LAYER_NAME: ${{ inputs.layer-name }}
+          INPUTS_ARCHITECTURE: ${{ inputs.architecture }}
+          INPUTS_RUNTIMES: ${{ inputs.runtimes }}
+          INPUTS_RELEASE_GROUP: ${{ inputs.release-group }}
+          INPUTS_LAYER_VERSION: ${{ inputs.layer-version }}
 
       - name: Download built layer
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -109,11 +120,14 @@ jobs:
               --license-info "Apache 2.0" \
               --compatible-architectures $ARCH \
               $COMPATIBLE_RUNTIMES \
-              --zip-file fileb://${{ inputs.artifact-name }} \
+              --zip-file "fileb://${INPUTS_ARTIFACT_NAME}" \
               --query 'LayerVersionArn' \
               --output text
           )
-          echo "::notice ::$LAYER_ARN component-version=${{ inputs.component-version }}"
+          echo "::notice ::$LAYER_ARN component-version=${INPUTS_COMPONENT_VERSION}"
+        env:
+          INPUTS_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          INPUTS_COMPONENT_VERSION: ${{ inputs.component-version }}
         # echo "* $LAYER_ARN" >> $GITHUB_STEP_SUMMARY
 
       - name: Make Layer Public

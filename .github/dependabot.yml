@@ -14,6 +14,8 @@ updates:
       - "/go/sample-apps/function"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       opentelemetry-deps-collector:
         patterns:
@@ -27,6 +29,8 @@ updates:
       - "/java"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       opentelemetry-deps-java:
         patterns:
@@ -42,6 +46,8 @@ updates:
       - "/nodejs/sample-apps/aws-sdk"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       opentelemetry-deps-nodejs:
         patterns:
@@ -58,6 +64,8 @@ updates:
       - "/python/src/otel/tests"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       opentelemetry-deps-python:
         patterns:
@@ -72,6 +80,8 @@ updates:
       - "/ruby/sample-apps/function"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       opentelemetry-deps-ruby:
         patterns:
