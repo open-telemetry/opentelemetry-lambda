@@ -29,6 +29,7 @@
       matchUpdateTypes: [
         '!major'
       ],
+      matchDepTypes: ["!golang"],
       matchCategories: [
         'golang',
       ],
@@ -194,7 +195,7 @@
         'golang',
       ],
       enabled: true,
-      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
+      prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
       abandonmentThreshold: "50 years",
       schedule: [
         'before 8am on Wednesday',
@@ -204,7 +205,22 @@
         'gomodTidyE',
         'gomodUpdateImportPaths',
       ],
-    }
+    },
+    {
+      description: "Ensure source compatibility with Go version used by this project",
+      matchManagers: ["gomod"],
+      constraintsFiltering: "strict"
+    },
+    {
+      matchManagers: ["gomod"],
+      matchDepNames: ["go"],
+      matchDepTypes: ["golang"],
+      separateMultipleMinor: true,
+      separateMinorPatch: true,
+      rangeStrategy: "bump",
+      allowedVersions: "/^[0-9]+\\.[0-9]+\\.0$/",
+      dependencyDashboardApproval: "true",
+    },
   ],
   lockFileMaintenance: {
     enabled: true,

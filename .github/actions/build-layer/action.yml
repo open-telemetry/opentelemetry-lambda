@@ -19,16 +19,16 @@ runs:
   steps:
     - if: ${{ inputs.language == 'nodejs' }}
       id: nodejs
-      uses: ./.github/actions/build-nodejs-layer
+      uses: $/.github/actions/build-nodejs-layer
 
     - if: ${{ inputs.language == 'python' }}
       id: python
-      uses: ./.github/actions/build-python-layer
+      uses: $/.github/actions/build-python-layer
 
     - if: ${{ inputs.language == 'ruby' }}
       id: ruby
-      uses: ./.github/actions/build-ruby-layer
+      uses: $/.github/actions/build-ruby-layer
 
     - if: ${{ inputs.language == 'javaagent' || inputs.language == 'javawrapper' }}
       id: java
-      uses: ./.github/actions/build-java-layer
+      uses: $/.github/actions/build-java-layer
