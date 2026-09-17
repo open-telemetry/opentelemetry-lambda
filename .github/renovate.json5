@@ -45,6 +45,7 @@
     },
     {
       groupName: 'opentelemetry-deps-collector',
+      matchDepTypes: ['indirect', 'replace', 'require'],
       matchUpdateTypes: [
         '!major'
       ],
@@ -55,6 +56,7 @@
       matchCategories: [
         'golang',
       ],
+      enabled: true,
       postUpdateOptions: [
         'gomodTidyAll',
         'gomodTidyE',
