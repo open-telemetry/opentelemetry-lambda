@@ -190,12 +190,11 @@
     {
       groupName: "Lock file maintenance golang",
       matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: ["minor", "patch"],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      separateMajorMinor: false,
-      separateMultipleMajor: false,
       prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
       abandonmentThreshold: "50 years",
       schedule: [
