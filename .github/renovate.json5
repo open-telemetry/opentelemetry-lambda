@@ -192,7 +192,9 @@
     {
       groupName: "Lock file maintenance golang",
       matchDepTypes: ["indirect", "replace"],
-      matchUpdateTypes: ["minor", "patch"],
+      matchUpdateTypes: [
+        '!major'
+      ],
       matchCategories: [
         'golang',
       ],
