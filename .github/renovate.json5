@@ -25,11 +25,21 @@
   ],
   packageRules: [
     {
+      matchDepTypes: ["indirect", "replace"],
+      matchCategories: [
+        'golang',
+      ],
+      enabled: true,
+      abandonmentThreshold: "50 years",
+    },
+    {
       groupName: 'collector-other',
       matchUpdateTypes: [
         '!major'
       ],
-      matchDepTypes: ["!golang"],
+      matchDepTypes: [
+        'require',
+      ],
       matchCategories: [
         'golang',
       ],
@@ -45,7 +55,6 @@
     },
     {
       groupName: 'opentelemetry-deps-collector',
-      matchDepTypes: ['indirect', 'replace', 'require'],
       matchUpdateTypes: [
         '!major'
       ],
@@ -56,7 +65,6 @@
       matchCategories: [
         'golang',
       ],
-      enabled: true,
       postUpdateOptions: [
         'gomodTidyAll',
         'gomodTidyE',
@@ -198,9 +206,7 @@
       matchCategories: [
         'golang',
       ],
-      enabled: true,
       prBodyTemplate: "{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
-      abandonmentThreshold: "50 years",
       schedule: [
         'before 8am on Wednesday',
       ],
@@ -209,6 +215,17 @@
         'gomodTidyE',
         'gomodUpdateImportPaths',
       ],
+    },
+
+    {
+      matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: [
+        'major'
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      enabled: false,
     },
     {
       description: "Ensure source compatibility with Go version used by this project",
