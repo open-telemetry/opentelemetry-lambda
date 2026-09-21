@@ -71,7 +71,7 @@ permissions:
 
 jobs:
   prepare-build-jobs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       build_jobs: ${{ steps.prepare-build-jobs.outputs.build_jobs }}
     steps:
@@ -89,7 +89,7 @@ jobs:
           GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
   build-layer:
     needs: prepare-build-jobs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       matrix: ${{ fromJSON(needs.prepare-build-jobs.outputs.build_jobs) }}
     steps:
@@ -121,7 +121,7 @@ jobs:
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
   prepare-release-jobs:
     needs: build-layer
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       release_jobs: ${{ steps.prepare-release-jobs.outputs.release_jobs }}
     steps:

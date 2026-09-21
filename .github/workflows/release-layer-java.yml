@@ -13,7 +13,7 @@ jobs:
   create-release:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -25,7 +25,7 @@ jobs:
   build-layer:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: create-release
     outputs:
       JAVAAGENT_VERSION: ${{ steps.build.outputs.javaagent-version }}
