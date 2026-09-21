@@ -35,7 +35,7 @@ permissions:
 
 jobs:
   prepare-languages:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       languages: ${{ steps.prepare-languages.outputs.languages }}
     steps:
@@ -52,7 +52,7 @@ jobs:
           INPUTS_LANGUAGE: ${{ inputs.language }}
 
   build-collector:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -73,7 +73,7 @@ jobs:
   build-layer:
     needs: prepare-languages
     if: ${{ !inputs.use-existing-layer-artifact }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +102,7 @@ jobs:
       matrix:
         language: ${{ fromJson(needs.prepare-languages.outputs.languages) }}
         architecture: [amd64, arm64]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write
