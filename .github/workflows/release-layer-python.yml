@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-layer:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       component-version: ${{ steps.build.outputs.component-version }}
     steps:
@@ -43,7 +43,7 @@ jobs:
   create-release:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build-layer, integration-test]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -53,7 +53,7 @@ jobs:
   publish_layer:
     permissions:
       id-token: write # required for AWS OIDC authentication
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
 
