@@ -128,7 +128,7 @@ See the [Contributing Guide](CONTRIBUTING.md) for details.
 
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
 - [Tyler Benson](https://github.com/tylerbenson), ServiceNow
-- [Warre Pessers](https://github.com/wpessers)
+- [Warre Pessers](https://github.com/wpessers), Dash0
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
@@ -136,7 +136,7 @@ For more information about the maintainer role, see the [community repository](h
 
 - [James Thompson](https://github.com/thompson-tomo)
 - [Lukas Hering](https://github.com/herin049)
-- [Raphael Manke](https://github.com/raphaelmanke)
+- [Raphael Manke](https://github.com/raphaelmanke), Dash0
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
