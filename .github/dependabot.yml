@@ -23,20 +23,3 @@ updates:
       collector-other:
         patterns:
           - "*"
-
-  - package-ecosystem: "npm"
-    directories:
-      - "/nodejs"
-      - "/nodejs/packages/layer"
-      - "/nodejs/sample-apps/aws-sdk"
-    schedule:
-      interval: "monthly"
-    cooldown:
-      default-days: 7
-    groups:
-      opentelemetry-deps-nodejs:
-        patterns:
-          - "@opentelemetry/*"
-      nodejs-other:
-        patterns:
-          - "*"
