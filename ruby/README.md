@@ -3,7 +3,6 @@
 Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on AWS Lambda for Ruby.
 
 **Requirement**
-* Ruby 3.3.0/3.4.0
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 * [Go](https://go.dev/doc/install)
@@ -17,7 +16,7 @@ Scripts and files used to build AWS Lambda Layers for running OpenTelemetry on A
 ./build.sh
 ```
 
-Layer is stored in `src/build` folder
+Layer is stored in `src/build`. It contains gems for Ruby 3.3 and 3.4 on x86_64 and arm64. Only Docker is needed; building the non-native architecture needs QEMU binfmt (e.g. `docker run --privileged --rm tonistiigi/binfmt --install all`).
 
 **Default GEM_PATH**
 
