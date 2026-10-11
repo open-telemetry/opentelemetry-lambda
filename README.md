@@ -127,7 +127,7 @@ See the [Contributing Guide](CONTRIBUTING.md) for details.
 ### Maintainers
 
 - [Serkan Özal](https://github.com/serkan-ozal), Catchpoint
-- [Tyler Benson](https://github.com/tylerbenson), ServiceNow
+- [Tyler Benson](https://github.com/tylerbenson), Mainwave
 - [Warre Pessers](https://github.com/wpessers), Dash0
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
