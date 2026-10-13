@@ -20,7 +20,6 @@ runs:
         SDK_VERSION=$(sed -n 's/^    opentelemetry-sdk (\([^)]*\))$/\1/p' otel/layer/Gemfile.lock)
         echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
 
-    # The layer also contains arm64 gems, built in emulated arm64 stages.
     - name: Set up QEMU
       uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       with:
