@@ -111,7 +111,7 @@ jobs:
       artifact-name: opentelemetry-ruby-layer.zip
       layer-name: opentelemetry-ruby
       component-version: ${{ needs.build-layer.outputs.component-version }}
-      runtimes: ruby3.3 ruby3.4
+      runtimes: ruby3.3 ruby3.4 ruby4.0
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets:
