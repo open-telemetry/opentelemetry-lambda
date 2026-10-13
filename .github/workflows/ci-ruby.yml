@@ -5,12 +5,14 @@ on:
     paths:
       - 'ruby/**'
       - '.github/workflows/ci-ruby.yml'
+      - '.github/actions/build-ruby-layer/**'
     branches:
       - main
   pull_request:
     paths:
       - 'ruby/**'
       - '.github/workflows/ci-ruby.yml'
+      - '.github/actions/build-ruby-layer/**'
     branches:
       - main
 
@@ -25,6 +27,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Build Ruby layer
-        shell: bash
-        working-directory: ruby/src
-        run: ./build.sh
+        uses: $/.github/actions/build-ruby-layer
