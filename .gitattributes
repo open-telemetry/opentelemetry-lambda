@@ -1,0 +1,2 @@
+# Ensure go.sum are classed as system generated
+**/go.sum linguist-generated=true
