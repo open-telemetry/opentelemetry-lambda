@@ -53,6 +53,23 @@ These 2 layers are meant to be used in conjunction to instrument your lambda fun
 
 To get a better understanding of the proposed design for the OpenTelemetry Lambda extension, you can see the [Design Proposal here.](docs/design_proposal.md)
 
+## Wrapper Script Configuration
+
+Each language layer includes a wrapper script (`otel-handler` or `otel-instrument`) that is invoked via `AWS_LAMBDA_EXEC_WRAPPER` before the Lambda runtime starts. These scripts configure the following environment variables:
+
+### `OTEL_PROPAGATORS`
+
+If not already set, the wrapper scripts default `OTEL_PROPAGATORS` to `tracecontext,baggage,xray`.
+
+### `OTEL_RESOURCE_ATTRIBUTES`
+
+The wrapper scripts extend `OTEL_RESOURCE_ATTRIBUTES` with:
+
+- **`service.name`** — set to the Lambda function name (`AWS_LAMBDA_FUNCTION_NAME`) if not already present.
+- **`cloud.account.id`** — the AWS account ID, read from a symlink at `/tmp/.otel-aws-account-id` that is created by the collector extension during registration. This is added automatically when the collector layer is used alongside a language layer. If the symlink does not exist (e.g., when running without the collector layer), the attribute is silently skipped.
+
+User-provided values in `OTEL_RESOURCE_ATTRIBUTES` are never overwritten.
+
 ## Features
 
 The following is a list of features provided by the OpenTelemetry layers.
