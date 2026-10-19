@@ -14,9 +14,9 @@ java {
 }
 
 dependencies {
-    implementation(platform("software.amazon.awssdk:bom:2.55.16"))
+    implementation(platform("software.amazon.awssdk:bom:2.56.0"))
     implementation("software.amazon.awssdk:sts")
-    implementation("com.amazonaws:aws-lambda-java-core:1.4.0")
+    implementation("com.amazonaws:aws-lambda-java-core:1.4.1")
     implementation("com.amazonaws:aws-lambda-java-events:3.16.1")
 }
 
