@@ -1,0 +1,3 @@
+ # Ensure lock files are classed as system generated
+**/go.sum linguist-generated=true
+**/Gemfile.lock linguist-generated=true
