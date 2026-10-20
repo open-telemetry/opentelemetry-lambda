@@ -26,13 +26,13 @@
     {
       matchDepTypes: [
         'indirect',
-        'replace",
+        'replace',
       ],
       matchCategories: [
         'golang',
       ],
       enabled: true,
-      abandonmentThreshold: "50 years",
+      abandonmentThreshold: '50 years',
     },
     {
       groupName: 'collector-other',
