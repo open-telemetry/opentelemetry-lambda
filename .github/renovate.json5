@@ -207,10 +207,15 @@
       matchCategories: [
         'golang',
       ],
+      matchPackageNames: [
+        '!go.opentelemetry.io{/,}**',
+        '!github.com/open-telemetry{/,}**',
+      ],
       prBodyTemplate: '{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}',
       schedule: [
         'before 8am on Wednesday',
       ],
+      constraintsFiltering: 'strict',
       postUpdateOptions: [
         'gomodTidyAll',
         'gomodTidyE',
