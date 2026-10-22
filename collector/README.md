@@ -5,7 +5,7 @@ The OpenTelemetry Collector Lambda Extension provides a mechanism to export tele
 
 ## Deprecation Notice
 
-The `attributes`, `resource`, and `span` processors are considered **deprecated** in the default collector layer build and will be removed in an upcoming release. The [`transform` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor), which covers the same functionality through [OTTL](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl), has been added to the default build and should be used instead.
+The `attributes`, `resource`, and `span` processors are considered **deprecated** in the default collector layer build and will be removed in an upcoming release. The [`transform` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor), which covers the same functionality through [OTTL](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl), has been added to the default build and should be used instead. The collector logs a warning at startup for every configured processor that is affected.
 
 **If your collector configuration references `attributes`, `resource`, or `span`**, you have two options before upgrading past the removal release:
 
