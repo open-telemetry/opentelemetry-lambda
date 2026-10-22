@@ -189,6 +189,7 @@
       matchManagers: [
         '!github-actions',
       ],
+      semanticCommitType: 'build',
       dependencyDashboardApproval: true,
     },
     {
@@ -198,6 +199,7 @@
       matchDepNames: [
         'node',
       ],
+      semanticCommitType: 'build',
       dependencyDashboardApproval: true,
     },
     {
@@ -211,6 +213,7 @@
       prBodyNotes: [
         ':warning: MAJOR VERSION UPDATE :warning: - if diff is empty, revert last commit, manually update the imports within this project to the new version and re-run go mod tidy.',
       ],
+      semanticCommitType: 'build',
     },
     {
       groupName: 'Lock file maintenance golang',
@@ -270,6 +273,7 @@
       rangeStrategy: 'bump',
       allowedVersions: '/^[0-9]+\\.[0-9]+\\.0$/',
       dependencyDashboardApproval: true,
+      semanticCommitType: 'build',
     },
   ],
   lockFileMaintenance: {
