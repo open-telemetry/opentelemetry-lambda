@@ -275,6 +275,34 @@
       dependencyDashboardApproval: true,
       semanticCommitType: 'build',
     },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'toolchain',
+      ],
+      separateMinorPatch: true,
+      semanticCommitType: 'build',
+    },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'toolchain',
+      ],
+      matchUpdateTypes: [
+        'minor',
+      ],
+      dependencyDashboardApproval: true,
+    },
   ],
   lockFileMaintenance: {
     enabled: true,

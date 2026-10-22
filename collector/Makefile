@@ -84,6 +84,11 @@ goimpi: install-tools
 gofmt:
 	@$(MAKE) for-all-target TARGET="fmt"
 
+.PHONY: govulncheck
+govulncheck:
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck
+	GOOS=linux GOARCH=$(GOARCH) govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
+
 .PHONY: install-tools
 install-tools:
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
@@ -98,3 +103,4 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/crosslink
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck
