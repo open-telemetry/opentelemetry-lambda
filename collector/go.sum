@@ -521,7 +521,6 @@ github.com/zeebo/xxh3 v1.1.0 h1:s7DLGDK45Dyfg7++yxI0khrfwq9661w9EN78eP/UZVs=
 github.com/zeebo/xxh3 v1.1.0/go.mod h1:IisAie1LELR4xhVinxWS5+zf1lA4p0MW4T+w+W07F5s=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
-go.opentelemetry.io/collector v0.162.0 h1:dJZqd0ma/BW7lgJkMGuBGeEg72WjLfCPv9YKS8Uye2s=
 go.opentelemetry.io/collector/client v1.69.0 h1:JaWIacYOkEq2aajAuNltTy7elsIpSPdNMe/I3+b28bY=
 go.opentelemetry.io/collector/client v1.69.0/go.mod h1:D3eMugzcsQlJyPJ0WXp2b7+yS72Uswi0e+WMQyNLzHo=
 go.opentelemetry.io/collector/component v1.69.0 h1:ZbVd2N+sCv39wUWQ4qtFG7wuTaok1EHaThbtdE/6Rn4=
