@@ -39,6 +39,9 @@ jobs:
       - name: Run tests
         run: make gotest
         working-directory: collector
+      - name: Check for known vulnerabilities
+        run: make govulncheck
+        working-directory: collector
   build:
     runs-on: ubuntu-26.04
     needs: [test]
