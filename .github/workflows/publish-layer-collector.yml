@@ -110,6 +110,7 @@ jobs:
             fi
           fi
           echo "Build tags: $BUILDTAGS"
+          make -C collector govulncheck GOARCH="${MATRIX_ARCHITECTURE}" BUILDTAGS="$BUILDTAGS"
           make -C collector package GOARCH="${MATRIX_ARCHITECTURE}" BUILDTAGS="$BUILDTAGS"
         env:
           INPUTS_BUILD_TAGS: ${{ inputs.build-tags }}

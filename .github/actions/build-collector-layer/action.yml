@@ -22,6 +22,12 @@ runs:
       with:
         go-version-file: collector/go.mod
 
+    - name: Check for known vulnerabilities
+      shell: bash
+      run: make -C collector govulncheck GOARCH="${INPUTS_ARCHITECTURE}"
+      env:
+        INPUTS_ARCHITECTURE: ${{ inputs.architecture }}
+
     - name: Build collector layer
       shell: bash
       run: make -C collector package GOARCH="${INPUTS_ARCHITECTURE}"
