@@ -63,7 +63,7 @@ func (c converter) Convert(_ context.Context, conf *confmap.Conf) error {
 	for _, name := range found {
 		c.logger.Warn("Processor is deprecated in the default collector layer build and will be removed in the next release. "+
 			"Migrate to the transform processor or build a custom layer that includes it. "+
-			"See https://github.com/open-telemetry/opentelemetry-lambda/blob/main/collector/README.md#deprecation-notice",
+			"See https://github.com/open-telemetry/opentelemetry-lambda/blob/layer-collector/0.23.0/collector/README.md#deprecation-notice",
 			zap.String("processor", name))
 	}
 	return nil
