@@ -16,6 +16,10 @@ import {
   SDKRegistrationConfig,
 } from '@opentelemetry/sdk-trace-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import {
+  InMemoryLogRecordExporter,
+  SimpleLogRecordProcessor,
+} from '@opentelemetry/sdk-logs';
 
 import { SinonSpy, spy, stub } from 'sinon';
 import assert from 'assert';
@@ -236,6 +240,58 @@ describe('wrapper', async () => {
         ['console', 'otlp'],
         [ConsoleSpanExporter, OTLPTraceExporter],
       );
+    });
+  });
+
+  describe('winston instrumentation', () => {
+    let logExporter: InMemoryLogRecordExporter;
+    let savedConfigureLoggerProvider: unknown;
+
+    beforeEach(() => {
+      // handler.spec sets a no-op configureLoggerProvider, which would stop
+      // the layer from registering its global logger provider.
+      savedConfigureLoggerProvider = (global as any).configureLoggerProvider;
+      delete (global as any).configureLoggerProvider;
+      logExporter = new InMemoryLogRecordExporter();
+      (global as any).configureLogger = (config: any) => ({
+        ...config,
+        processors: [new SimpleLogRecordProcessor({ exporter: logExporter })],
+      });
+    });
+
+    afterEach(() => {
+      delete (global as any).configureLogger;
+      if (savedConfigureLoggerProvider !== undefined) {
+        (global as any).configureLoggerProvider = savedConfigureLoggerProvider;
+      }
+    });
+
+    it('sends winston log records to the logger provider', async () => {
+      process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS = 'winston';
+      await wrap();
+
+      // Required after wrap() so the winston instrumentation can patch it.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const winston = require('winston');
+      const logger = winston.createLogger({
+        transports: [new winston.transports.Console({ silent: true })],
+      });
+      logger.info('hello from winston', { userId: 'user-123' });
+
+      // winston hands records to its transports asynchronously.
+      for (
+        let i = 0;
+        i < 50 && logExporter.getFinishedLogRecords().length === 0;
+        i++
+      ) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+
+      const records = logExporter.getFinishedLogRecords();
+      assert.strictEqual(records.length, 1);
+      assert.strictEqual(records[0].body, 'hello from winston');
+      assert.strictEqual(records[0].severityText, 'info');
+      assert.strictEqual(records[0].attributes.userId, 'user-123');
     });
   });
 });
