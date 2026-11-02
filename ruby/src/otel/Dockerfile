@@ -1,30 +1,30 @@
 # Builds one layer with gems for each Ruby version on both x86_64 and arm64.
 
-FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d AS ruby3.3-amd64
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.3:1.171.0@sha256:4bf1cea62e6d7facdfd9228ae19e1d575b3fb5ce395826e3dafeef03838b530c AS ruby3.3-amd64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d AS ruby3.3-arm64
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.3:1.171.0@sha256:4bf1cea62e6d7facdfd9228ae19e1d575b3fb5ce395826e3dafeef03838b530c AS ruby3.3-arm64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.4:1.170.0@sha256:71e021ba62c04fb8f17f26b895322023b1946426c672407159dd2d21b5ab79e1 AS ruby3.4-amd64
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.4:1.171.0@sha256:42eb2365cbbd3fcbf997be3e30ed98ca82223f2b0fd7dc909c1fbc51c9e7785b AS ruby3.4-amd64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.4:1.170.0@sha256:71e021ba62c04fb8f17f26b895322023b1946426c672407159dd2d21b5ab79e1 AS ruby3.4-arm64
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.4:1.171.0@sha256:42eb2365cbbd3fcbf997be3e30ed98ca82223f2b0fd7dc909c1fbc51c9e7785b AS ruby3.4-arm64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby4.0:1.170.0@sha256:aa59b01b9b2f34e9b3bce43cfb8ff657b25becaf97d3faa0f711d7a24aefe718 AS ruby4.0-amd64
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby4.0:1.171.0@sha256:ccb7be2926d51287111795068a82060d8fe8dc9da49ea78e1813c7ceb8d8d9fa AS ruby4.0-amd64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby4.0:1.170.0@sha256:aa59b01b9b2f34e9b3bce43cfb8ff657b25becaf97d3faa0f711d7a24aefe718 AS ruby4.0-arm64
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby4.0:1.171.0@sha256:ccb7be2926d51287111795068a82060d8fe8dc9da49ea78e1813c7ceb8d8d9fa AS ruby4.0-arm64
 COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
 RUN /build/install-gems.sh
 
-FROM public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d
+FROM public.ecr.aws/sam/build-ruby3.3:1.171.0@sha256:4bf1cea62e6d7facdfd9228ae19e1d575b3fb5ce395826e3dafeef03838b530c
 WORKDIR /build
 COPY --from=ruby3.3-amd64 /gems/ruby/ amd64/
 COPY --from=ruby3.4-amd64 /gems/ruby/ amd64/
