@@ -63,10 +63,6 @@ docs
 
 .nyc_output
 
-#lerna
-.changelog
-package.json.lerna_backup
-
 # OS generated files
 .DS_Store
 

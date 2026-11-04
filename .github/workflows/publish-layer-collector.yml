@@ -18,18 +18,35 @@ on:
         type: choice
         options:
           - all
+          - af-south-1
+          - ap-east-1
+          - ap-east-2
           - ap-northeast-1
           - ap-northeast-2
+          - ap-northeast-3
           - ap-south-1
+          - ap-south-2
           - ap-southeast-1
           - ap-southeast-2
+          - ap-southeast-3
+          - ap-southeast-4
+          - ap-southeast-5
+          - ap-southeast-6
+          - ap-southeast-7
           - ca-central-1
           - ca-west-1
           - eu-central-1
+          - eu-central-2
           - eu-north-1
+          - eu-south-1
+          - eu-south-2
           - eu-west-1
           - eu-west-2
           - eu-west-3
+          - il-central-1
+          - me-central-1
+          - me-south-1
+          - mx-central-1
           - sa-east-1
           - us-east-1
           - us-east-2
@@ -54,7 +71,7 @@ permissions:
 
 jobs:
   prepare-build-jobs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       build_jobs: ${{ steps.prepare-build-jobs.outputs.build_jobs }}
     steps:
@@ -62,42 +79,49 @@ jobs:
         name: Prepare Build Jobs
         run: |
           architectures=''
-          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+          if [ "${GITHUB_EVENT_INPUTS_ARCHITECTURE}" = 'all' ]; then
             architectures='["amd64", "arm64"]'
           else
-            architectures='["${{ github.event.inputs.architecture }}"]'
+            architectures="[\"${GITHUB_EVENT_INPUTS_ARCHITECTURE}\"]"
           fi
-          echo "build_jobs={"architecture": ${architectures}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'build_jobs={"architecture":%s}\n' "$architectures" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
   build-layer:
     needs: prepare-build-jobs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       matrix: ${{ fromJSON(needs.prepare-build-jobs.outputs.build_jobs) }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Setup Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: collector/go.mod
       - name: Build Collector
         run: |
-          if [[ -n "${{ inputs.build-tags }}" ]]; then
-            BUILDTAGS="${{ inputs.build-tags }}"
+          if [[ -n "${INPUTS_BUILD_TAGS}" ]]; then
+            BUILDTAGS="${INPUTS_BUILD_TAGS}"
             if [[ "$BUILDTAGS" != "lambdacomponents.custom"* ]]; then
               BUILDTAGS="lambdacomponents.custom,$BUILDTAGS"
             fi
           fi
           echo "Build tags: $BUILDTAGS"
-          make -C collector package GOARCH=${{ matrix.architecture }} BUILDTAGS=$BUILDTAGS
+          make -C collector package GOARCH="${MATRIX_ARCHITECTURE}" BUILDTAGS="$BUILDTAGS"
+        env:
+          INPUTS_BUILD_TAGS: ${{ inputs.build-tags }}
+          MATRIX_ARCHITECTURE: ${{ matrix.architecture }}
       - name: Upload Collector Artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
           path: ${{ github.workspace }}/collector/build/opentelemetry-collector-layer-${{ matrix.architecture }}.zip
   prepare-release-jobs:
     needs: build-layer
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       release_jobs: ${{ steps.prepare-release-jobs.outputs.release_jobs }}
     steps:
@@ -105,23 +129,26 @@ jobs:
         name: Prepare Release Jobs
         run: |
           architectures=''
-          if [ ${{ github.event.inputs.architecture }} == 'all' ]; then
+          if [ "${GITHUB_EVENT_INPUTS_ARCHITECTURE}" = 'all' ]; then
             architectures='["amd64", "arm64"]'
           else
-            architectures='["${{ github.event.inputs.architecture }}"]'
+            architectures="[\"${GITHUB_EVENT_INPUTS_ARCHITECTURE}\"]"
           fi
           aws_regions=''
-          if [ ${{ github.event.inputs.aws-region }} == 'all' ]; then
-            aws_regions='["ap-northeast-1", "ap-northeast-2", "ap-south-1", "ap-southeast-1", "ap-southeast-2", "ca-central-1", "ca-west-1", "eu-central-1", "eu-north-1", "eu-west-1", "eu-west-2", "eu-west-3", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
+          if [ "${GITHUB_EVENT_INPUTS_AWS_REGION}" = 'all' ]; then
+            aws_regions='["af-south-1", "ap-east-1", "ap-east-2", "ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-south-1", "ap-south-2", "ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-4", "ap-southeast-5", "ap-southeast-6", "ap-southeast-7", "ca-central-1", "ca-west-1", "eu-central-1", "eu-central-2", "eu-north-1", "eu-south-1", "eu-south-2", "eu-west-1", "eu-west-2", "eu-west-3", "il-central-1", "me-central-1", "me-south-1", "mx-central-1", "sa-east-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]'
           else
-            aws_regions='["${{ github.event.inputs.aws-region }}"]'
+            aws_regions="[\"${GITHUB_EVENT_INPUTS_AWS_REGION}\"]"
           fi
-          echo "release_jobs={"architecture": ${architectures}, "aws_region": ${aws_regions}}" | tr -d '[:space:]' >> $GITHUB_OUTPUT
+          printf 'release_jobs={"architecture":%s,"aws_region":%s}\n' "$architectures" "$aws_regions" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_EVENT_INPUTS_ARCHITECTURE: ${{ github.event.inputs.architecture }}
+          GITHUB_EVENT_INPUTS_AWS_REGION: ${{ github.event.inputs.aws-region }}
   release-layer:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
-    uses: ./.github/workflows/layer-publish.yml
+    uses: $/.github/workflows/layer-publish.yml
     needs: prepare-release-jobs
     strategy:
       matrix: ${{ fromJSON(needs.prepare-release-jobs.outputs.release_jobs) }}
@@ -129,10 +156,12 @@ jobs:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
       layer-name: opentelemetry-collector
       architecture: ${{ matrix.architecture }}
-      runtimes: "nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.9 python3.10 python3.11 python3.12 python3.13 python3.14"
+      runtimes: "nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.10 python3.11 python3.12 python3.13 python3.14"
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
       role-arn: ${{ github.event.inputs.role-arn }}
       component-version: 'NA'
       layer-version: ${{ github.event.inputs.layer-version }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

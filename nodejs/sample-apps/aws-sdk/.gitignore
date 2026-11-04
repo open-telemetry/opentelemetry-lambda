@@ -1,2 +1,5 @@
 cdk.out
 build
+
+# Workspaces root package-lock.json should be used
+package-lock.json

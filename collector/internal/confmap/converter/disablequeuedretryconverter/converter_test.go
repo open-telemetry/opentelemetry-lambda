@@ -48,10 +48,17 @@ func TestConvert(t *testing.T) {
 			err:      nil,
 		},
 		{
-			name:     "many queuing exporters",
-			conf:     confmap.NewFromStringMap(map[string]any{"exporters": map[string]any{"otlphttp": map[string]any{}, "otlp": map[string]any{}}}),
-			expected: confmap.NewFromStringMap(map[string]any{"exporters": map[string]any{"otlphttp": map[string]any{"sending_queue": map[string]any{"enabled": false}}, "otlp": map[string]any{"sending_queue": map[string]any{"enabled": false}}}}),
-			err:      nil,
+			name: "many queuing exporters",
+			conf: confmap.NewFromStringMap(map[string]any{"exporters": map[string]any{"otlphttp": map[string]any{}, "otlp": map[string]any{}, "otlp_http": map[string]any{}, "otlp_grpc": map[string]any{}}}),
+			expected: confmap.NewFromStringMap(map[string]any{
+				"exporters": map[string]any{
+					"otlphttp":  map[string]any{"sending_queue": map[string]any{"enabled": false}},
+					"otlp":      map[string]any{"sending_queue": map[string]any{"enabled": false}},
+					"otlp_http": map[string]any{"sending_queue": map[string]any{"enabled": false}},
+					"otlp_grpc": map[string]any{"sending_queue": map[string]any{"enabled": false}},
+				},
+			}),
+			err: nil,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

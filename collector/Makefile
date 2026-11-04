@@ -53,12 +53,12 @@ package: build
 
 .PHONY: publish
 publish:
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.9 python3.10 python3.11 python3.12 python3.13 python3.14 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.10 python3.11 python3.12 python3.13 python3.14 --query 'LayerVersionArn' --output text
 
 .PHONY: publish-layer
 publish-layer: package
 	@echo Publishing collector extension layer...
-	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.9 python3.10 python3.11 python3.12 python3.13 python3.14 --query 'LayerVersionArn' --output text
+	aws lambda publish-layer-version --layer-name $(LAYER_NAME) --zip-file fileb://$(BUILD_SPACE)/opentelemetry-collector-layer-$(GOARCH).zip --compatible-runtimes nodejs20.x nodejs22.x nodejs24.x java11 java17 java21 java25 python3.10 python3.11 python3.12 python3.13 python3.14 --query 'LayerVersionArn' --output text
 	@echo OpenTelemetry Collector layer published.
 
 .PHONY: set-otelcol-version
@@ -90,12 +90,15 @@ goimpi: install-tools
 gofmt:
 	@$(MAKE) for-all-target TARGET="fmt"
 
+.PHONY: govulncheck
+govulncheck:
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck
+	GOOS=linux GOARCH=$(GOARCH) govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
+
 .PHONY: install-tools
 install-tools:
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/client9/misspell/cmd/misspell
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/google/addlicense
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/ory/go-acc
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/pavius/impi/cmd/impi
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
@@ -106,3 +109,4 @@ install-tools:
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
 	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/crosslink
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck

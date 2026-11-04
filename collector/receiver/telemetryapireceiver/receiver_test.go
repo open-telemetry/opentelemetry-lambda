@@ -25,9 +25,11 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/receiver/receivertest"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+	"go.opentelemetry.io/otel/semconv/v1.40.0/faasconv"
 )
 
 func TestListenOnAddress(t *testing.T) {
@@ -38,16 +40,16 @@ func TestListenOnAddress(t *testing.T) {
 		{
 			desc: "listen on address without AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, "sandbox.localdomain:4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "sandbox.localdomain", addr)
 			},
 		},
 		{
 			desc: "listen on address with AWS_SAM_LOCAL env variable",
 			testFunc: func(t *testing.T) {
 				t.Setenv("AWS_SAM_LOCAL", "true")
-				addr := listenOnAddress(4325)
-				require.EqualValues(t, ":4325", addr)
+				addr := listenOnAddress()
+				require.EqualValues(t, "", addr)
 			},
 		},
 	}
@@ -56,8 +58,34 @@ func TestListenOnAddress(t *testing.T) {
 	}
 }
 
+func TestBindListener(t *testing.T) {
+	t.Setenv("AWS_SAM_LOCAL", "true")
+
+	t.Run("dynamic port allocation", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 0}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotEmpty(t, addr)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":")
+	})
+
+	t.Run("specific port", func(t *testing.T) {
+		r, err := newTelemetryAPIReceiver(&Config{Port: 4325}, receivertest.NewNopSettings(Type))
+		require.NoError(t, err)
+		listener, addr, err := r.bindListener()
+		require.NoError(t, err)
+		require.NotNil(t, listener)
+		t.Cleanup(func() { require.NoError(t, listener.Close()) })
+		require.Contains(t, addr, ":4325")
+	})
+}
+
 type mockConsumer struct {
-	consumed int
+	consumed      int
+	metricBatches []pmetric.Metrics
 }
 
 func (c *mockConsumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
@@ -69,8 +97,218 @@ func (c *mockConsumer) ConsumeLogs(ctx context.Context, td plog.Logs) error {
 	return nil
 }
 
+func (c *mockConsumer) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
+	c.metricBatches = append(c.metricBatches, md)
+	return nil
+}
+
 func (c *mockConsumer) Capabilities() consumer.Capabilities {
 	return consumer.Capabilities{MutatesData: true}
+}
+
+func TestRecordMetrics(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	slice := []event{
+		{
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+		{
+			Type: "platform.runtimeDone",
+			Record: map[string]any{
+				"status": "success",
+				"metrics": map[string]any{
+					"durationMs": 100.0,
+				},
+			},
+		},
+	}
+
+	r.recordMetrics(slice)
+
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+
+	require.Len(t, c.metricBatches, 1)
+	metrics := c.metricBatches[0]
+	require.Equal(t, 3, metrics.MetricCount()) // coldstarts, invocations and duration
+
+	foundColdstart := false
+	foundInvocation := false
+	foundDuration := false
+	rm := metrics.ResourceMetrics().At(0)
+	sm := rm.ScopeMetrics().At(0)
+	for i := 0; i < sm.Metrics().Len(); i++ {
+		m := sm.Metrics().At(i)
+		if m.Name() == (faasconv.Coldstarts{}).Name() {
+			foundColdstart = true
+		}
+		if m.Name() == (faasconv.Invocations{}).Name() {
+			foundInvocation = true
+		}
+		if m.Name() == (faasconv.InvokeDuration{}).Name() {
+			foundDuration = true
+		}
+	}
+	require.True(t, foundColdstart)
+	require.True(t, foundInvocation)
+	require.True(t, foundDuration)
+}
+
+func TestMetricTimestampMatchesEventTime(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	const earliest = "2006-01-02T15:04:04.000Z"
+	const latest = "2006-01-02T15:04:05.000Z"
+
+	slice := []event{
+		{
+			Time: earliest,
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+		{
+			Time: latest,
+			Type: "platform.runtimeDone",
+			Record: map[string]any{
+				"status": "success",
+				"metrics": map[string]any{
+					"durationMs": 100.0,
+				},
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+
+	expected, err := time.Parse(time.RFC3339, latest)
+	require.NoError(t, err)
+	expectedTS := pcommon.NewTimestampFromTime(expected)
+
+	sm := c.metricBatches[0].ResourceMetrics().At(0).ScopeMetrics().At(0)
+	require.Greater(t, sm.Metrics().Len(), 0)
+	for i := 0; i < sm.Metrics().Len(); i++ {
+		m := sm.Metrics().At(i)
+		switch m.Type() {
+		case pmetric.MetricTypeSum:
+			dps := m.Sum().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "sum metric %q dp %d", m.Name(), j)
+			}
+		case pmetric.MetricTypeHistogram:
+			dps := m.Histogram().DataPoints()
+			for j := 0; j < dps.Len(); j++ {
+				require.Equal(t, expectedTS, dps.At(j).Timestamp(), "histogram metric %q dp %d", m.Name(), j)
+			}
+		}
+	}
+}
+
+func TestFlushMetricsIntervalImmediate(t *testing.T) {
+	// Test immediate flush when interval = 0
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 0},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestFlushMetricsIntervalDelayed(t *testing.T) {
+	// Test delayed flush when interval > 0
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 0)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestShutdownFlushesMetrics(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{ExportInterval: 60000},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	req := httptest.NewRequest("POST", "http://localhost/", strings.NewReader(`[{"time":"2006-01-02T15:04:04.000Z", "type":"platform.initStart", "record": {"foo":"bar"}}]`))
+	r.httpHandler(httptest.NewRecorder(), req)
+	require.Len(t, c.metricBatches, 0)
+
+	err = r.Shutdown(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 1)
+}
+
+func TestFlushMetricsNilConsumer(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+
+	slice := []event{
+		{
+			Type: "platform.initStart",
+			Record: map[string]any{
+				"functionName": "test-func",
+			},
+		},
+	}
+	r.recordMetrics(slice)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+}
+
+func TestFlushMetricsNoData(t *testing.T) {
+	r, err := newTelemetryAPIReceiver(
+		&Config{},
+		receivertest.NewNopSettings(Type),
+	)
+	require.NoError(t, err)
+	c := &mockConsumer{}
+	r.registerMetricsConsumer(c)
+
+	err = r.flushMetrics(context.Background())
+	require.NoError(t, err)
+	require.Len(t, c.metricBatches, 0)
 }
 
 func TestHandler(t *testing.T) {
@@ -182,6 +420,7 @@ func TestCreateLogs(t *testing.T) {
 		containsRequestId bool
 		requestId         string
 		severityNumber    plog.SeverityNumber
+		attributes        map[string]interface{}
 	}
 
 	testCases := []struct {
@@ -296,6 +535,137 @@ func TestCreateLogs(t *testing.T) {
 					body:              "Hello world, I am a function!",
 					containsRequestId: true,
 					requestId:         "79b4f56e-95b1-4643-9700-2807f4e68189",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+				},
+			},
+			expectError: false,
+		},
+		{
+			desc: "function json with extra fields",
+			slice: []event{
+				{
+					Time: "2026-02-26T20:15:32.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp":              "2026-02-26T20:15:32.000Z",
+						"level":                  "INFO",
+						"requestId":              "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":                "Hello world, I am a function with extra data!",
+						"extraString":            "stringValue",
+						"extraNumber":            float64(2217),
+						"extraFloat":             3.14,
+						"extraBoolean":           true,
+						"extraNull":              nil,
+						"extraArrayOfStrings":    []any{"stringValue", "stringValue"},
+						"extraArrayOfNumbers":    []any{float64(2217), float64(2217)},
+						"extraArrayOfMixedTypes": []any{"stringValue", float64(2217), true, nil},
+						"extraArrayWithNesting":  []any{"stringValue", []any{float64(2217), []any{true, nil}}},
+						"extraObject": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+						},
+						"extraObjectWithNesting": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+							"arrayValue":   []any{"stringValue", float64(2217)},
+							"objectValue": map[string]any{
+								"stringValue": "stringValue",
+								"numberValue": float64(2217),
+							},
+						},
+					},
+				},
+			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2026-02-26T20:15:32.000Z",
+					body:              "Hello world, I am a function with extra data!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
+					severityText:      "Info",
+					severityNumber:    plog.SeverityNumberInfo,
+					attributes: map[string]any{
+						"extraString":  "stringValue",
+						"extraNumber":  float64(2217),
+						"extraFloat":   float64(3.14),
+						"extraBoolean": true,
+						"extraNull":    nil,
+						"extraArrayOfStrings": []any{
+							"stringValue",
+							"stringValue",
+						},
+						"extraArrayOfNumbers": []any{
+							float64(2217),
+							float64(2217),
+						},
+						"extraArrayOfMixedTypes": []any{
+							"stringValue",
+							float64(2217),
+							true,
+							nil,
+						},
+						"extraArrayWithNesting": []any{
+							"stringValue",
+							[]any{
+								float64(2217),
+								[]any{
+									true, nil,
+								},
+							},
+						},
+						"extraObject": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+						},
+						"extraObjectWithNesting": map[string]any{
+							"stringValue":  "stringValue",
+							"numberValue":  float64(2217),
+							"booleanValue": true,
+							"nullValue":    nil,
+							"arrayValue": []any{
+								"stringValue",
+								float64(2217),
+							},
+							"objectValue": map[string]any{
+								"stringValue": "stringValue",
+								"numberValue": float64(2217),
+							},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			desc: "function json with keeping reserved fields intact",
+			slice: []event{
+				{
+					Time: "2026-02-26T20:15:32.000Z",
+					Type: "function",
+					Record: map[string]any{
+						"timestamp": "2026-02-26T20:15:32.000Z",
+						"level":     "INFO",
+						"requestId": "79b4f56e-95b1-4643-9700-2807f4e6",
+						"message":   "Hello world, I am a function with overriden type field!",
+						"type":      "override",
+					},
+				},
+			},
+			expectedLogs: []logInfo{
+				{
+					logType:           "function",
+					timestamp:         "2026-02-26T20:15:32.000Z",
+					body:              "Hello world, I am a function with overriden type field!",
+					containsRequestId: true,
+					requestId:         "79b4f56e-95b1-4643-9700-2807f4e6",
 					severityText:      "Info",
 					severityNumber:    plog.SeverityNumberInfo,
 				},
@@ -643,6 +1013,13 @@ func TestCreateLogs(t *testing.T) {
 				require.Equal(t, expected.severityText, logRecord.SeverityText())
 				require.Equal(t, expected.severityNumber, logRecord.SeverityNumber())
 				require.Equal(t, expected.body, logRecord.Body().Str())
+
+				// Check expected attributes
+				for key, value := range expected.attributes {
+					attr, ok := logRecord.Attributes().Get(key)
+					require.True(t, ok, "expected attribute %s not found", key)
+					require.Equal(t, value, attr.AsRaw(), "expected attribute %s to have value %v, got %v", key, value, attr.AsRaw())
+				}
 			}
 		})
 	}
@@ -670,7 +1047,7 @@ func TestCreateLogsWithLogReport(t *testing.T) {
 					Type: "platform.report",
 					Record: map[string]any{
 						"requestId": "test-request-id-123",
-						"status": "success",
+						"status":    "success",
 						"metrics": map[string]any{
 							"durationMs":       123.45,
 							"billedDurationMs": float64(124),

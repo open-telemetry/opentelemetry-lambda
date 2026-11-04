@@ -15,7 +15,7 @@ import { init, wrap, unwrap } from '../src/wrapper';
 const assertHandlerSpan = (span: ReadableSpan) => {
   assert.strictEqual(span.kind, SpanKind.SERVER);
   assert.strictEqual(span.name, 'my_function');
-  assert.strictEqual(span.attributes['faas.id'], 'my_arn');
+  assert.strictEqual(span.attributes['cloud.resource_id'], 'my_arn');
   assert.strictEqual(span.status.code, SpanStatusCode.UNSET);
   assert.strictEqual(span.status.message, undefined);
 };
