@@ -4,6 +4,11 @@ import url from 'url';
 import assert from 'assert';
 
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
+import { logs } from '@opentelemetry/api-logs';
+import {
+  BatchLogRecordProcessor,
+  InMemoryLogRecordExporter,
+} from '@opentelemetry/sdk-logs';
 import {
   BatchSpanProcessor,
   InMemorySpanExporter,
@@ -25,6 +30,7 @@ const assertHandlerSpan = span => {
 describe('when loading ESM module', async () => {
   let oldEnv;
   const memoryExporter = new InMemorySpanExporter();
+  const logExporter = new InMemoryLogRecordExporter();
 
   const ctx = {
     functionName: 'my_function',
@@ -44,7 +50,19 @@ describe('when loading ESM module', async () => {
     };
     global.configureMeter = _ => {};
     global.configureMeterProvider = _ => {};
-    global.configureLoggerProvider = _ => {};
+    global.configureLogger = config => ({
+      ...config,
+      processors: [
+        new BatchLogRecordProcessor({
+          exporter: logExporter,
+          scheduledDelayMillis: 60000,
+        }),
+      ],
+    });
+    global.configureLambdaInstrumentation = config => ({
+      ...config,
+      responseHook: () => logs.getLogger('test').emit({ body: 'response log' }),
+    });
 
     await wrap();
   };
@@ -72,6 +90,7 @@ describe('when loading ESM module', async () => {
   afterEach(async () => {
     process.env = oldEnv;
     memoryExporter.reset();
+    logExporter.reset();
 
     await unwrap();
   });
@@ -84,6 +103,10 @@ describe('when loading ESM module', async () => {
     const result = await lambdaModule.handler('arg', ctx);
 
     assert.strictEqual(result, 'ok');
+    assert.deepStrictEqual(
+      logExporter.getFinishedLogRecords().map(record => record.body),
+      ['response log'],
+    );
 
     const spans = memoryExporter.getFinishedSpans();
     assert.strictEqual(spans.length, 1);
@@ -99,6 +122,10 @@ describe('when loading ESM module', async () => {
     const result = await lambdaModule.handler('arg', ctx);
 
     assert.strictEqual(result, 'ok');
+    assert.deepStrictEqual(
+      logExporter.getFinishedLogRecords().map(record => record.body),
+      ['response log'],
+    );
 
     const spans = memoryExporter.getFinishedSpans();
     assert.strictEqual(spans.length, 1);

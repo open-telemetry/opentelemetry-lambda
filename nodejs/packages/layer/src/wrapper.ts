@@ -3,6 +3,8 @@ import {
   diag,
   DiagConsoleLogger,
   DiagLogLevel,
+  MeterProvider,
+  metrics,
   propagation,
   TextMapPropagator,
   trace,
@@ -449,7 +451,7 @@ async function initializeMeterProvider(
 
 async function initializeLoggerProvider(
   resource: Resource,
-): Promise<unknown | undefined> {
+): Promise<import('@opentelemetry/sdk-logs').LoggerProvider | undefined> {
   if (process.env.OTEL_LOGS_EXPORTER === 'none') {
     return;
   }
@@ -510,12 +512,10 @@ async function initializeProvider() {
     detectors: [awsLambdaDetector, envDetector, processDetector],
   });
 
-  const tracerProvider: TracerProvider | undefined =
-    await initializeTracerProvider(resource);
+  const tracerProvider = await initializeTracerProvider(resource);
   const meterProvider: unknown | undefined =
     await initializeMeterProvider(resource);
-  const loggerProvider: unknown | undefined =
-    await initializeLoggerProvider(resource);
+  const loggerProvider = await initializeLoggerProvider(resource);
 
   // Create instrumentations if they have not been created before
   // to prevent additional coldstart overhead
@@ -534,6 +534,55 @@ async function initializeProvider() {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     loggerProvider: loggerProvider as any,
   });
+
+  if (loggerProvider) {
+    const provider = tracerProvider ?? trace.getTracerProvider();
+    const flushableProvider = provider as TracerProvider & {
+      getDelegate?: () => TracerProvider & { forceFlush?: () => Promise<void> };
+      forceFlush?: () => Promise<void>;
+    };
+    const delegate = flushableProvider.getDelegate?.() ?? flushableProvider;
+    const meter = (meterProvider ??
+      metrics.getMeterProvider()) as MeterProvider & {
+      forceFlush?: () => Promise<void>;
+    };
+    let pendingFlush = Promise.resolve();
+    // Lambda instrumentation only awaits trace and metric flushes. Flush all
+    // signals together so a rejection cannot complete the invocation early.
+    // Serialize flushes because callback handlers can trigger overlapping ones.
+    const invocationProvider = {
+      getTracer: provider.getTracer.bind(provider),
+      forceFlush: () => {
+        pendingFlush = pendingFlush.then(async () => {
+          const results = await Promise.allSettled([
+            Promise.resolve().then(() => delegate.forceFlush?.()),
+            Promise.resolve().then(() => meter.forceFlush?.()),
+            Promise.resolve().then(() => loggerProvider.forceFlush()),
+          ]);
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              diag.error(
+                'Error flushing telemetry before Lambda completion',
+                result.reason,
+              );
+            }
+          }
+        });
+        return pendingFlush;
+      },
+    };
+    const invocationMeterProvider = {
+      getMeter: meter.getMeter.bind(meter),
+      // Metrics are already included in the invocation flush above.
+      forceFlush: async () => {},
+    };
+    for (const instrumentation of instrumentations) {
+      if (instrumentation instanceof AwsLambdaInstrumentation) {
+        instrumentation.setTracerProvider(invocationProvider);
+        instrumentation.setMeterProvider(invocationMeterProvider);
+      }
+    }
+  }
 }
 
 export async function wrap() {
