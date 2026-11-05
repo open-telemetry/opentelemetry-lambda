@@ -32,8 +32,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/confmap/converter/decoupleafterbatchconverter"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/confmap/converter/disablequeuedretryconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/deprecatedprocessorconverter"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/logging"
 )
 
