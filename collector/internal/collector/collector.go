@@ -32,8 +32,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/confmap/converter/decoupleafterbatchconverter"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/confmap/converter/disablequeuedretryconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/deprecatedprocessorconverter"
-	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/logging"
 )
 
@@ -79,6 +80,9 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 			URIs:              []string{getConfig(l)},
 			ProviderFactories: []confmap.ProviderFactory{fileprovider.NewFactory(), envprovider.NewFactory(), yamlprovider.NewFactory(), httpsprovider.NewFactory(), httpprovider.NewFactory(), s3provider.NewFactory(), secretsmanagerprovider.NewFactory()},
 			ConverterFactories: []confmap.ConverterFactory{
+				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
+					return decoupleafterbatchconverter.New()
+				}),
 				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
 					return disablequeuedretryconverter.New()
 				}),
