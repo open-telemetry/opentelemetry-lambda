@@ -19,13 +19,15 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: collector/go.mod
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -37,18 +39,23 @@ jobs:
       - name: Run tests
         run: make gotest
         working-directory: collector
+      - name: Check for known vulnerabilities
+        run: make govulncheck
+        working-directory: collector
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [test]
     strategy:
       matrix:
         architecture: [ amd64, arm64 ]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: collector/go.mod
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -66,7 +73,7 @@ jobs:
       - name: Confirm architecture of built collector
         working-directory: collector/build/extensions
         run: |
-          grep ${{ env.LAMBDA_LAYER_ARCHITECTURE }} <<< "$(file collector)"
+          grep "${LAMBDA_LAYER_ARCHITECTURE}" <<< "$(file collector)"
       - name: Output artifact size to job summary
         working-directory: collector/build
         run: |

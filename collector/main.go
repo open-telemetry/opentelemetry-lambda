@@ -18,14 +18,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
+	"time"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/lifecycle"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/logging"
 )
 
 var (
@@ -44,36 +44,15 @@ func main() {
 		return
 	}
 
-	logger := initLogger()
+	logger := logging.NewLogger()
+	startTime := time.Now()
 	logger.Info("Launching OpenTelemetry Lambda extension", zap.String("version", Version))
 
-	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version)
+	ctx, lm := lifecycle.NewManager(context.Background(), logger, Version, startTime)
 
 	// Set the new lifecycle manager as the lifecycle notifier for all other components.
 	lambdalifecycle.SetNotifier(lm)
 
 	// Will block until shutdown event is received or cancelled via the context.
 	logger.Info("done", zap.Error(lm.Run(ctx)))
-}
-
-func initLogger() *zap.Logger {
-	lvl := zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	envLvl := os.Getenv("OPENTELEMETRY_EXTENSION_LOG_LEVEL")
-	// When not set, Getenv returns empty string
-	var err error
-	if envLvl != "" {
-		var userLvl zap.AtomicLevel
-		userLvl, err = zap.ParseAtomicLevel(envLvl)
-		if err == nil {
-			lvl = userLvl
-		}
-	}
-
-	l := zap.New(zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), os.Stdout, lvl))
-
-	if err != nil && envLvl != "" {
-		l.Warn("unable to parse log level from environment", zap.Error(err))
-	}
-
-	return l
 }

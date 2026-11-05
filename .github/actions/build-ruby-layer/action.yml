@@ -12,17 +12,20 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Build Ruby layer
-      shell: bash
-      working-directory: ruby/src
-      run: ./build.sh
-
     - name: Save Ruby OpenTelemetry SDK version
       id: version
       shell: bash
       working-directory: ruby/src
       run: |
-        unzip -q build/opentelemetry-ruby-layer.zip
-        export GEM_PATH=$PWD/ruby/gems/3.3.0/
-        SDK_VERSION=$(ruby -e 'require "opentelemetry-sdk"; puts OpenTelemetry::SDK::VERSION')
+        SDK_VERSION=$(sed -n 's/^    opentelemetry-sdk (\([^)]*\))$/\1/p' otel/layer/Gemfile.lock)
         echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      with:
+        platforms: arm64
+
+    - name: Build Ruby layer
+      shell: bash
+      working-directory: ruby/src
+      run: ./build.sh

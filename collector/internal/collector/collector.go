@@ -32,7 +32,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/deprecatedprocessorconverter"
 	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
+	"github.com/open-telemetry/opentelemetry-lambda/collector/internal/logging"
 )
 
 // Collector runs a single otelcol as a go routine within the
@@ -45,6 +47,7 @@ type Collector struct {
 	stopped   bool
 	logger    *zap.Logger
 	version   string
+	coreFunc  func(zapcore.LevelEnabler) zapcore.Core
 }
 
 func getConfig(logger *zap.Logger) string {
@@ -79,6 +82,9 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
 					return disablequeuedretryconverter.New()
 				}),
+				confmap.NewConverterFactory(func(set confmap.ConverterSettings) confmap.Converter {
+					return deprecatedprocessorconverter.New(l)
+				}),
 			},
 		},
 	}
@@ -88,6 +94,7 @@ func NewCollector(logger *zap.Logger, factories otelcol.Factories, version strin
 		cfgProSet: cfgSet,
 		logger:    logger,
 		version:   version,
+		coreFunc:  logging.NewCore,
 	}
 	return col
 }
@@ -103,18 +110,8 @@ func (c *Collector) Start(ctx context.Context) error {
 		Factories: func() (otelcol.Factories, error) {
 			return c.factories, nil
 		},
-		// TODO: fully decouple extension and collector log levels so that
-		// OPENTELEMETRY_EXTENSION_LOG_LEVEL only affects extension logs.
 		LoggingOptions: []zap.Option{zap.WrapCore(func(collectorCore zapcore.Core) zapcore.Core {
-			extensionCore := c.logger.Core()
-			if zapcore.LevelOf(collectorCore) == zapcore.InfoLevel {
-				return extensionCore
-			}
-			increased, err := zapcore.NewIncreaseLevelCore(extensionCore, collectorCore)
-			if err != nil {
-				return extensionCore
-			}
-			return increased
+			return c.coreFunc(collectorCore)
 		})},
 	}
 	var err error

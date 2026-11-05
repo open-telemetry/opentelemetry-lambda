@@ -29,28 +29,19 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-func TestCollectorConfigLogLevelIsOverridden(t *testing.T) {
+func TestCollectorConfigLogLevelSuppressesCollectorInfoLogs(t *testing.T) {
 	t.Setenv("OPENTELEMETRY_COLLECTOR_CONFIG_URI", "file:testdata/config-error-level.yaml")
 
-	receivers, err := otelcol.MakeFactoryMap(receivertest.NewNopFactory())
-	require.NoError(t, err)
-	exporters, err := otelcol.MakeFactoryMap(exportertest.NewNopFactory())
-	require.NoError(t, err)
-
-	factories := otelcol.Factories{
-		Receivers: receivers,
-		Exporters: exporters,
-		Telemetry: otelconftelemetry.NewFactory(),
+	collectorLogs := &observer.ObservedLogs{}
+	collector := NewCollector(zap.NewNop(), testFactories(t), "test")
+	collector.coreFunc = func(levelEnabler zapcore.LevelEnabler) zapcore.Core {
+		var collectorObservedCore zapcore.Core
+		collectorObservedCore, collectorLogs = observer.New(levelEnabler)
+		return collectorObservedCore
 	}
 
-	// Use a nop logger so extension logs don't end up in our observer
-	collector := NewCollector(zap.NewNop(), factories, "test")
-	// Replace collector logger with an observed core at INFO level.
-	collectorObservedCore, collectorLogs := observer.New(zapcore.InfoLevel)
-	collector.logger = zap.New(collectorObservedCore)
-
 	ctx := context.Background()
-	err = collector.Start(ctx)
+	err := collector.Start(ctx)
 	require.NoError(t, err)
 
 	err = collector.Stop()
@@ -60,4 +51,64 @@ func TestCollectorConfigLogLevelIsOverridden(t *testing.T) {
 	infoLogs := collectorLogs.FilterLevelExact(zapcore.InfoLevel).All()
 	assert.Empty(t, infoLogs,
 		"INFO logs from the collector should be suppressed when config sets level: error")
+}
+
+func TestExtensionLogLevelDoesNotSuppressCollectorLogs(t *testing.T) {
+	t.Setenv("OPENTELEMETRY_COLLECTOR_CONFIG_URI", "file:testdata/config-info-level.yaml")
+
+	extensionObservedCore, extensionLogs := observer.New(zapcore.ErrorLevel)
+	collectorLogs := &observer.ObservedLogs{}
+	collector := NewCollector(zap.New(extensionObservedCore), testFactories(t), "test")
+	collector.coreFunc = func(levelEnabler zapcore.LevelEnabler) zapcore.Core {
+		var collectorObservedCore zapcore.Core
+		collectorObservedCore, collectorLogs = observer.New(levelEnabler)
+		return collectorObservedCore
+	}
+
+	ctx := context.Background()
+	err := collector.Start(ctx)
+	require.NoError(t, err)
+
+	err = collector.Stop()
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, collectorLogs.FilterLevelExact(zapcore.InfoLevel).All(),
+		"INFO logs from the collector should be emitted when collector config sets level: info")
+	assert.Empty(t, extensionLogs.All(), "collector logs should not be written through the extension logger core")
+}
+
+func TestCollectorLogLevelDoesNotSuppressExtensionLogs(t *testing.T) {
+	t.Setenv("OPENTELEMETRY_COLLECTOR_CONFIG_URI", "file:testdata/config-error-level.yaml")
+
+	extensionObservedCore, extensionLogs := observer.New(zapcore.InfoLevel)
+	collector := NewCollector(zap.New(extensionObservedCore), testFactories(t), "test")
+	collector.coreFunc = func(levelEnabler zapcore.LevelEnabler) zapcore.Core {
+		collectorObservedCore, _ := observer.New(levelEnabler)
+		return collectorObservedCore
+	}
+
+	ctx := context.Background()
+	err := collector.Start(ctx)
+	require.NoError(t, err)
+
+	collector.logger.Info("extension log")
+
+	err = collector.Stop()
+	require.NoError(t, err)
+
+	assert.Len(t, extensionLogs.FilterMessage("extension log").All(), 1,
+		"extension logs should be controlled by the extension logger, not collector config")
+}
+
+func testFactories(t *testing.T) otelcol.Factories {
+	receivers, err := otelcol.MakeFactoryMap(receivertest.NewNopFactory())
+	require.NoError(t, err)
+	exporters, err := otelcol.MakeFactoryMap(exportertest.NewNopFactory())
+	require.NoError(t, err)
+
+	return otelcol.Factories{
+		Receivers: receivers,
+		Exporters: exporters,
+		Telemetry: otelconftelemetry.NewFactory(),
+	}
 }

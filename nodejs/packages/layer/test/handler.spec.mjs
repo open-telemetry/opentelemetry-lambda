@@ -17,7 +17,7 @@ const DIR_NAME = path.dirname(url.fileURLToPath(import.meta.url));
 const assertHandlerSpan = span => {
   assert.strictEqual(span.kind, SpanKind.SERVER);
   assert.strictEqual(span.name, 'my_function');
-  assert.strictEqual(span.attributes['faas.id'], 'my_arn');
+  assert.strictEqual(span.attributes['cloud.resource_id'], 'my_arn');
   assert.strictEqual(span.status.code, SpanStatusCode.UNSET);
   assert.strictEqual(span.status.message, undefined);
 };

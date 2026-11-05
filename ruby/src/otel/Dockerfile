@@ -1,60 +1,48 @@
-FROM ubuntu:latest
+# Builds one layer with gems for each Ruby version on both x86_64 and arm64.
 
-RUN mkdir /build
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d AS ruby3.3-amd64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-COPY . /build
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d AS ruby3.3-arm64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-RUN apt-get update && apt-get install -y git curl libssl-dev libreadline-dev zlib1g-dev autoconf bison build-essential libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev zip
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby3.4:1.170.0@sha256:71e021ba62c04fb8f17f26b895322023b1946426c672407159dd2d21b5ab79e1 AS ruby3.4-amd64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-RUN  git clone https://github.com/rbenv/rbenv.git ~/.rbenv \
-     && git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build \
-     && git clone https://github.com/rbenv/rbenv-default-gems.git ~/.rbenv/plugins/rbenv-default-gems \
-     && echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.profile \
-     && echo 'eval "$(rbenv init -)"' >> ~/.profile \
-     && echo 'eval "$(rbenv init -)"' >> ~/.bashrc \
-     && echo 'bundler' > ~/.rbenv/default-gems
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby3.4:1.170.0@sha256:71e021ba62c04fb8f17f26b895322023b1946426c672407159dd2d21b5ab79e1 AS ruby3.4-arm64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-RUN echo 'alias be="bundle exec"' >> ~/.bashrc
-RUN echo 'alias be="bundle exec"' >> ~/.profile
+FROM --platform=linux/amd64 public.ecr.aws/sam/build-ruby4.0:1.170.0@sha256:aa59b01b9b2f34e9b3bce43cfb8ff657b25becaf97d3faa0f711d7a24aefe718 AS ruby4.0-amd64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-# install rubies to build our gem against Gemfile
-RUN . ~/.profile \
-   && cd /root/.rbenv/plugins/ruby-build && git pull && cd - \
-   && rbenv install 3.3.0 \
-   && rbenv install 3.4.0
+FROM --platform=linux/arm64 public.ecr.aws/sam/build-ruby4.0:1.170.0@sha256:aa59b01b9b2f34e9b3bce43cfb8ff657b25becaf97d3faa0f711d7a24aefe718 AS ruby4.0-arm64
+COPY layer/Gemfile layer/Gemfile.lock install-gems.sh /build/
+RUN /build/install-gems.sh
 
-WORKDIR /build/layer
-
-RUN . ~/.profile && rbenv local 3.3.0 && bundle install
-RUN . ~/.profile && rbenv local 3.4.0 && bundle install
-
-WORKDIR /root/.rbenv/versions/3.3.0/lib/ruby/gems/
-RUN zip -r gems-3.3.0.zip 3.3.0/
-
-WORKDIR /root/.rbenv/versions/3.4.0/lib/ruby/gems/
-
-# rbenv install 3.4.0 get 3.4.0+1/, so need to change back to 3.4.0+1
-RUN mv 3.4.0+1/ 3.4.0/
-RUN set -e && \
-  dir=$(find /root/.rbenv/versions/3.4.0/lib/ruby/gems/ -type d -name '3.4.0+1' | head -n 1) && \
-  target=$(echo "$dir" | sed 's/3\.4\.0+1/3.4.0/') && \
-  mv "$dir" "$target"
-RUN zip -r gems-3.4.0.zip 3.4.0/
-
-# copy gems to /build/ruby/gems for zipping 
-RUN mkdir /build/ruby && mkdir /build/ruby/gems
-WORKDIR /build/ruby/gems
-RUN cp /root/.rbenv/versions/3.3.0/lib/ruby/gems/gems-3.3.0.zip . && unzip gems-3.3.0.zip && rm gems-3.3.0.zip
-RUN cp /root/.rbenv/versions/3.4.0/lib/ruby/gems/gems-3.4.0.zip . && unzip gems-3.4.0.zip && rm gems-3.4.0.zip
-RUN ls -al /build/ruby/gems
-
-# rm gem cache
-RUN rm /root/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0/cache/* \
-    && rm /root/.rbenv/versions/3.4.0/lib/ruby/gems/3.4.0/cache/*
-
-# zip all the gems
+FROM public.ecr.aws/sam/build-ruby3.3:1.170.0@sha256:2a435b9d7fb00ce6f7faae69025d5e61efab0637830e3a98a7dad5389cd7840d
 WORKDIR /build
-RUN cp layer/otel-handler . && cp layer/wrapper.rb .
-RUN zip -r opentelemetry-ruby-layer.zip ruby/ otel-handler wrapper.rb
+COPY --from=ruby3.3-amd64 /gems/ruby/ amd64/
+COPY --from=ruby3.4-amd64 /gems/ruby/ amd64/
+COPY --from=ruby4.0-amd64 /gems/ruby/ amd64/
+COPY --from=ruby3.3-arm64 /gems/ruby/ arm64/
+COPY --from=ruby3.4-arm64 /gems/ruby/ arm64/
+COPY --from=ruby4.0-arm64 /gems/ruby/ arm64/
 
-CMD cp /build/opentelemetry-ruby-layer.zip /out/opentelemetry-ruby-layer.zip
+RUN if diff -rq amd64 arm64 2>&1 | grep -v '^Only in '; then \
+      echo "ERROR: amd64 and arm64 gem trees clash on the paths above" >&2; exit 1; \
+    fi
+
+RUN mkdir -p ruby/gems \
+    && cp -a amd64/. ruby/gems/ \
+    && cp -a arm64/. ruby/gems/
+
+COPY layer/otel-handler ./
+COPY layer/wrapper.rb ./
+RUN zip -qr opentelemetry-ruby-layer.zip ruby/ otel-handler wrapper.rb
+
+CMD ["cp", "/build/opentelemetry-ruby-layer.zip", "/out/opentelemetry-ruby-layer.zip"]

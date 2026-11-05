@@ -1,0 +1,326 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:best-practices',
+    'helpers:pinGitHubActionDigestsToSemver',
+    ':separateMultipleMajorReleases',
+  ],
+  gitIgnoredAuthors: [
+    '107717825+opentelemetrybot@users.noreply.github.com',
+    '107717825+opentelemetrybot[bot]@users.noreply.github.com',
+    '197425009+otelbot@users.noreply.github.com',
+    '197425009+otelbot[bot]@users.noreply.github.com',
+    'github-actions[bot]@users.noreply.github.com',
+  ],
+  prHourlyLimit: 15,
+  prConcurrentLimit: 15,
+  ignorePaths: [
+    '**/vendor/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/coverage/**',
+    '**/node_modules/**',
+    '**/.cache/**',
+  ],
+  packageRules: [
+    {
+      matchDepTypes: [
+        'indirect',
+        'replace',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      enabled: true,
+      abandonmentThreshold: '50 years',
+    },
+    {
+      description: 'Disable the following digest updates as constraints are not applied',
+      matchDepTypes: [
+        'indirect',
+        'replace',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      matchUpdateTypes: [
+        'digest',
+      ],
+      matchPackageNames: [
+        'k8s.io/kube-openapi',
+      ],
+      enabled: false,
+    },
+    {
+      groupName: 'collector-other',
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchDepTypes: [
+        'require',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      postUpdateOptions: [
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-collector',
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchPackageNames: [
+        'go.opentelemetry.io{/,}**',
+        'github.com/open-telemetry{/,}**',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      postUpdateOptions: [
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: '{{categories}}-other',
+      matchUpdateTypes: [
+        '!major',
+        '!lockFileMaintenance',
+      ],
+      matchCategories: [
+        '!golang',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'opentelemetry-deps-{{categories}}',
+      matchUpdateTypes: [
+        '!major',
+        '!lockFileMaintenance',
+      ],
+      matchCategories: [
+        '!golang',
+      ],
+      matchDepNames: [
+        '@opentelemetry/**',
+        'io.opentelemetry.**',
+        'OpenTelemetry.**',
+        'opentelemetry-**',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+      semanticCommitType: 'build',
+    },
+    {
+      matchPackageNames: [
+        'io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha',
+        'io.opentelemetry.contrib:opentelemetry-aws-resources',
+        'opentelemetry-*',
+      ],
+      ignoreUnstable: false,
+      allowedVersions: '!/\\-SNAPSHOT$/',
+    },
+    {
+      groupName: 'actions',
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchManagers: [
+        'github-actions',
+      ],
+      semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      matchUpdateTypes: [
+        'major',
+      ],
+      matchManagers: [
+        'github-actions',
+      ],
+      semanticCommitType: 'build',
+      addLabels: [
+        'github_actions',
+      ],
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: '{{categories}}',
+      matchCategories: [
+        'docker',
+        'terraform',
+      ],
+      matchUpdateTypes: [
+        '!lockFileMaintenance',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      matchUpdateTypes: [
+        'major',
+      ],
+      matchManagers: [
+        '!github-actions',
+      ],
+      semanticCommitType: 'build',
+      dependencyDashboardApproval: true,
+    },
+    {
+      matchUpdateTypes: [
+        'major',
+      ],
+      matchDepNames: [
+        'node',
+      ],
+      semanticCommitType: 'build',
+      dependencyDashboardApproval: true,
+    },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      dependencyDashboardApproval: false,
+      prBodyNotes: [
+        ':warning: MAJOR VERSION UPDATE :warning: - if diff is empty, revert last commit, manually update the imports within this project to the new version and re-run go mod tidy.',
+      ],
+      semanticCommitType: 'build',
+    },
+    {
+      groupName: 'Lock file maintenance golang',
+      matchDepTypes: [
+        'indirect',
+        'replace',
+      ],
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      matchPackageNames: [
+        '!go.opentelemetry.io{/,}**',
+        '!github.com/open-telemetry{/,}**',
+      ],
+      prBodyTemplate: '{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}',
+      schedule: [
+        'before 8am on Wednesday',
+      ],
+      postUpdateOptions: [
+        'gomodTidyAll',
+        'gomodTidyE',
+        'gomodUpdateImportPaths',
+      ],
+    },
+    {
+      description: 'Ensure source compatibility with Go version used by this project',
+      matchManagers: [
+        'gomod',
+      ],
+      constraintsFiltering: 'strict',
+    },
+    {
+      matchDepTypes: ["indirect", "replace"],
+      matchUpdateTypes: [
+        'major'
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      enabled: false,
+    },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'golang',
+      ],
+      separateMultipleMinor: true,
+      separateMinorPatch: true,
+      rangeStrategy: 'bump',
+      allowedVersions: '/^[0-9]+\\.[0-9]+\\.0$/',
+      dependencyDashboardApproval: true,
+      semanticCommitType: 'build',
+    },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'toolchain',
+      ],
+      separateMinorPatch: true,
+      semanticCommitType: 'build',
+    },
+    {
+      matchManagers: [
+        'gomod',
+      ],
+      matchDepNames: [
+        'go',
+      ],
+      matchDepTypes: [
+        'toolchain',
+      ],
+      matchUpdateTypes: [
+        'minor',
+      ],
+      dependencyDashboardApproval: true,
+    },
+  ],
+  lockFileMaintenance: {
+    enabled: true,
+    commitMessageAction: 'Lock file maintenance {{categories}}',
+    branchTopic: 'lock-file-maintenance-{{categories}}',
+    schedule: [
+      'before 8am on Wednesday',
+    ],
+  },
+  postUpdateOptions: [
+    'gomodTidyAll',
+    'gomodTidyE',
+    'gomodUpdateImportPaths',
+  ],
+  semanticCommits: 'enabled',
+  semanticCommitType: 'build',
+  semanticCommitScope: 'deps',
+  labels: [
+    'dependencies',
+  ],
+}

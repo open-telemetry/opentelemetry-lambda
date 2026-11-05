@@ -24,6 +24,7 @@ describe(`${language} Lambda layer`, () => {
       }),
     );
     expect(response.StatusCode).toBe(200);
+    expect(response.FunctionError).toBeUndefined();
 
     const payload = JSON.parse(new TextDecoder().decode(response.Payload));
     const body = JSON.parse(payload.body);
