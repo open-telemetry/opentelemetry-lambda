@@ -81,7 +81,8 @@ gofmt:
 	@$(MAKE) for-all-target TARGET="fmt"
 
 .PHONY: govulncheck
-govulncheck: install-tools
+govulncheck:
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) tool govulncheck
 	GOOS=linux GOARCH=$(GOARCH) govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
 
 .PHONY: install-tools
