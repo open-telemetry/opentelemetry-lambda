@@ -76,31 +76,14 @@ goporto: install-tools
 golint: install-tools
 	@$(MAKE) for-all-target TARGET="lint"
 
-.PHONY: goimpi
-goimpi: install-tools
-	@$(MAKE) for-all-target TARGET="impi"
-
 .PHONY: gofmt
 gofmt:
 	@$(MAKE) for-all-target TARGET="fmt"
 
 .PHONY: govulncheck
-govulncheck:
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck
+govulncheck: install-tools
 	GOOS=linux GOARCH=$(GOARCH) govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
 
 .PHONY: install-tools
 install-tools:
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/google/addlicense
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/pavius/impi/cmd/impi
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/tcnksm/ghr
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/wadey/gocovmerge
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/chloggen
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/semconvgen
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/exp/cmd/apidiff
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/tools/cmd/goimports
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install github.com/jcchavezs/porto/cmd/porto
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/multimod
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install go.opentelemetry.io/build-tools/crosslink
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) install golang.org/x/vuln/cmd/govulncheck
+	cd $(TOOLS_MOD_DIR) && $(GOCMD) install tool
