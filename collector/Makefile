@@ -82,8 +82,8 @@ gofmt:
 
 .PHONY: govulncheck
 govulncheck:
-	cd $(TOOLS_MOD_DIR) && $(GOCMD) mod download
-	GOWORK=$(PWD)/go.work GOOS=linux GOARCH=$(GOARCH) $(GOCMD) tool govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
+	$(GOCMD) -C $(TOOLS_MOD_DIR) mod download
+	GOOS=linux GOARCH=$(GOARCH) $(GOCMD) tool govulncheck$(if ${BUILDTAGS}, -tags "${BUILDTAGS}",) ./...
 
 .PHONY: install-tools
 install-tools:
