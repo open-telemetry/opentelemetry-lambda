@@ -13,7 +13,7 @@
     'github-actions[bot]@users.noreply.github.com',
   ],
   prHourlyLimit: 15,
-  prConcurrentLimit: 15,
+  prConcurrentLimit: 20,
   ignorePaths: [
     '**/vendor/**',
     '**/dist/**',
@@ -66,6 +66,40 @@
         'gomodTidyAll',
         'gomodTidyE',
         'gomodUpdateImportPaths',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'aws-deps-collector',
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchPackageNames: [
+        'github.com/aws{/,}**',
+      ],
+      matchCategories: [
+        'golang',
+      ],
+      semanticCommitType: 'build',
+      schedule: [
+        'before 8am on Monday',
+      ],
+    },
+    {
+      groupName: 'golang-deps-collector',
+      matchUpdateTypes: [
+        '!major',
+      ],
+      matchPackageNames: [
+        'github.com/golangci{/,}**',
+        'golang.org{/,}**',
+        'google.golang.org{/,}**',
+      ],
+      matchCategories: [
+        'golang',
       ],
       semanticCommitType: 'build',
       schedule: [
@@ -228,8 +262,12 @@
         'golang',
       ],
       matchPackageNames: [
-        '!go.opentelemetry.io{/,}**',
+        '!github.com/aws{/,}**',
+        '!github.com/golangci{/,}**',
         '!github.com/open-telemetry{/,}**',
+        '!go.opentelemetry.io{/,}**',
+        '!golang.org{/,}**',
+        '!google.golang.org{/,}**',
       ],
       prBodyTemplate: '{{{header}}}{{{warnings}}}🔧 This Pull Request updates lock files to use the latest dependency versions.\n\n{{{notes}}}{{{configDescription}}}{{{controls}}}{{{footer}}}',
       schedule: [
