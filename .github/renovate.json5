@@ -47,6 +47,7 @@
         'digest',
       ],
       matchPackageNames: [
+        'github.com/prometheus/prometheus',
         'k8s.io/kube-openapi',
       ],
       enabled: false,
