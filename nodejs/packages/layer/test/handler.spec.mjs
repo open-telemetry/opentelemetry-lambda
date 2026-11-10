@@ -7,7 +7,7 @@ import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import {
   BatchSpanProcessor,
   InMemorySpanExporter,
-} from '@opentelemetry/sdk-trace-node';
+} from '@opentelemetry/sdk-trace';
 
 import { registerLoader } from '../src/loader.mjs';
 import { init, wrap, unwrap } from '../build/src/wrapper.js';
@@ -36,10 +36,12 @@ describe('when loading ESM module', async () => {
 
   const initializeHandler = async handler => {
     process.env._HANDLER = handler;
+    process.env.OTEL_METRICS_EXPORTER = 'none';
+    process.env.OTEL_LOGS_EXPORTER = 'none';
 
     global.configureTracer = _ => {
       return {
-        spanProcessors: [new BatchSpanProcessor(memoryExporter)],
+        spanProcessors: [new BatchSpanProcessor({ exporter: memoryExporter })],
       };
     };
     global.configureMeter = _ => {};

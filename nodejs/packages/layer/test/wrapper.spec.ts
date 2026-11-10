@@ -1,7 +1,8 @@
-import { init, wrap, unwrap } from '../src/wrapper';
+import { init, wrap, unwrap, SDKRegistrationConfig } from '../src/wrapper';
 
 import {
   defaultTextMapGetter,
+  ProxyTracerProvider,
   ROOT_CONTEXT,
   TextMapPropagator,
   trace,
@@ -10,14 +11,10 @@ import {
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
 import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
-import {
-  ConsoleSpanExporter,
-  NodeTracerProvider,
-  SDKRegistrationConfig,
-} from '@opentelemetry/sdk-trace-node';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
-import { SinonSpy, spy, stub } from 'sinon';
+import { stub } from 'sinon';
 import assert from 'assert';
 
 declare global {
@@ -190,19 +187,14 @@ describe('wrapper', async () => {
   });
 
   describe('exporters', () => {
-    let providerSpy: SinonSpy;
-
     before(() => {
       // TODO: Does this belong here
       delete (global as any).configureTracer;
     });
 
     beforeEach(() => {
-      providerSpy = spy(NodeTracerProvider.prototype, 'register');
-    });
-
-    afterEach(() => {
-      providerSpy.restore();
+      // NodeSDK defaults to http/protobuf. Ask for the http/json exporter the layer depends on.
+      process.env.OTEL_EXPORTER_OTLP_TRACES_PROTOCOL = 'http/json';
     });
 
     const testConfiguredExporter = async (
@@ -214,10 +206,13 @@ describe('wrapper', async () => {
       }
 
       await wrap();
-      assert(providerSpy.calledOnce);
-      const tracer = providerSpy.getCall(0).thisValue;
-      const spanProcessors = tracer._activeSpanProcessor._spanProcessors;
+      const tracerProvider = (
+        trace.getTracerProvider() as ProxyTracerProvider
+      ).getDelegate() as any;
+      const spanProcessors =
+        tracerProvider._activeSpanProcessor._spanProcessors;
 
+      assert.strictEqual(spanProcessors.length, expectedExporters.length);
       for (const [i, processor] of spanProcessors.entries()) {
         assert.ok(processor._exporter instanceof expectedExporters[i]);
       }
