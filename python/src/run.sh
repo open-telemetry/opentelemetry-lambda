@@ -1,1 +1,0 @@
-../../utils/sam/run.sh
