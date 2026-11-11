@@ -482,8 +482,8 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8=
 github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSWPKKo0FU=
-github.com/tcnksm/ghr v0.18.5 h1:5yagOjxy49cv6MBb2dchAnefF8MHDXGjNrNPOoJHHgU=
-github.com/tcnksm/ghr v0.18.5/go.mod h1:xjdAmRH77cht5Er8j28pZnrszydH4mp24ngVYOt542w=
+github.com/tcnksm/ghr v0.18.6 h1:gIpm8VhsYjib2tYpQ2CFtgI1efOvc2p24aJchT1+Tas=
+github.com/tcnksm/ghr v0.18.6/go.mod h1:V4MkiG2b2RkckMhNh5DzvQkuXnvaPF1LvsFA65G+/a8=
 github.com/tcnksm/go-gitconfig v0.1.2 h1:iiDhRitByXAEyjgBqsKi9QU4o2TNtv9kPP3RgPgXBPw=
 github.com/tcnksm/go-gitconfig v0.1.2/go.mod h1:/8EhP4H7oJZdIPyT+/UIsG87kTzrzM4UsLGSItWYCpE=
 github.com/tcnksm/go-latest v0.0.0-20170313132115-e3007ae9052e h1:IWllFTiDjjLIf2oeKxpIUmtiDV5sn71VgeQgg6vcE7k=
