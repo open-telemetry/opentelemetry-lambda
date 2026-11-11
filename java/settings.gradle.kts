@@ -13,7 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-include(":awssdk-autoconfigure")
 include(":dependencyManagement")
 include(":layer-javaagent")
 include(":layer-wrapper")
