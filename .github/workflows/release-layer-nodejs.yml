@@ -13,77 +13,92 @@ jobs:
   create-release:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Create Release
-        run: gh release create ${{ github.ref_name }} --draft --title ${{ github.ref_name }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-layer:
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: create-release
     outputs:
-      NODEJS_VERSION: ${{ steps.save-node-sdk-version.outputs.SDK_VERSION}}
+      component-version: ${{ steps.build.outputs.component-version }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 18
+          persist-credentials: false
 
-      - name: Build
-        run: |
-          npm install
-          npm run build
-        working-directory: nodejs
+      - uses: $/.github/actions/build-nodejs-layer
+        id: build
 
-      - name: Save Node SDK Version
-        id: save-node-sdk-version
-        run: |
-          SDK_VERSION=$(npm list @opentelemetry/core --depth=0 | grep @opentelemetry/core | sed 's/^.*@//')
-          echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_OUTPUT
-        working-directory: nodejs/packages/layer/scripts
-
-      - name: Rename zip file
-        run: mv layer.zip opentelemetry-nodejs-layer.zip
-        working-directory: nodejs/packages/layer/build
-
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         name: Save assembled layer to build
         with:
           name: opentelemetry-nodejs-layer.zip
-          path: nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
-          
+          path: ${{ steps.build.outputs.artifact-path }}
+
       - name: Add Binary to Release
-        run: |
-          gh release upload ${{github.ref_name}} nodejs/packages/layer/build/opentelemetry-nodejs-layer.zip
+        run: gh release upload "$GITHUB_REF_NAME" "$STEPS_BUILD_OUTPUTS_ARTIFACT_PATH"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_BUILD_OUTPUTS_ARTIFACT_PATH: ${{ steps.build.outputs.artifact-path }}
+
+  integration-test:
+    permissions:
+      contents: read
+      id-token: write
+    needs: build-layer
+    uses: $/.github/workflows/integration-test.yml
+    with:
+      language: nodejs
+      use-existing-layer-artifact: true
+    secrets:
+      INTEGRATION_TEST_ROLE_ARN: ${{ secrets.INTEGRATION_TEST_ROLE_ARN }}
 
   publish-layer:
     permissions: # required by the reusable workflow
       contents: read
       id-token: write
-    uses: ./.github/workflows/layer-publish.yml
-    needs: build-layer
+    uses: $/.github/workflows/layer-publish.yml
+    needs: [build-layer, integration-test]
     strategy:
       matrix:
         aws_region:
+          - af-south-1
+          - ap-east-1
+          - ap-east-2
           - ap-northeast-1
           - ap-northeast-2
+          - ap-northeast-3
           - ap-south-1
+          - ap-south-2
           - ap-southeast-1
           - ap-southeast-2
+          - ap-southeast-3
+          - ap-southeast-4
+          - ap-southeast-5
+          - ap-southeast-6
+          - ap-southeast-7
           - ca-central-1
           - ca-west-1
           - eu-central-1
+          - eu-central-2
           - eu-north-1
+          - eu-south-1
+          - eu-south-2
           - eu-west-1
           - eu-west-2
           - eu-west-3
+          - il-central-1
+          - me-central-1
+          - me-south-1
+          - mx-central-1
           - sa-east-1
           - us-east-1
           - us-east-2
@@ -92,11 +107,13 @@ jobs:
     with:
       artifact-name: opentelemetry-nodejs-layer.zip
       layer-name: opentelemetry-nodejs
-      component-version: ${{needs.build-layer.outputs.NODEJS_VERSION}}
+      component-version: ${{ needs.build-layer.outputs.component-version }}
       # architecture:
       # If you add a nodejs runtime here, please make sure that the collector/Makefile publish and publish-layer targets
       # get updated as well
       runtimes: nodejs20.x nodejs22.x nodejs24.x
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
-    secrets: inherit
+    secrets:
+      OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN: ${{ secrets.OTEL_LAMBDA_LAYER_PUBLISH_ROLE_ARN }}
+      PROD_LAMBDA_ROLE_ARN: ${{ secrets.PROD_LAMBDA_ROLE_ARN }}

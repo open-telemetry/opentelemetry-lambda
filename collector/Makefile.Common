@@ -1,7 +1,6 @@
 GOTEST_OPT?= -race -timeout 120s
 GOCMD?= go
 GOTEST=$(GOCMD) test
-GO_ACC=go-acc
 LINT=golangci-lint
 IMPI=impi
 
@@ -15,7 +14,7 @@ test:
 
 .PHONY: test-with-cover
 test-with-cover:
-	$(GO_ACC) --output=coverage.out ./...
+	$(GOTEST) -covermode=atomic -coverpkg=./... -coverprofile=coverage.out ./...
 
 .PHONY: benchmark
 benchmark:

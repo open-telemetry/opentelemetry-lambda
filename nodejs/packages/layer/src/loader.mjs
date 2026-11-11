@@ -6,10 +6,10 @@ function _hasFolderPackageJsonTypeModule(folder) {
   if (folder.endsWith('/node_modules')) {
     return false;
   }
-  let pj = path.join(folder, '/package.json');
+  const pj = path.join(folder, '/package.json');
   if (fs.existsSync(pj)) {
     try {
-      let pkg = JSON.parse(fs.readFileSync(pj).toString());
+      const pkg = JSON.parse(fs.readFileSync(pj).toString());
       if (pkg) {
         if (pkg.type === 'module') {
           return true;
@@ -18,7 +18,10 @@ function _hasFolderPackageJsonTypeModule(folder) {
         }
       }
     } catch (e) {
-      console.warn(`${pj} cannot be read, it will be ignored for ES module detection purposes.`, e);
+      console.warn(
+        `${pj} cannot be read, it will be ignored for ES module detection purposes.`,
+        e,
+      );
       return false;
     }
   }
@@ -29,7 +32,7 @@ function _hasFolderPackageJsonTypeModule(folder) {
 }
 
 function _hasPackageJsonTypeModule(file) {
-  let jsPath = file + '.js';
+  const jsPath = file + '.js';
   if (fs.existsSync(jsPath)) {
     return _hasFolderPackageJsonTypeModule(path.resolve(path.dirname(jsPath)));
   }
@@ -62,7 +65,10 @@ function _isHandlerAnESModule() {
       return _hasPackageJsonTypeModule(handlerFileName);
     }
   } catch (e) {
-    console.error('Unknown error occurred while checking whether handler is an ES module', e);
+    console.error(
+      'Unknown error occurred while checking whether handler is an ES module',
+      e,
+    );
     return false;
   }
 }

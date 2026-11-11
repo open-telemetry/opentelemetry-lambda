@@ -5,24 +5,17 @@ module.exports = {
   target: 'node',
   mode: 'production',
   externalsPresets: { node: true }, // in order to ignore built-in modules like path, fs, etc.
-  externals: [
-    'import-in-the-middle',
-    '@aws-sdk',
-    'require-in-the-middle'
-  ],
+  externals: ['import-in-the-middle', '@aws-sdk', 'require-in-the-middle'],
   output: {
     path: path.resolve('./build/src'),
     filename: 'wrapper.js',
     library: {
       type: 'commonjs2',
-    }
+    },
   },
   resolve: {
     extensions: ['.ts', '.js', '.mjs'],
-    modules: [
-      path.resolve('./src'),
-      'node_modules',
-    ],
+    modules: [path.resolve('./src'), 'node_modules'],
   },
   module: {
     rules: [
@@ -32,12 +25,12 @@ module.exports = {
           {
             loader: 'ts-loader',
             options: {
-              configFile: "tsconfig.webpack.json"
-            }
-          }
+              configFile: 'tsconfig.webpack.json',
+            },
+          },
         ],
         exclude: /node_modules/,
-      }
+      },
     ],
   },
   optimization: {

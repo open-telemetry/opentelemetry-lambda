@@ -18,11 +18,9 @@
 package tools // import "go.opentelemetry.io/otel/internal/tools"
 
 import (
-	_ "github.com/client9/misspell/cmd/misspell"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "github.com/jcchavezs/porto/cmd/porto"
-	_ "github.com/ory/go-acc"
 	_ "github.com/pavius/impi/cmd/impi"
 	_ "github.com/tcnksm/ghr"
 	_ "github.com/wadey/gocovmerge"
@@ -32,4 +30,5 @@ import (
 	_ "go.opentelemetry.io/build-tools/semconvgen"
 	_ "golang.org/x/exp/cmd/apidiff"
 	_ "golang.org/x/tools/cmd/goimports"
+	_ "golang.org/x/vuln/cmd/govulncheck"
 )

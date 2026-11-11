@@ -1,4 +1,4 @@
-module.exports.handler = async function() {
-  console.log("I am a CommonJS module");
+module.exports.handler = async function () {
+  console.log('I am a CommonJS module');
   return 'ok';
-}
+};

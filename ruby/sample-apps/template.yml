@@ -14,7 +14,7 @@ Resources:
       Description: Opentelemetry Ruby layer
       ContentUri: ./../src/otel/layer
       CompatibleRuntimes:
-        - ruby3.2
+        - ruby3.3
     Metadata:
       BuildMethod: makefile
   api:
@@ -27,7 +27,7 @@ Resources:
     Properties:
       CodeUri: ./function
       Handler: lambda_function.lambda_handler
-      Runtime: ruby3.2
+      Runtime: ruby3.3
       Description: Build OTel Ruby Lambda layer and sample app from scratch
       Policies:
         - AmazonS3ReadOnlyAccess
