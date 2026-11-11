@@ -9,16 +9,17 @@ import {
   TextMapPropagator,
   trace,
 } from '@opentelemetry/api';
-import {
-  CompositePropagator,
-  diagLogLevelFromString,
-  getStringFromEnv,
-  W3CBaggagePropagator,
-  W3CTraceContextPropagator,
-} from '@opentelemetry/core';
+import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
+import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import type { TracerProviderOptions } from '@opentelemetry/sdk-trace';
-import { envDetector, processDetector } from '@opentelemetry/resources';
+import {
+  defaultResource,
+  detectResources,
+  envDetector,
+  processDetector,
+  Resource,
+} from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
   Instrumentation,
@@ -32,17 +33,8 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
-import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
-import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
 const defaultInstrumentationList = ['dns', 'http', 'net'];
-
-const propagatorMap = new Map<string, () => TextMapPropagator>([
-  ['tracecontext', () => new W3CTraceContextPropagator()],
-  ['baggage', () => new W3CBaggagePropagator()],
-  ['xray', () => new AWSXRayPropagator()],
-  ['xray-lambda', () => new AWSXRayLambdaPropagator()],
-]);
 
 export type TracerConfig = TracerProviderOptions;
 
@@ -277,49 +269,19 @@ async function createInstrumentations() {
   ];
 }
 
-function getPropagator(): TextMapPropagator {
-  if (
-    process.env.OTEL_PROPAGATORS == null ||
-    process.env.OTEL_PROPAGATORS.trim() === ''
-  ) {
-    return new CompositePropagator({
-      propagators: [
-        new W3CTraceContextPropagator(),
-        new W3CBaggagePropagator(),
-      ],
-    });
-  }
-  const propagatorsFromEnv = Array.from(
-    new Set(
-      process.env.OTEL_PROPAGATORS?.split(',').map(value =>
-        value.toLowerCase().trim(),
-      ),
-    ),
-  );
-  const propagators = propagatorsFromEnv.flatMap(propagatorName => {
-    if (propagatorName === 'none') {
-      diag.info(
-        'Not selecting any propagator for value "none" specified in the environment variable OTEL_PROPAGATORS',
-      );
-      return [];
-    }
-    const propagatorFactoryFunction = propagatorMap.get(propagatorName);
-    if (propagatorFactoryFunction == null) {
-      diag.warn(
-        `Invalid propagator "${propagatorName}" specified in the environment variable OTEL_PROPAGATORS`,
-      );
-      return [];
-    }
-    return propagatorFactoryFunction();
-  });
-  return new CompositePropagator({ propagators });
-}
-
 async function initializeSdk() {
+  // Detected here rather than by NodeSDK so the hooks get it in their config,
+  // as they did before.
+  const resource = defaultResource().merge(
+    detectResources({
+      detectors: [awsLambdaDetector, envDetector, processDetector],
+    }),
+  );
+
   // Each hook gets an empty list. If it adds span processors, metric readers
   // or log record processors, those are used for that signal. If it leaves
   // the list empty, NodeSDK builds that signal from the OTEL_* env vars.
-  let tracerConfig: TracerConfig = { spanProcessors: [] };
+  let tracerConfig: TracerConfig = { resource, spanProcessors: [] };
   if (typeof configureTracer === 'function') {
     tracerConfig = configureTracer(tracerConfig);
   }
@@ -334,16 +296,28 @@ async function initializeSdk() {
   }
 
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let meterConfig: any = { readers: [] };
+  let meterConfig: any = { resource, readers: [] };
   if (typeof configureMeter === 'function') {
     meterConfig = configureMeter(meterConfig) ?? {};
   }
 
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let loggerConfig: any = { processors: [] };
+  let loggerConfig: any = { resource, processors: [] };
   if (typeof configureLogger === 'function') {
     loggerConfig = configureLogger(loggerConfig) ?? {};
   }
+
+  // NodeSDK takes one resource for all signals and no meter or logger
+  // provider options beyond readers, views and processors.
+  const sdkResource = tracerConfig.resource ?? resource;
+  const sameResource = [resource, sdkResource];
+  warnUnsupported('configureMeter', meterConfig, sameResource, [
+    'readers',
+    'views',
+  ]);
+  warnUnsupported('configureLogger', loggerConfig, sameResource, [
+    'processors',
+  ]);
 
   // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
   // Drop ours first so it does not warn about the override.
@@ -352,8 +326,8 @@ async function initializeSdk() {
   }
 
   const sdk = new NodeSDK({
-    resource: tracerConfig.resource,
-    resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
+    resource: sdkResource,
+    autoDetectResources: false,
     textMapPropagator: sdkRegistrationConfig.propagator,
     // NodeSDK treats null as "leave the context manager unset", as register() did.
     contextManager: sdkRegistrationConfig.contextManager as ContextManager,
@@ -392,6 +366,33 @@ async function initializeSdk() {
 
 function nonEmpty<T>(list: T[] | undefined): T[] | undefined {
   return list && list.length ? list : undefined;
+}
+
+function warnUnsupported(
+  hook: string,
+  config: Record<string, unknown>,
+  sameResource: Resource[],
+  supported: string[],
+) {
+  const ignored = Object.keys(config).filter(
+    key =>
+      config[key] !== undefined &&
+      !supported.includes(key) &&
+      !(key === 'resource' && sameResource.includes(config[key] as Resource)),
+  );
+  if (!ignored.length) {
+    return;
+  }
+  let message = `${hook} returned ${ignored.join(', ')}, which NodeSDK does not take, so it is ignored.`;
+  if (ignored.includes('resource')) {
+    message +=
+      ' Set the resource in configureTracer, it is used for all signals.';
+  }
+  if (ignored.includes('logRecordLimits')) {
+    message +=
+      ' Set log record limits with OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT and OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT.';
+  }
+  diag.warn(message);
 }
 
 export async function wrap() {

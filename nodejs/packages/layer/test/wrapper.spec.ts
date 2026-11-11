@@ -1,6 +1,7 @@
 import { init, wrap, unwrap, SDKRegistrationConfig } from '../src/wrapper';
 
 import {
+  diag,
   defaultTextMapGetter,
   ProxyTracerProvider,
   ROOT_CONTEXT,
@@ -11,7 +12,12 @@ import {
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
 import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
-import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace';
+import {
+  ConsoleSpanExporter,
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
 import { stub } from 'sinon';
@@ -132,6 +138,11 @@ describe('wrapper', async () => {
       await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
     });
 
+    it('is configured to b3 by env var', async () => {
+      // 'b3' field is used by the single header 'B3Propagator'
+      await testConfiguredPropagator(['b3'], ['b3']);
+    });
+
     it('is configured to xray-lambda by env var', async () => {
       // 'x-amzn-trace-id' field is used by the 'AWSXRayLambdaPropagator'
       await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
@@ -183,6 +194,78 @@ describe('wrapper', async () => {
         isRemote: true,
         traceFlags: TraceFlags.SAMPLED,
       });
+    });
+  });
+
+  describe('configure hooks', () => {
+    after(() => {
+      delete (global as any).configureTracer;
+      delete (global as any).configureMeter;
+      delete (global as any).configureLogger;
+    });
+
+    it('get the detected resource', async () => {
+      const tracerStub = stub().returnsArg(0);
+      const meterStub = stub().returnsArg(0);
+      const loggerStub = stub().returnsArg(0);
+      global.configureTracer = tracerStub;
+      global.configureMeter = meterStub;
+      global.configureLogger = loggerStub;
+      await wrap();
+
+      const resource = tracerStub.getCall(0).firstArg.resource;
+      assert.ok(resource);
+      assert.strictEqual(meterStub.getCall(0).firstArg.resource, resource);
+      assert.strictEqual(loggerStub.getCall(0).firstArg.resource, resource);
+    });
+
+    it('use the resource from configureTracer', async () => {
+      const exporter = new InMemorySpanExporter();
+      global.configureTracer = config => ({
+        ...config,
+        resource: config.resource!.merge(
+          resourceFromAttributes({ 'test.attribute': 'from-hook' }),
+        ),
+        spanProcessors: [new SimpleSpanProcessor({ exporter })],
+      });
+      delete (global as any).configureMeter;
+      delete (global as any).configureLogger;
+      await wrap();
+
+      trace.getTracer('test').startSpan('span').end();
+      const [span] = exporter.getFinishedSpans();
+      assert.strictEqual(
+        span.resource.attributes['test.attribute'],
+        'from-hook',
+      );
+    });
+
+    it('warn about meter and logger options NodeSDK does not take', async () => {
+      global.configureTracer = config => config;
+      global.configureMeter = (config: any) => ({
+        ...config,
+        resource: resourceFromAttributes({ signal: 'metrics' }),
+      });
+      global.configureLogger = (config: any) => ({
+        ...config,
+        logRecordLimits: { attributeCountLimit: 1 },
+      });
+      const warnStub = stub(diag, 'warn');
+      try {
+        await wrap();
+      } finally {
+        warnStub.restore();
+      }
+
+      const messages = warnStub.getCalls().map(call => call.firstArg);
+      assert.ok(
+        messages.some(m => m.startsWith('configureMeter returned resource,')),
+      );
+      assert.ok(
+        messages.some(m =>
+          m.startsWith('configureLogger returned logRecordLimits,'),
+        ),
+      );
     });
   });
 
