@@ -44,6 +44,33 @@ describe(`${language} Lambda layer`, () => {
       .filter((span) => span["otelcol.signal"] === "traces");
     expect(traceEvents).toHaveLength(2); // debug exporter emits 1 summary and 1 detailed log event
 
+    const reportEvents = await waitForLogs({
+      logGroupName,
+      filterPattern: 'REPORT',
+      startTime,
+    });
+
+    console.log(
+      "LAMBDA REPORT Messages:",
+      reportEvents.map((event) => event.message),
+    );
+
+    console.log(
+      "LAMBDA REPORT:",
+      reportEvents.map((event) => event),
+    );
+
+    const allEvents = await waitForLogs({
+      logGroupName,
+      filterPattern: '*',
+      startTime,
+    });
+
+    console.log(
+      "All Messages:",
+      allEvents.map((event) => event.message),
+    );
+
     const detailedTraceEventMsg = traceEvents[1].msg as string;
     const instrumentationScopes = Array.from(
       detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
