@@ -1,4 +1,4 @@
 # Dependencies used in tests only
-opentelemetry-test-utils==0.66b1
-opentelemetry-instrumentation-aws-lambda==0.66b1
-opentelemetry-semantic-conventions ==0.66b1
+opentelemetry-test-utils==0.66b2
+opentelemetry-instrumentation-aws-lambda==0.66b2
+opentelemetry-semantic-conventions ==0.66b2
