@@ -71,6 +71,7 @@ jobs:
     uses: $/.github/workflows/layer-publish.yml
     needs: [build-layer, create-release]
     strategy:
+      fail-fast: false
       matrix:
         aws_region: 
           - af-south-1
