@@ -7,14 +7,14 @@ require (
 	github.com/google/addlicense v1.2.0
 	github.com/jcchavezs/porto v0.7.0
 	github.com/pavius/impi v0.0.3
-	github.com/tcnksm/ghr v0.18.5
+	github.com/tcnksm/ghr v0.18.6
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	go.opentelemetry.io/build-tools/chloggen v0.30.0
 	go.opentelemetry.io/build-tools/crosslink v0.30.0
 	go.opentelemetry.io/build-tools/multimod v0.30.0
 	go.opentelemetry.io/build-tools/semconvgen v0.24.0
-	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e
-	golang.org/x/tools v0.52.0
+	golang.org/x/exp v0.0.0-20261109185158-a52e3aef5920
+	golang.org/x/tools v0.52.1-0.20261106145633-d407941a339a
 	golang.org/x/vuln v1.9.0
 )
 
