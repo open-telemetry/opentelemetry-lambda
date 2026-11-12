@@ -1,11 +1,10 @@
-import { init, wrap, unwrap, SDKRegistrationConfig } from '../src/wrapper';
+import { init, wrap, unwrap } from '../src/wrapper';
 
 import {
   diag,
-  defaultTextMapGetter,
+  propagation,
   ProxyTracerProvider,
   ROOT_CONTEXT,
-  TextMapPropagator,
   trace,
   TraceFlags,
 } from '@opentelemetry/api';
@@ -27,9 +26,6 @@ declare global {
   function configureAwsInstrumentation(
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
-  function configureSdkRegistration(
-    defaultSdkRegistration: SDKRegistrationConfig,
-  ): SDKRegistrationConfig;
 }
 
 describe('wrapper', async () => {
@@ -65,49 +61,15 @@ describe('wrapper', async () => {
       propagatorNames: string[],
       expectedPropagatorFields: string[],
     ) => {
-      if (propagatorNames && propagatorNames.length) {
-        process.env.OTEL_PROPAGATORS = propagatorNames.join(',');
-      }
-
-      const configureSdkRegistrationStub = stub().returnsArg(0);
-      global.configureSdkRegistration = configureSdkRegistrationStub;
-      await wrap();
-      assert(configureSdkRegistrationStub.calledOnce);
-
-      const sdkRegistrationConfig: SDKRegistrationConfig =
-        configureSdkRegistrationStub.getCall(0).firstArg;
-      assert.notEqual(sdkRegistrationConfig, null);
-
-      const propagator: TextMapPropagator | null | undefined =
-        sdkRegistrationConfig.propagator;
-      assert.notEqual(propagator, null);
-
-      const actualPropagatorFields: string[] | undefined = propagator?.fields();
-      assert.notEqual(actualPropagatorFields, null);
-      assert.deepEqual(actualPropagatorFields, expectedPropagatorFields);
+      await setConfiguredPropagator(propagatorNames);
+      assert.deepEqual(propagation.fields(), expectedPropagatorFields);
     };
 
-    const setAndGetConfiguredPropagator = async (
-      propagatorNames: string[],
-    ): Promise<TextMapPropagator> => {
+    const setConfiguredPropagator = async (propagatorNames: string[]) => {
       if (propagatorNames && propagatorNames.length) {
         process.env.OTEL_PROPAGATORS = propagatorNames.join(',');
       }
-
-      const configureSdkRegistrationStub = stub().returnsArg(0);
-      global.configureSdkRegistration = configureSdkRegistrationStub;
       await wrap();
-      assert(configureSdkRegistrationStub.calledOnce);
-
-      const sdkRegistrationConfig: SDKRegistrationConfig =
-        configureSdkRegistrationStub.getCall(0).firstArg;
-      assert.notEqual(sdkRegistrationConfig, null);
-
-      const propagator: TextMapPropagator | null | undefined =
-        sdkRegistrationConfig.propagator;
-      assert.notEqual(propagator, null);
-
-      return propagator!;
     };
 
     it('is configured by default', async () => {
@@ -163,12 +125,9 @@ describe('wrapper', async () => {
         [AWSXRAY_TRACE_ID_HEADER]: `Root=1-${AWS_XRAY_TRACE_ID};Parent=${AWS_XRAY_SPAN_ID};Sampled=1`,
       };
 
-      const propagator1: TextMapPropagator =
-        await setAndGetConfiguredPropagator(['tracecontext', 'xray']);
+      await setConfiguredPropagator(['tracecontext', 'xray']);
       const extractedSpanContext1 = trace
-        .getSpan(
-          propagator1.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
-        )
+        .getSpan(propagation.extract(ROOT_CONTEXT, carrier))
         ?.spanContext();
       // Last one overwrites, so we will see the context extracted from the last propagator (xray)
       assert.deepStrictEqual(extractedSpanContext1, {
@@ -180,12 +139,9 @@ describe('wrapper', async () => {
 
       await unwrap();
 
-      const propagator2: TextMapPropagator =
-        await setAndGetConfiguredPropagator(['xray', 'tracecontext']);
+      await setConfiguredPropagator(['xray', 'tracecontext']);
       const extractedSpanContext2 = trace
-        .getSpan(
-          propagator2.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
-        )
+        .getSpan(propagation.extract(ROOT_CONTEXT, carrier))
         ?.spanContext();
       // Last one overwrites, so we will see the context extracted from the last propagator (tracecontext)
       assert.deepStrictEqual(extractedSpanContext2, {

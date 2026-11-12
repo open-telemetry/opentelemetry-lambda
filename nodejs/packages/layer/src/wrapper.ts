@@ -1,12 +1,10 @@
 import {
   context,
-  ContextManager,
   diag,
   DiagConsoleLogger,
   logs,
   metrics,
   propagation,
-  TextMapPropagator,
   trace,
 } from '@opentelemetry/api';
 import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
@@ -38,11 +36,6 @@ const defaultInstrumentationList = ['dns', 'http', 'net'];
 
 export type TracerConfig = TracerProviderOptions;
 
-export interface SDKRegistrationConfig {
-  propagator?: TextMapPropagator | null;
-  contextManager?: ContextManager | null;
-}
-
 declare global {
   // In case of downstream configuring span processors etc
   function configureLambdaInstrumentation(
@@ -52,9 +45,6 @@ declare global {
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
-  function configureSdkRegistration(
-    defaultSdkRegistration: SDKRegistrationConfig,
-  ): SDKRegistrationConfig;
   function configureTracer(defaultConfig: TracerConfig): TracerConfig;
 
   // No explicit metric type here, but "unknown" type.
@@ -286,15 +276,6 @@ async function initializeSdk() {
     tracerConfig = configureTracer(tracerConfig);
   }
 
-  let sdkRegistrationConfig: SDKRegistrationConfig = {};
-  if (typeof configureSdkRegistration === 'function') {
-    sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
-  }
-  // Auto-configure propagator if not provided
-  if (!sdkRegistrationConfig.propagator) {
-    sdkRegistrationConfig.propagator = getPropagator();
-  }
-
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   let meterConfig: any = { resource, readers: [] };
   if (typeof configureMeter === 'function') {
@@ -319,6 +300,10 @@ async function initializeSdk() {
     'processors',
   ]);
 
+  // Read before our logger is dropped, so a warning about an unknown
+  // OTEL_PROPAGATORS name is still printed.
+  const textMapPropagator = getPropagator();
+
   // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
   // Drop ours first so it does not warn about the override.
   if (getStringFromEnv('OTEL_LOG_LEVEL') != null) {
@@ -328,9 +313,7 @@ async function initializeSdk() {
   const sdk = new NodeSDK({
     resource: sdkResource,
     autoDetectResources: false,
-    textMapPropagator: sdkRegistrationConfig.propagator,
-    // NodeSDK treats null as "leave the context manager unset", as register() did.
-    contextManager: sdkRegistrationConfig.contextManager as ContextManager,
+    textMapPropagator,
     sampler: tracerConfig.sampler,
     spanLimits: tracerConfig.spanLimits,
     idGenerator: tracerConfig.idGenerator,
