@@ -44,6 +44,17 @@ describe(`${language} Lambda layer`, () => {
       .filter((span) => span["otelcol.signal"] === "traces");
     expect(traceEvents).toHaveLength(2); // debug exporter emits 1 summary and 1 detailed log event
 
+    const reportEvents = await waitForLogs({
+      logGroupName,
+      filterPattern: 'REPORT',
+      startTime,
+    });
+    
+    console.log(
+      "Lambda REPORT:",
+      reportEvents.map((e) => e.message),
+    );
+
     const detailedTraceEventMsg = traceEvents[1].msg as string;
     const instrumentationScopes = Array.from(
       detailedTraceEventMsg.matchAll(/^InstrumentationScope (\S+)/gm),
