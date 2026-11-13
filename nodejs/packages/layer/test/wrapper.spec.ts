@@ -1,32 +1,38 @@
 import { init, wrap, unwrap } from '../src/wrapper';
 
 import {
-  defaultTextMapGetter,
+  propagation,
+  ProxyTracerProvider,
   ROOT_CONTEXT,
-  TextMapPropagator,
   trace,
   TraceFlags,
 } from '@opentelemetry/api';
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
-import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
+import {
+  AWSXRAY_TRACE_ID_HEADER,
+  AWSXRayPropagator,
+} from '@opentelemetry/propagator-aws-xray';
 import {
   ConsoleSpanExporter,
-  NodeTracerProvider,
-  SDKRegistrationConfig,
-} from '@opentelemetry/sdk-trace-node';
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import {
+  AggregationTemporality,
+  InMemoryMetricExporter,
+  PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
-import { SinonSpy, spy, stub } from 'sinon';
+import { stub } from 'sinon';
 import assert from 'assert';
 
 declare global {
   function configureAwsInstrumentation(
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
-  function configureSdkRegistration(
-    defaultSdkRegistration: SDKRegistrationConfig,
-  ): SDKRegistrationConfig;
 }
 
 describe('wrapper', async () => {
@@ -62,49 +68,15 @@ describe('wrapper', async () => {
       propagatorNames: string[],
       expectedPropagatorFields: string[],
     ) => {
-      if (propagatorNames && propagatorNames.length) {
-        process.env.OTEL_PROPAGATORS = propagatorNames.join(',');
-      }
-
-      const configureSdkRegistrationStub = stub().returnsArg(0);
-      global.configureSdkRegistration = configureSdkRegistrationStub;
-      await wrap();
-      assert(configureSdkRegistrationStub.calledOnce);
-
-      const sdkRegistrationConfig: SDKRegistrationConfig =
-        configureSdkRegistrationStub.getCall(0).firstArg;
-      assert.notEqual(sdkRegistrationConfig, null);
-
-      const propagator: TextMapPropagator | null | undefined =
-        sdkRegistrationConfig.propagator;
-      assert.notEqual(propagator, null);
-
-      const actualPropagatorFields: string[] | undefined = propagator?.fields();
-      assert.notEqual(actualPropagatorFields, null);
-      assert.deepEqual(actualPropagatorFields, expectedPropagatorFields);
+      await setConfiguredPropagator(propagatorNames);
+      assert.deepEqual(propagation.fields(), expectedPropagatorFields);
     };
 
-    const setAndGetConfiguredPropagator = async (
-      propagatorNames: string[],
-    ): Promise<TextMapPropagator> => {
+    const setConfiguredPropagator = async (propagatorNames: string[]) => {
       if (propagatorNames && propagatorNames.length) {
         process.env.OTEL_PROPAGATORS = propagatorNames.join(',');
       }
-
-      const configureSdkRegistrationStub = stub().returnsArg(0);
-      global.configureSdkRegistration = configureSdkRegistrationStub;
       await wrap();
-      assert(configureSdkRegistrationStub.calledOnce);
-
-      const sdkRegistrationConfig: SDKRegistrationConfig =
-        configureSdkRegistrationStub.getCall(0).firstArg;
-      assert.notEqual(sdkRegistrationConfig, null);
-
-      const propagator: TextMapPropagator | null | undefined =
-        sdkRegistrationConfig.propagator;
-      assert.notEqual(propagator, null);
-
-      return propagator!;
     };
 
     it('is configured by default', async () => {
@@ -135,6 +107,11 @@ describe('wrapper', async () => {
       await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
     });
 
+    it('is configured to b3 by env var', async () => {
+      // 'b3' field is used by the single header 'B3Propagator'
+      await testConfiguredPropagator(['b3'], ['b3']);
+    });
+
     it('is configured to xray-lambda by env var', async () => {
       // 'x-amzn-trace-id' field is used by the 'AWSXRayLambdaPropagator'
       await testConfiguredPropagator(['xray'], ['x-amzn-trace-id']);
@@ -155,12 +132,9 @@ describe('wrapper', async () => {
         [AWSXRAY_TRACE_ID_HEADER]: `Root=1-${AWS_XRAY_TRACE_ID};Parent=${AWS_XRAY_SPAN_ID};Sampled=1`,
       };
 
-      const propagator1: TextMapPropagator =
-        await setAndGetConfiguredPropagator(['tracecontext', 'xray']);
+      await setConfiguredPropagator(['tracecontext', 'xray']);
       const extractedSpanContext1 = trace
-        .getSpan(
-          propagator1.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
-        )
+        .getSpan(propagation.extract(ROOT_CONTEXT, carrier))
         ?.spanContext();
       // Last one overwrites, so we will see the context extracted from the last propagator (xray)
       assert.deepStrictEqual(extractedSpanContext1, {
@@ -172,12 +146,9 @@ describe('wrapper', async () => {
 
       await unwrap();
 
-      const propagator2: TextMapPropagator =
-        await setAndGetConfiguredPropagator(['xray', 'tracecontext']);
+      await setConfiguredPropagator(['xray', 'tracecontext']);
       const extractedSpanContext2 = trace
-        .getSpan(
-          propagator2.extract(ROOT_CONTEXT, carrier, defaultTextMapGetter),
-        )
+        .getSpan(propagation.extract(ROOT_CONTEXT, carrier))
         ?.spanContext();
       // Last one overwrites, so we will see the context extracted from the last propagator (tracecontext)
       assert.deepStrictEqual(extractedSpanContext2, {
@@ -189,20 +160,81 @@ describe('wrapper', async () => {
     });
   });
 
-  describe('exporters', () => {
-    let providerSpy: SinonSpy;
+  describe('configure hooks', () => {
+    after(() => {
+      delete (global as any).configureTracer;
+      delete (global as any).configureMeter;
+      delete (global as any).configureLogger;
+      delete (global as any).configureSdkRegistration;
+    });
 
+    it('use the propagator from configureSdkRegistration', async () => {
+      process.env.OTEL_PROPAGATORS = 'tracecontext';
+      global.configureSdkRegistration = config => ({
+        ...config,
+        propagator: new AWSXRayPropagator(),
+      });
+      await wrap();
+
+      assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
+    });
+
+    it('use OTEL_PROPAGATORS when configureSdkRegistration sets no propagator', async () => {
+      process.env.OTEL_PROPAGATORS = 'xray';
+      global.configureSdkRegistration = config => config;
+      await wrap();
+
+      assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
+    });
+
+    it('merge the resource from configureTracer with the detected one', async () => {
+      const exporter = new InMemorySpanExporter();
+      global.configureTracer = config => ({
+        ...config,
+        resource: resourceFromAttributes({ 'test.attribute': 'from-hook' }),
+        spanProcessors: [new SimpleSpanProcessor({ exporter })],
+      });
+      delete (global as any).configureMeter;
+      delete (global as any).configureLogger;
+      await wrap();
+
+      trace.getTracer('test').startSpan('span').end();
+      const [span] = exporter.getFinishedSpans();
+      assert.strictEqual(
+        span.resource.attributes['test.attribute'],
+        'from-hook',
+      );
+      // Set by the process detector.
+      assert.strictEqual(span.resource.attributes['process.pid'], process.pid);
+    });
+
+    it('pass readers to NodeSDK when configureMeter adds them', async () => {
+      const reader = new PeriodicExportingMetricReader({
+        exporter: new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE),
+      });
+      global.configureTracer = config => config;
+      global.configureMeter = (config: any) => ({
+        ...config,
+        readers: [reader],
+      });
+      delete (global as any).configureLogger;
+      await wrap();
+
+      // collect() throws if NodeSDK did not register the reader.
+      await reader.collect();
+      await reader.shutdown();
+    });
+  });
+
+  describe('exporters', () => {
     before(() => {
       // TODO: Does this belong here
       delete (global as any).configureTracer;
     });
 
     beforeEach(() => {
-      providerSpy = spy(NodeTracerProvider.prototype, 'register');
-    });
-
-    afterEach(() => {
-      providerSpy.restore();
+      // NodeSDK defaults to http/protobuf. Ask for the http/json exporter the layer depends on.
+      process.env.OTEL_EXPORTER_OTLP_TRACES_PROTOCOL = 'http/json';
     });
 
     const testConfiguredExporter = async (
@@ -214,10 +246,13 @@ describe('wrapper', async () => {
       }
 
       await wrap();
-      assert(providerSpy.calledOnce);
-      const tracer = providerSpy.getCall(0).thisValue;
-      const spanProcessors = tracer._activeSpanProcessor._spanProcessors;
+      const tracerProvider = (
+        trace.getTracerProvider() as ProxyTracerProvider
+      ).getDelegate() as any;
+      const spanProcessors =
+        tracerProvider._activeSpanProcessor._spanProcessors;
 
+      assert.strictEqual(spanProcessors.length, expectedExporters.length);
       for (const [i, processor] of spanProcessors.entries()) {
         assert.ok(processor._exporter instanceof expectedExporters[i]);
       }
