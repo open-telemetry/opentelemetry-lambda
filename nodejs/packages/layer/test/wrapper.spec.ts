@@ -9,7 +9,10 @@ import {
 } from '@opentelemetry/api';
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
 import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
-import { AWSXRAY_TRACE_ID_HEADER } from '@opentelemetry/propagator-aws-xray';
+import {
+  AWSXRAY_TRACE_ID_HEADER,
+  AWSXRayPropagator,
+} from '@opentelemetry/propagator-aws-xray';
 import {
   ConsoleSpanExporter,
   InMemorySpanExporter,
@@ -162,6 +165,26 @@ describe('wrapper', async () => {
       delete (global as any).configureTracer;
       delete (global as any).configureMeter;
       delete (global as any).configureLogger;
+      delete (global as any).configureSdkRegistration;
+    });
+
+    it('use the propagator from configureSdkRegistration', async () => {
+      process.env.OTEL_PROPAGATORS = 'tracecontext';
+      global.configureSdkRegistration = config => ({
+        ...config,
+        propagator: new AWSXRayPropagator(),
+      });
+      await wrap();
+
+      assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
+    });
+
+    it('use OTEL_PROPAGATORS when configureSdkRegistration sets no propagator', async () => {
+      process.env.OTEL_PROPAGATORS = 'xray';
+      global.configureSdkRegistration = config => config;
+      await wrap();
+
+      assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
     });
 
     it('merge the resource from configureTracer with the detected one', async () => {

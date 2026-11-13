@@ -1,10 +1,12 @@
 import {
   context,
+  ContextManager,
   diag,
   DiagConsoleLogger,
   logs,
   metrics,
   propagation,
+  TextMapPropagator,
   trace,
 } from '@opentelemetry/api';
 import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
@@ -28,6 +30,11 @@ import {
 
 const defaultInstrumentationList = ['dns', 'http', 'net'];
 
+export interface SDKRegistrationConfig {
+  propagator?: TextMapPropagator | null;
+  contextManager?: ContextManager | null;
+}
+
 declare global {
   // In case of downstream configuring span processors etc
   function configureLambdaInstrumentation(
@@ -40,6 +47,9 @@ declare global {
   function configureTracer(
     defaultConfig: TracerProviderOptions,
   ): TracerProviderOptions;
+  function configureSdkRegistration(
+    defaultSdkRegistration: SDKRegistrationConfig,
+  ): SDKRegistrationConfig;
 
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
@@ -267,9 +277,14 @@ async function initializeSdk() {
     loggerConfig = configureLogger(loggerConfig) ?? {};
   }
 
+  let sdkRegistrationConfig: SDKRegistrationConfig = {};
+  if (typeof configureSdkRegistration === 'function') {
+    sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
+  }
+
   // Read before our logger is dropped, so a warning about an unknown
   // OTEL_PROPAGATORS name is still printed.
-  const textMapPropagator = getPropagator();
+  const textMapPropagator = sdkRegistrationConfig.propagator ?? getPropagator();
 
   // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
   // Drop ours first so it does not warn about the override.
@@ -282,6 +297,7 @@ async function initializeSdk() {
     autoDetectResources: true,
     resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
     textMapPropagator,
+    contextManager: sdkRegistrationConfig.contextManager ?? undefined,
     sampler: tracerConfig.sampler,
     spanLimits: tracerConfig.spanLimits,
     idGenerator: tracerConfig.idGenerator,
