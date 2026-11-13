@@ -1,7 +1,6 @@
 import { init, wrap, unwrap } from '../src/wrapper';
 
 import {
-  diag,
   propagation,
   ProxyTracerProvider,
   ROOT_CONTEXT,
@@ -17,6 +16,11 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import {
+  AggregationTemporality,
+  InMemoryMetricExporter,
+  PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
 import { stub } from 'sinon';
@@ -160,28 +164,11 @@ describe('wrapper', async () => {
       delete (global as any).configureLogger;
     });
 
-    it('get the detected resource', async () => {
-      const tracerStub = stub().returnsArg(0);
-      const meterStub = stub().returnsArg(0);
-      const loggerStub = stub().returnsArg(0);
-      global.configureTracer = tracerStub;
-      global.configureMeter = meterStub;
-      global.configureLogger = loggerStub;
-      await wrap();
-
-      const resource = tracerStub.getCall(0).firstArg.resource;
-      assert.ok(resource);
-      assert.strictEqual(meterStub.getCall(0).firstArg.resource, resource);
-      assert.strictEqual(loggerStub.getCall(0).firstArg.resource, resource);
-    });
-
-    it('use the resource from configureTracer', async () => {
+    it('merge the resource from configureTracer with the detected one', async () => {
       const exporter = new InMemorySpanExporter();
       global.configureTracer = config => ({
         ...config,
-        resource: config.resource!.merge(
-          resourceFromAttributes({ 'test.attribute': 'from-hook' }),
-        ),
+        resource: resourceFromAttributes({ 'test.attribute': 'from-hook' }),
         spanProcessors: [new SimpleSpanProcessor({ exporter })],
       });
       delete (global as any).configureMeter;
@@ -194,34 +181,25 @@ describe('wrapper', async () => {
         span.resource.attributes['test.attribute'],
         'from-hook',
       );
+      // Set by the process detector.
+      assert.strictEqual(span.resource.attributes['process.pid'], process.pid);
     });
 
-    it('warn about meter and logger options NodeSDK does not take', async () => {
+    it('pass readers to NodeSDK when configureMeter adds them', async () => {
+      const reader = new PeriodicExportingMetricReader({
+        exporter: new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE),
+      });
       global.configureTracer = config => config;
       global.configureMeter = (config: any) => ({
         ...config,
-        resource: resourceFromAttributes({ signal: 'metrics' }),
+        readers: [reader],
       });
-      global.configureLogger = (config: any) => ({
-        ...config,
-        logRecordLimits: { attributeCountLimit: 1 },
-      });
-      const warnStub = stub(diag, 'warn');
-      try {
-        await wrap();
-      } finally {
-        warnStub.restore();
-      }
+      delete (global as any).configureLogger;
+      await wrap();
 
-      const messages = warnStub.getCalls().map(call => call.firstArg);
-      assert.ok(
-        messages.some(m => m.startsWith('configureMeter returned resource,')),
-      );
-      assert.ok(
-        messages.some(m =>
-          m.startsWith('configureLogger returned logRecordLimits,'),
-        ),
-      );
+      // collect() throws if NodeSDK did not register the reader.
+      await reader.collect();
+      await reader.shutdown();
     });
   });
 

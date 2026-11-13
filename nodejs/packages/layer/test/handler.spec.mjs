@@ -45,8 +45,6 @@ describe('when loading ESM module', async () => {
       };
     };
     global.configureMeter = _ => {};
-    global.configureMeterProvider = _ => {};
-    global.configureLoggerProvider = _ => {};
 
     await wrap();
   };

@@ -11,13 +11,7 @@ import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
 import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import type { TracerProviderOptions } from '@opentelemetry/sdk-trace';
-import {
-  defaultResource,
-  detectResources,
-  envDetector,
-  processDetector,
-  Resource,
-} from '@opentelemetry/resources';
+import { envDetector, processDetector } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
   Instrumentation,
@@ -34,8 +28,6 @@ import {
 
 const defaultInstrumentationList = ['dns', 'http', 'net'];
 
-export type TracerConfig = TracerProviderOptions;
-
 declare global {
   // In case of downstream configuring span processors etc
   function configureLambdaInstrumentation(
@@ -45,25 +37,17 @@ declare global {
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
-  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
+  function configureTracer(
+    defaultConfig: TracerProviderOptions,
+  ): TracerProviderOptions;
 
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
   function configureMeter(defaultConfig: unknown): unknown;
-  /**
-   * @deprecated please use {@link configureMeter} instead.
-   */
-  function configureMeterProvider(meterProvider: unknown): void;
 
   // No explicit logger type here, but "unknown" type.
   // Because logger packages are important dynamically.
   function configureLogger(defaultConfig: unknown): unknown;
-  // No explicit log type here, but "unknown" type.
-  // Because log packages are important dynamically.
-  /**
-   * @deprecated please use {@link configureLogger} instead.
-   */
-  function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
 function getActiveInstrumentations(): Set<string> {
@@ -260,45 +244,28 @@ async function createInstrumentations() {
 }
 
 async function initializeSdk() {
-  // Detected here rather than by NodeSDK so the hooks get it in their config,
-  // as they did before.
-  const resource = defaultResource().merge(
-    detectResources({
-      detectors: [awsLambdaDetector, envDetector, processDetector],
-    }),
-  );
-
   // Each hook gets an empty list. If it adds span processors, metric readers
   // or log record processors, those are used for that signal. If it leaves
   // the list empty, NodeSDK builds that signal from the OTEL_* env vars.
-  let tracerConfig: TracerConfig = { resource, spanProcessors: [] };
+  // A resource returned by configureTracer is merged with the detected one
+  // and used for all signals. NodeSDK reads only readers and views from
+  // configureMeter, and only processors from configureLogger.
+  let tracerConfig: TracerProviderOptions = { spanProcessors: [] };
   if (typeof configureTracer === 'function') {
     tracerConfig = configureTracer(tracerConfig);
   }
 
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let meterConfig: any = { resource, readers: [] };
+  let meterConfig: any = { readers: [] };
   if (typeof configureMeter === 'function') {
     meterConfig = configureMeter(meterConfig) ?? {};
   }
 
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let loggerConfig: any = { resource, processors: [] };
+  let loggerConfig: any = { processors: [] };
   if (typeof configureLogger === 'function') {
     loggerConfig = configureLogger(loggerConfig) ?? {};
   }
-
-  // NodeSDK takes one resource for all signals and no meter or logger
-  // provider options beyond readers, views and processors.
-  const sdkResource = tracerConfig.resource ?? resource;
-  const sameResource = [resource, sdkResource];
-  warnUnsupported('configureMeter', meterConfig, sameResource, [
-    'readers',
-    'views',
-  ]);
-  warnUnsupported('configureLogger', loggerConfig, sameResource, [
-    'processors',
-  ]);
 
   // Read before our logger is dropped, so a warning about an unknown
   // OTEL_PROPAGATORS name is still printed.
@@ -311,8 +278,9 @@ async function initializeSdk() {
   }
 
   const sdk = new NodeSDK({
-    resource: sdkResource,
-    autoDetectResources: false,
+    resource: tracerConfig.resource,
+    autoDetectResources: true,
+    resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
     textMapPropagator,
     sampler: tracerConfig.sampler,
     spanLimits: tracerConfig.spanLimits,
@@ -323,15 +291,6 @@ async function initializeSdk() {
     logRecordProcessors: nonEmpty(loggerConfig.processors),
   });
   sdk.start();
-
-  // These deprecated hooks used to register the providers themselves.
-  // NodeSDK has already registered them, so the hooks only receive them.
-  if (typeof configureMeterProvider === 'function') {
-    configureMeterProvider(metrics.getMeterProvider());
-  }
-  if (typeof configureLoggerProvider === 'function') {
-    configureLoggerProvider(logs.getLoggerProvider());
-  }
 
   // Create instrumentations if they have not been created before
   // to prevent additional coldstart overhead
@@ -349,33 +308,6 @@ async function initializeSdk() {
 
 function nonEmpty<T>(list: T[] | undefined): T[] | undefined {
   return list && list.length ? list : undefined;
-}
-
-function warnUnsupported(
-  hook: string,
-  config: Record<string, unknown>,
-  sameResource: Resource[],
-  supported: string[],
-) {
-  const ignored = Object.keys(config).filter(
-    key =>
-      config[key] !== undefined &&
-      !supported.includes(key) &&
-      !(key === 'resource' && sameResource.includes(config[key] as Resource)),
-  );
-  if (!ignored.length) {
-    return;
-  }
-  let message = `${hook} returned ${ignored.join(', ')}, which NodeSDK does not take, so it is ignored.`;
-  if (ignored.includes('resource')) {
-    message +=
-      ' Set the resource in configureTracer, it is used for all signals.';
-  }
-  if (ignored.includes('logRecordLimits')) {
-    message +=
-      ' Set log record limits with OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT and OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT.';
-  }
-  diag.warn(message);
 }
 
 export async function wrap() {
