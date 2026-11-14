@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/receiver/telemetryapireceiver
 
-go 1.26.0
+go 1.26.7
 
 replace github.com/open-telemetry/opentelemetry-lambda/collector => ../../
 
@@ -55,8 +55,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261110000943-09e21b237f2c // indirect
 	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
