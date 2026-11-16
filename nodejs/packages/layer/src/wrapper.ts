@@ -49,8 +49,7 @@ declare global {
   ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
 
-  // Gets the NodeSDK options the layer built, including what the deprecated
-  // hooks below returned, and returns the options to create NodeSDK with.
+  // Gets the Lambda defaults before the deprecated hooks below update them.
   function configureSdk(defaultConfig: SdkConfig): SdkConfig;
 
   /** @deprecated Use configureSdk. */
@@ -267,61 +266,79 @@ async function createInstrumentations() {
 }
 
 async function initializeSdk() {
-  // Each hook gets an empty list. If it adds span processors, metric readers
-  // or log record processors, those are used for that signal. If it leaves
-  // the list empty, NodeSDK builds that signal from the OTEL_* env vars.
-  // A resource returned by configureTracer is merged with the detected one
-  // and used for all signals. NodeSDK reads only readers and views from
-  // configureMeter, and only processors from configureLogger.
-  let tracerConfig: TracerProviderOptions = { spanProcessors: [] };
+  // Read while the layer logger is active so invalid propagator warnings show.
+  let sdkConfig: SdkConfig = {
+    autoDetectResources: true,
+    resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
+    textMapPropagator: getPropagator(),
+  };
+  if (typeof configureSdk === 'function') {
+    sdkConfig = configureSdk(sdkConfig);
+  }
+
+  // Deprecated hooks update the SDK options only when defined.
   if (typeof configureTracer === 'function') {
-    tracerConfig = configureTracer(tracerConfig);
+    const tracerConfig = configureTracer({
+      resource: sdkConfig.resource,
+      sampler: sdkConfig.sampler,
+      spanLimits: sdkConfig.spanLimits,
+      idGenerator: sdkConfig.idGenerator,
+      spanProcessors: sdkConfig.spanProcessors ?? [],
+    });
+    sdkConfig.resource = tracerConfig.resource;
+    sdkConfig.sampler = tracerConfig.sampler;
+    sdkConfig.spanLimits = tracerConfig.spanLimits;
+    sdkConfig.idGenerator = tracerConfig.idGenerator;
+    sdkConfig.spanProcessors =
+      sdkConfig.spanProcessors === undefined
+        ? nonEmpty(tracerConfig.spanProcessors)
+        : tracerConfig.spanProcessors;
   }
 
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let meterConfig: any = { readers: [] };
+  // Only readers and views are supported from the deprecated meter hook.
   if (typeof configureMeter === 'function') {
-    meterConfig = configureMeter(meterConfig) ?? {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meterConfig: any =
+      configureMeter({
+        readers: sdkConfig.metricReaders ?? [],
+        views: sdkConfig.views,
+      }) ?? {};
+    sdkConfig.metricReaders =
+      sdkConfig.metricReaders === undefined
+        ? nonEmpty(meterConfig.readers)
+        : meterConfig.readers;
+    sdkConfig.views = meterConfig.views;
   }
 
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let loggerConfig: any = { processors: [] };
+  // Only processors are supported from the deprecated logger hook.
   if (typeof configureLogger === 'function') {
-    loggerConfig = configureLogger(loggerConfig) ?? {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const loggerConfig: any =
+      configureLogger({
+        processors: sdkConfig.logRecordProcessors ?? [],
+      }) ?? {};
+    sdkConfig.logRecordProcessors =
+      sdkConfig.logRecordProcessors === undefined
+        ? nonEmpty(loggerConfig.processors)
+        : loggerConfig.processors;
   }
 
-  let sdkRegistrationConfig: SDKRegistrationConfig = {};
   if (typeof configureSdkRegistration === 'function') {
-    sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
+    const sdkRegistrationConfig = configureSdkRegistration({
+      propagator: sdkConfig.textMapPropagator,
+      contextManager: sdkConfig.contextManager,
+    });
+    sdkConfig.textMapPropagator =
+      sdkRegistrationConfig.propagator ?? sdkConfig.textMapPropagator;
+    // NodeSDK treats null as "leave the context manager unset", as register() did.
+    sdkConfig.contextManager =
+      sdkRegistrationConfig.contextManager as ContextManager;
   }
-
-  // Read before our logger is dropped, so a warning about an unknown
-  // OTEL_PROPAGATORS name is still printed.
-  const textMapPropagator = sdkRegistrationConfig.propagator ?? getPropagator();
 
   // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
   // Drop ours first so it does not warn about the override.
   if (getStringFromEnv('OTEL_LOG_LEVEL') != null) {
     diag.disable();
-  }
-
-  let sdkConfig: SdkConfig = {
-    resource: tracerConfig.resource,
-    autoDetectResources: true,
-    resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
-    textMapPropagator,
-    // NodeSDK treats null as "leave the context manager unset", as register() did.
-    contextManager: sdkRegistrationConfig.contextManager as ContextManager,
-    sampler: tracerConfig.sampler,
-    spanLimits: tracerConfig.spanLimits,
-    idGenerator: tracerConfig.idGenerator,
-    spanProcessors: nonEmpty(tracerConfig.spanProcessors),
-    metricReaders: nonEmpty(meterConfig.readers),
-    views: meterConfig.views,
-    logRecordProcessors: nonEmpty(loggerConfig.processors),
-  };
-  if (typeof configureSdk === 'function') {
-    sdkConfig = configureSdk(sdkConfig);
   }
 
   const sdk = new NodeSDK(sdkConfig);

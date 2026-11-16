@@ -3,6 +3,7 @@ import { init, wrap, unwrap } from '../src/wrapper';
 import {
   context,
   createContextKey,
+  logs,
   propagation,
   ProxyTracerProvider,
   ROOT_CONTEXT,
@@ -10,7 +11,10 @@ import {
   TraceFlags,
 } from '@opentelemetry/api';
 import type { AwsSdkInstrumentationConfig } from '@opentelemetry/instrumentation-aws-sdk';
-import { TRACE_PARENT_HEADER } from '@opentelemetry/core';
+import {
+  TRACE_PARENT_HEADER,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
 import {
   AWSXRAY_TRACE_ID_HEADER,
   AWSXRayPropagator,
@@ -27,6 +31,10 @@ import {
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import {
+  InMemoryLogRecordExporter,
+  SimpleLogRecordProcessor,
+} from '@opentelemetry/sdk-logs';
 
 import { stub } from 'sinon';
 import assert from 'assert';
@@ -163,7 +171,7 @@ describe('wrapper', async () => {
   });
 
   describe('configure hooks', () => {
-    after(() => {
+    afterEach(() => {
       delete (global as any).configureTracer;
       delete (global as any).configureMeter;
       delete (global as any).configureLogger;
@@ -266,20 +274,115 @@ describe('wrapper', async () => {
       assert.strictEqual(span.resource.attributes['process.pid'], process.pid);
     });
 
-    it('pass what the deprecated hooks return to configureSdk', async () => {
-      process.env.OTEL_PROPAGATORS = 'tracecontext';
-      const propagator = new AWSXRayPropagator();
-      global.configureSdkRegistration = config => ({ ...config, propagator });
-      const configureSdkStub = stub().callsFake(config => config);
-      global.configureSdk = configureSdkStub;
+    it('keep an empty processor list from configureSdk through configureTracer', async () => {
+      process.env.OTEL_TRACES_EXPORTER = 'console';
+      global.configureSdk = config => ({ ...config, spanProcessors: [] });
+      global.configureTracer = config => config;
       await wrap();
 
-      assert(configureSdkStub.calledOnce);
-      assert.strictEqual(
-        configureSdkStub.firstCall.args[0].textMapPropagator,
-        propagator,
+      const span = trace.getTracer('test').startSpan('disabled');
+      assert.strictEqual(span.isRecording(), false);
+      span.end();
+    });
+
+    it('apply configureSdkRegistration after configureSdk', async () => {
+      process.env.OTEL_PROPAGATORS = 'tracecontext';
+      global.configureSdk = config => ({
+        ...config,
+        textMapPropagator: new AWSXRayPropagator(),
+      });
+      global.configureSdkRegistration = config => {
+        assert.deepEqual(config.propagator?.fields(), ['x-amzn-trace-id']);
+        return { ...config, propagator: new W3CTraceContextPropagator() };
+      };
+      await wrap();
+
+      assert.deepEqual(propagation.fields(), ['traceparent', 'tracestate']);
+    });
+
+    it('let configureTracer extend the options from configureSdk', async () => {
+      const exporter = new InMemorySpanExporter();
+      global.configureSdk = config => ({
+        ...config,
+        resource: resourceFromAttributes({ 'test.sdk': 'kept' }),
+        idGenerator: {
+          generateTraceId: () => 'f'.repeat(32),
+          generateSpanId: () => 'e'.repeat(16),
+        },
+        spanProcessors: [new SimpleSpanProcessor({ exporter })],
+      });
+      global.configureTracer = config => ({
+        ...config,
+        resource: config.resource!.merge(
+          resourceFromAttributes({ 'test.tracer': 'added' }),
+        ),
+      });
+      await wrap();
+
+      trace.getTracer('test').startSpan('span').end();
+      const [span] = exporter.getFinishedSpans();
+      assert.strictEqual(span.resource.attributes['test.sdk'], 'kept');
+      assert.strictEqual(span.resource.attributes['test.tracer'], 'added');
+      assert.strictEqual(span.spanContext().traceId, 'f'.repeat(32));
+    });
+
+    it('let configureMeter add to readers from configureSdk', async () => {
+      const readers = [0, 1].map(
+        () =>
+          new PeriodicExportingMetricReader({
+            exporter: new InMemoryMetricExporter(
+              AggregationTemporality.CUMULATIVE,
+            ),
+          }),
       );
-      assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
+      global.configureSdk = config => ({
+        ...config,
+        metricReaders: [readers[0]],
+      });
+      global.configureMeter = (config: any) => ({
+        ...config,
+        readers: [...config.readers, readers[1]],
+      });
+      try {
+        await wrap();
+        for (const reader of readers) {
+          // collect() throws if the reader was not registered with NodeSDK.
+          await reader.collect();
+        }
+      } finally {
+        await Promise.all(readers.map(reader => reader.shutdown()));
+      }
+    });
+
+    it('let configureLogger add to processors from configureSdk', async () => {
+      const exporters = [
+        new InMemoryLogRecordExporter(),
+        new InMemoryLogRecordExporter(),
+      ];
+      const processors = exporters.map(
+        exporter => new SimpleLogRecordProcessor({ exporter }),
+      );
+      global.configureSdk = config => ({
+        ...config,
+        logRecordProcessors: [processors[0]],
+      });
+      global.configureLogger = (config: any) => ({
+        ...config,
+        processors: [...config.processors, processors[1]],
+      });
+      try {
+        await wrap();
+        logs.getLogger('test').emit({ body: 'from-both-hooks' });
+        await Promise.all(processors.map(processor => processor.forceFlush()));
+        for (const exporter of exporters) {
+          assert.deepEqual(
+            exporter.getFinishedLogRecords().map(record => record.body),
+            ['from-both-hooks'],
+          );
+        }
+      } finally {
+        await Promise.all(processors.map(processor => processor.shutdown()));
+      }
     });
 
     it('use NodeSDK options the other hooks do not offer', async () => {
@@ -335,6 +438,15 @@ describe('wrapper', async () => {
 
     it('is configured to OTLP by default', async () => {
       await testConfiguredExporter(undefined, [OTLPTraceExporter]);
+    });
+
+    it('uses env exporters when configureTracer leaves its default list empty', async () => {
+      global.configureTracer = config => config;
+      try {
+        await testConfiguredExporter(['console'], [ConsoleSpanExporter]);
+      } finally {
+        delete (global as any).configureTracer;
+      }
     });
 
     it('is configured to console by env var', async () => {
