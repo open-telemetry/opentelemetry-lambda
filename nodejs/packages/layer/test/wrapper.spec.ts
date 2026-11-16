@@ -20,11 +20,13 @@ import {
   AWSXRayPropagator,
 } from '@opentelemetry/propagator-aws-xray';
 import {
+  AlwaysOffSampler,
   ConsoleSpanExporter,
   InMemorySpanExporter,
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace';
 import { resourceFromAttributes } from '@opentelemetry/resources';
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   AggregationTemporality,
   InMemoryMetricExporter,
@@ -382,6 +384,106 @@ describe('wrapper', async () => {
         }
       } finally {
         await Promise.all(processors.map(processor => processor.shutdown()));
+      }
+    });
+
+    it('keep the sampler configureTracer leaves out', async () => {
+      const exporter = new InMemorySpanExporter();
+      global.configureSdk = config => ({
+        ...config,
+        sampler: new AlwaysOffSampler(),
+      });
+      global.configureTracer = () => ({
+        spanProcessors: [new SimpleSpanProcessor({ exporter })],
+      });
+      await wrap();
+
+      const span = trace.getTracer('test').startSpan('unsampled');
+      assert.strictEqual(span.isRecording(), false);
+      span.end();
+      assert.deepEqual(exporter.getFinishedSpans(), []);
+    });
+
+    it('keep the resource, ID generator and span limits configureTracer leaves out', async () => {
+      const exporter = new InMemorySpanExporter();
+      global.configureSdk = config => ({
+        ...config,
+        resource: resourceFromAttributes({ 'test.sdk': 'kept' }),
+        idGenerator: {
+          generateTraceId: () => 'f'.repeat(32),
+          generateSpanId: () => 'e'.repeat(16),
+        },
+        spanLimits: { attributeCountLimit: 1 },
+      });
+      global.configureTracer = () => ({
+        spanProcessors: [new SimpleSpanProcessor({ exporter })],
+      });
+      await wrap();
+
+      const span = trace.getTracer('test').startSpan('span');
+      span.setAttribute('first', 'kept');
+      span.setAttribute('second', 'dropped');
+      span.end();
+      const [finishedSpan] = exporter.getFinishedSpans();
+      assert.strictEqual(finishedSpan.resource.attributes['test.sdk'], 'kept');
+      assert.strictEqual(finishedSpan.spanContext().traceId, 'f'.repeat(32));
+      assert.strictEqual(finishedSpan.spanContext().spanId, 'e'.repeat(16));
+      assert.deepEqual(finishedSpan.attributes, { first: 'kept' });
+    });
+
+    it('keep SDK readers when configureMeter returns null', async () => {
+      const reader = new PeriodicExportingMetricReader({
+        exporter: new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE),
+      });
+      global.configureSdk = config => ({ ...config, metricReaders: [reader] });
+      global.configureMeter = () => null;
+      try {
+        await wrap();
+        // collect() throws if NodeSDK did not register the reader.
+        await reader.collect();
+      } finally {
+        await reader.shutdown();
+      }
+    });
+
+    it('keep SDK processors when configureLogger returns undefined', async () => {
+      const exporter = new InMemoryLogRecordExporter();
+      const processor = new SimpleLogRecordProcessor({ exporter });
+      global.configureSdk = config => ({
+        ...config,
+        logRecordProcessors: [processor],
+      });
+      global.configureLogger = () => undefined;
+      try {
+        await wrap();
+        logs.getLogger('test').emit({ body: 'from-sdk' });
+        await processor.forceFlush();
+        assert.deepEqual(
+          exporter.getFinishedLogRecords().map(record => record.body),
+          ['from-sdk'],
+        );
+      } finally {
+        await processor.shutdown();
+      }
+    });
+
+    it('keep the SDK context manager when configureSdkRegistration returns only a propagator', async () => {
+      const contextManager = new AsyncLocalStorageContextManager().enable();
+      global.configureSdk = config => ({ ...config, contextManager });
+      global.configureSdkRegistration = () => ({
+        propagator: new AWSXRayPropagator(),
+      });
+      try {
+        await wrap();
+        const key = createContextKey('test');
+        const ctx = ROOT_CONTEXT.setValue(key, 'value');
+        assert.strictEqual(
+          contextManager.with(ctx, () => context.active()),
+          ctx,
+        );
+        assert.deepEqual(propagation.fields(), ['x-amzn-trace-id']);
+      } finally {
+        contextManager.disable();
       }
     });
 

@@ -285,14 +285,24 @@ async function initializeSdk() {
       idGenerator: sdkConfig.idGenerator,
       spanProcessors: sdkConfig.spanProcessors ?? [],
     });
-    sdkConfig.resource = tracerConfig.resource;
-    sdkConfig.sampler = tracerConfig.sampler;
-    sdkConfig.spanLimits = tracerConfig.spanLimits;
-    sdkConfig.idGenerator = tracerConfig.idGenerator;
-    sdkConfig.spanProcessors =
-      sdkConfig.spanProcessors === undefined
-        ? nonEmpty(tracerConfig.spanProcessors)
-        : tracerConfig.spanProcessors;
+    if (Object.hasOwn(tracerConfig, 'resource')) {
+      sdkConfig.resource = tracerConfig.resource;
+    }
+    if (Object.hasOwn(tracerConfig, 'sampler')) {
+      sdkConfig.sampler = tracerConfig.sampler;
+    }
+    if (Object.hasOwn(tracerConfig, 'spanLimits')) {
+      sdkConfig.spanLimits = tracerConfig.spanLimits;
+    }
+    if (Object.hasOwn(tracerConfig, 'idGenerator')) {
+      sdkConfig.idGenerator = tracerConfig.idGenerator;
+    }
+    if (Object.hasOwn(tracerConfig, 'spanProcessors')) {
+      sdkConfig.spanProcessors =
+        sdkConfig.spanProcessors === undefined
+          ? nonEmpty(tracerConfig.spanProcessors)
+          : tracerConfig.spanProcessors;
+    }
   }
 
   // Only readers and views are supported from the deprecated meter hook.
@@ -303,11 +313,15 @@ async function initializeSdk() {
         readers: sdkConfig.metricReaders ?? [],
         views: sdkConfig.views,
       }) ?? {};
-    sdkConfig.metricReaders =
-      sdkConfig.metricReaders === undefined
-        ? nonEmpty(meterConfig.readers)
-        : meterConfig.readers;
-    sdkConfig.views = meterConfig.views;
+    if (Object.hasOwn(meterConfig, 'readers')) {
+      sdkConfig.metricReaders =
+        sdkConfig.metricReaders === undefined
+          ? nonEmpty(meterConfig.readers)
+          : meterConfig.readers;
+    }
+    if (Object.hasOwn(meterConfig, 'views')) {
+      sdkConfig.views = meterConfig.views;
+    }
   }
 
   // Only processors are supported from the deprecated logger hook.
@@ -317,10 +331,12 @@ async function initializeSdk() {
       configureLogger({
         processors: sdkConfig.logRecordProcessors ?? [],
       }) ?? {};
-    sdkConfig.logRecordProcessors =
-      sdkConfig.logRecordProcessors === undefined
-        ? nonEmpty(loggerConfig.processors)
-        : loggerConfig.processors;
+    if (Object.hasOwn(loggerConfig, 'processors')) {
+      sdkConfig.logRecordProcessors =
+        sdkConfig.logRecordProcessors === undefined
+          ? nonEmpty(loggerConfig.processors)
+          : loggerConfig.processors;
+    }
   }
 
   if (typeof configureSdkRegistration === 'function') {
@@ -328,11 +344,15 @@ async function initializeSdk() {
       propagator: sdkConfig.textMapPropagator,
       contextManager: sdkConfig.contextManager,
     });
-    sdkConfig.textMapPropagator =
-      sdkRegistrationConfig.propagator ?? sdkConfig.textMapPropagator;
-    // NodeSDK treats null as "leave the context manager unset", as register() did.
-    sdkConfig.contextManager =
-      sdkRegistrationConfig.contextManager as ContextManager;
+    if (Object.hasOwn(sdkRegistrationConfig, 'propagator')) {
+      sdkConfig.textMapPropagator =
+        sdkRegistrationConfig.propagator ?? sdkConfig.textMapPropagator;
+    }
+    if (Object.hasOwn(sdkRegistrationConfig, 'contextManager')) {
+      // NodeSDK treats null as "leave the context manager unset", as register() did.
+      sdkConfig.contextManager =
+        sdkRegistrationConfig.contextManager as ContextManager;
+    }
   }
 
   // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
