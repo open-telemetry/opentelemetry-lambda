@@ -4,6 +4,7 @@ import {
   context,
   createContextKey,
   logs,
+  metrics,
   propagation,
   ProxyTracerProvider,
   ROOT_CONTEXT,
@@ -30,6 +31,7 @@ import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-ho
 import {
   AggregationTemporality,
   InMemoryMetricExporter,
+  MeterProvider,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
@@ -251,6 +253,64 @@ describe('wrapper', async () => {
       // collect() throws if NodeSDK did not register the reader.
       await reader.collect();
       await reader.shutdown();
+    });
+
+    describe('metric readers', () => {
+      beforeEach(() => {
+        process.env.OTEL_METRICS_EXPORTER = 'otlp';
+        process.env.OTEL_TRACES_EXPORTER = 'none';
+        process.env.OTEL_LOGS_EXPORTER = 'none';
+      });
+
+      afterEach(async () => {
+        const provider = metrics.getMeterProvider();
+        if (provider instanceof MeterProvider) {
+          await provider.shutdown();
+        }
+      });
+
+      it('disable env readers when configureMeter returns a new empty list', async () => {
+        global.configureMeter = () => ({ readers: [] });
+        await wrap();
+
+        assert.ok(!(metrics.getMeterProvider() instanceof MeterProvider));
+      });
+
+      it('use env readers when configureMeter returns the unchanged config', async () => {
+        global.configureMeter = config => config;
+        await wrap();
+
+        assert.ok(metrics.getMeterProvider() instanceof MeterProvider);
+      });
+
+      it('use env readers when configureMeter copies the unchanged list', async () => {
+        global.configureMeter = (config: any) => ({ ...config });
+        await wrap();
+
+        assert.ok(metrics.getMeterProvider() instanceof MeterProvider);
+      });
+
+      it('keep an empty reader list from configureSdk', async () => {
+        global.configureSdk = config => ({ ...config, metricReaders: [] });
+        global.configureMeter = config => config;
+        await wrap();
+
+        assert.ok(!(metrics.getMeterProvider() instanceof MeterProvider));
+      });
+
+      it('register readers added to the placeholder list', async () => {
+        const reader = new PeriodicExportingMetricReader({
+          exporter: new InMemoryMetricExporter(
+            AggregationTemporality.CUMULATIVE,
+          ),
+        });
+        global.configureMeter = (config: any) => {
+          config.readers.push(reader);
+          return config;
+        };
+        await wrap();
+        await reader.collect();
+      });
     });
 
     it('create NodeSDK with the options from configureSdk', async () => {

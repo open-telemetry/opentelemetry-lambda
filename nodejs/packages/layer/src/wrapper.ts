@@ -307,15 +307,16 @@ async function initializeSdk() {
 
   // Only readers and views are supported from the deprecated meter hook.
   if (typeof configureMeter === 'function') {
+    const readers = sdkConfig.metricReaders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const meterConfig: any =
       configureMeter({
-        readers: sdkConfig.metricReaders ?? [],
+        readers,
         views: sdkConfig.views,
       }) ?? {};
     if (Object.hasOwn(meterConfig, 'readers')) {
       sdkConfig.metricReaders =
-        sdkConfig.metricReaders === undefined
+        sdkConfig.metricReaders === undefined && meterConfig.readers === readers
           ? nonEmpty(meterConfig.readers)
           : meterConfig.readers;
     }
