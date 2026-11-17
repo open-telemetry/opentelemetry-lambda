@@ -122,30 +122,27 @@ func (c *Collector) Start(ctx context.Context) error {
 
 	c.appDone = make(chan struct{})
 
+	var appErr error
 	go func() {
 		defer close(c.appDone)
-		appErr := c.svc.Run(ctx)
-		if appErr != nil {
-			err = appErr
-		}
+		appErr = c.svc.Run(ctx)
 	}()
 
 	for {
 		state := c.svc.GetState()
-
-		// While waiting for collector start, an error was found. Most likely
-		// an invalid custom collector configuration file.
-		if err != nil {
-			return err
-		}
-
 		switch state {
 		case otelcol.StateStarting:
 			// NoOp
 		case otelcol.StateRunning:
 			return nil
 		default:
-			err = fmt.Errorf("unable to start, otelcol state is %s", state.String())
+			// The collector sets this state before Run returns. Wait for Run so its
+			// error, most likely an invalid collector configuration, is not lost.
+			<-c.appDone
+			if appErr != nil {
+				return appErr
+			}
+			return fmt.Errorf("unable to start, otelcol state is %s", state.String())
 		}
 	}
 }

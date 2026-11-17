@@ -100,6 +100,22 @@ func TestCollectorLogLevelDoesNotSuppressExtensionLogs(t *testing.T) {
 		"extension logs should be controlled by the extension logger, not collector config")
 }
 
+func TestStartReturnsConfigError(t *testing.T) {
+	t.Setenv("OPENTELEMETRY_COLLECTOR_CONFIG_URI", "file:testdata/config-invalid.yaml")
+
+	// Losing the error depends on goroutine timing, so check several times.
+	for range 20 {
+		collector := NewCollector(zap.NewNop(), testFactories(t), "test")
+		collector.coreFunc = func(levelEnabler zapcore.LevelEnabler) zapcore.Core {
+			collectorObservedCore, _ := observer.New(levelEnabler)
+			return collectorObservedCore
+		}
+
+		err := collector.Start(context.Background())
+		require.ErrorContains(t, err, "'service.telemetry.metrics' decoding failed")
+	}
+}
+
 func testFactories(t *testing.T) otelcol.Factories {
 	receivers, err := otelcol.MakeFactoryMap(receivertest.NewNopFactory())
 	require.NoError(t, err)
