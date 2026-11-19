@@ -3,8 +3,7 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":awssdk-autoconfigure"))
-
+    runtimeOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-aws-sdk-2.2")
     runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-aws-lambda-events-3.11")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-logging")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
