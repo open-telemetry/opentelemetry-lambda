@@ -2,6 +2,7 @@ include ./Makefile.Common
 
 BASE_SPACE:=$(shell pwd)
 BUILD_SPACE:=$(BASE_SPACE)/build
+BUILDTAGS ?= remove_all_resourcedetection_detectors,enable_detector_env,enable_detector_aws_lambda
 BUCKET_NAME:=lambda-artifacts-$(shell dd if=/dev/random bs=8 count=1 2>/dev/null | od -An -tx1 | tr -d ' \t\n')
 LAYER_NAME:=otel-collector
 OTELCOL_VERSION=$(shell cat VERSION)
