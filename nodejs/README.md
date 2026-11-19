@@ -10,7 +10,7 @@ To use, add the layer to your function configuration and then set `AWS_LAMBDA_EX
 The following hooks are provided as a way to reconfigure the layer from within a function:
 
 | Name | Config Type | Brief |
-| —— | —— | —— |
+| --- | --- | --- |
 | configureAwsInstrumentation | [AwsSdkInstrumentationConfig][https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-sdk/src/types.ts) | |
 | configureLambdaInstrumentation | [AwsLambdaInstrumentationConfig](https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-lambda/src/types.ts) | |
 | configureInstrumentation | | |
