@@ -5,6 +5,26 @@ the `AWS_LAMBDA_EXEC_WRAPPER` environment variable will initialize OpenTelemetry
 
 To use, add the layer to your function configuration and then set `AWS_LAMBDA_EXEC_WRAPPER` to `/opt/otel-handler`.
 
+## Configuration hooks
+
+The following hooks are provided as a way to reconfigure the layer from within a function:
+
+| Name | Config Type | Brief |
+| --- | --- | --- |
+| configureAwsInstrumentation | [AwsSdkInstrumentationConfig](https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-sdk/src/types.ts) | |
+| configureLambdaInstrumentation | [AwsLambdaInstrumentationConfig](https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-lambda/src/types.ts) | |
+| configureInstrumentation | | |
+| configureSdk | [NodeSDKConfiguration](https://github.com/open-telemetry/opentelemetry-js/blob/main/experimental/packages/opentelemetry-sdk-node/src/types.ts) | provides full access to define the configuration used to start otel. |
+
+The following hooks are deprecated & will be removed in a future release:
+
+- configureLogger
+- configureMeter
+- configureSdkRegistration
+- configureTracer
+
+To configure the sdk use the configureSdk hook, which provides access to all the options available to configure the sdk on node.
+
 ## Configuring auto instrumentation
 
 [AWS SDK v3 instrumentation](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/packages/instrumentation-aws-sdk)

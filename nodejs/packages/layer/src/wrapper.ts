@@ -1,37 +1,20 @@
 import {
   context,
+  ContextManager,
   diag,
   DiagConsoleLogger,
-  DiagLogLevel,
+  logs,
+  metrics,
   propagation,
   TextMapPropagator,
   trace,
-  TracerProvider,
 } from '@opentelemetry/api';
-import {
-  CompositePropagator,
-  diagLogLevelFromString,
-  getStringFromEnv,
-  W3CBaggagePropagator,
-  W3CTraceContextPropagator,
-} from '@opentelemetry/core';
-import {
-  BatchSpanProcessor,
-  ConsoleSpanExporter,
-  NodeTracerProvider,
-  SDKRegistrationConfig,
-  SimpleSpanProcessor,
-  SpanExporter,
-  TracerConfig,
-} from '@opentelemetry/sdk-trace-node';
-import {
-  detectResources,
-  envDetector,
-  Resource,
-  processDetector,
-} from '@opentelemetry/resources';
+import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
+import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
+import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
+import type { TracerProviderOptions } from '@opentelemetry/sdk-trace';
+import { envDetector, processDetector } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import {
   Instrumentation,
   registerInstrumentations,
@@ -44,17 +27,17 @@ import {
   AwsLambdaInstrumentation,
   AwsLambdaInstrumentationConfig,
 } from '@opentelemetry/instrumentation-aws-lambda';
-import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray';
-import { AWSXRayLambdaPropagator } from '@opentelemetry/propagator-aws-xray-lambda';
 
 const defaultInstrumentationList = ['dns', 'http', 'net'];
 
-const propagatorMap = new Map<string, () => TextMapPropagator>([
-  ['tracecontext', () => new W3CTraceContextPropagator()],
-  ['baggage', () => new W3CBaggagePropagator()],
-  ['xray', () => new AWSXRayPropagator()],
-  ['xray-lambda', () => new AWSXRayLambdaPropagator()],
-]);
+export interface SDKRegistrationConfig {
+  propagator?: TextMapPropagator | null;
+  contextManager?: ContextManager | null;
+}
+
+// Instrumentations are left out: NodeSDK registers them before it sets up the
+// providers, so the layer registers its own after start() instead.
+export type SdkConfig = Partial<Omit<NodeSDKConfiguration, 'instrumentations'>>;
 
 declare global {
   // In case of downstream configuring span processors etc
@@ -65,28 +48,28 @@ declare global {
     defaultConfig: AwsSdkInstrumentationConfig,
   ): AwsSdkInstrumentationConfig;
   function configureInstrumentations(): Instrumentation[];
+
+  // Gets the Lambda defaults before the deprecated hooks below update them.
+  function configureSdk(defaultConfig: SdkConfig): SdkConfig;
+
+  /** @deprecated Use configureSdk. */
+  function configureTracer(
+    defaultConfig: TracerProviderOptions,
+  ): TracerProviderOptions;
+  /** @deprecated Use configureSdk. */
   function configureSdkRegistration(
     defaultSdkRegistration: SDKRegistrationConfig,
   ): SDKRegistrationConfig;
-  function configureTracer(defaultConfig: TracerConfig): TracerConfig;
 
   // No explicit metric type here, but "unknown" type.
   // Because metric packages are important dynamically.
+  /** @deprecated Use configureSdk. */
   function configureMeter(defaultConfig: unknown): unknown;
-  /**
-   * @deprecated please use {@link configureMeter} instead.
-   */
-  function configureMeterProvider(meterProvider: unknown): void;
 
   // No explicit logger type here, but "unknown" type.
   // Because logger packages are important dynamically.
+  /** @deprecated Use configureSdk. */
   function configureLogger(defaultConfig: unknown): unknown;
-  // No explicit log type here, but "unknown" type.
-  // Because log packages are important dynamically.
-  /**
-   * @deprecated please use {@link configureLogger} instead.
-   */
-  function configureLoggerProvider(loggerProvider: unknown): void;
 }
 
 function getActiveInstrumentations(): Set<string> {
@@ -282,240 +265,105 @@ async function createInstrumentations() {
   ];
 }
 
-function getPropagator(): TextMapPropagator {
-  if (
-    process.env.OTEL_PROPAGATORS == null ||
-    process.env.OTEL_PROPAGATORS.trim() === ''
-  ) {
-    return new CompositePropagator({
-      propagators: [
-        new W3CTraceContextPropagator(),
-        new W3CBaggagePropagator(),
-      ],
-    });
-  }
-  const propagatorsFromEnv = Array.from(
-    new Set(
-      process.env.OTEL_PROPAGATORS?.split(',').map(value =>
-        value.toLowerCase().trim(),
-      ),
-    ),
-  );
-  const propagators = propagatorsFromEnv.flatMap(propagatorName => {
-    if (propagatorName === 'none') {
-      diag.info(
-        'Not selecting any propagator for value "none" specified in the environment variable OTEL_PROPAGATORS',
-      );
-      return [];
-    }
-    const propagatorFactoryFunction = propagatorMap.get(propagatorName);
-    if (propagatorFactoryFunction == null) {
-      diag.warn(
-        `Invalid propagator "${propagatorName}" specified in the environment variable OTEL_PROPAGATORS`,
-      );
-      return [];
-    }
-    return propagatorFactoryFunction();
-  });
-  return new CompositePropagator({ propagators });
-}
-
-function getExportersFromEnv(): SpanExporter[] | null {
-  if (
-    process.env.OTEL_TRACES_EXPORTER == null ||
-    process.env.OTEL_TRACES_EXPORTER.trim() === ''
-  ) {
-    return [];
-  }
-  if (process.env.OTEL_TRACES_EXPORTER.includes('none')) {
-    return null;
-  }
-
-  const stringToExporter = new Map<string, () => SpanExporter>([
-    ['otlp', () => new OTLPTraceExporter()],
-    ['console', () => new ConsoleSpanExporter()],
-  ]);
-  const exporters: SpanExporter[] = [];
-  process.env.OTEL_TRACES_EXPORTER.split(',').map(exporterName => {
-    exporterName = exporterName.toLowerCase().trim();
-    const exporter = stringToExporter.get(exporterName);
-    if (exporter) {
-      exporters.push(exporter());
-    } else {
-      diag.warn(
-        `Invalid exporter "${exporterName}" specified in the environment variable OTEL_TRACES_EXPORTER`,
-      );
-    }
-  });
-  return exporters;
-}
-
-async function initializeTracerProvider(
-  resource: Resource,
-): Promise<TracerProvider | undefined> {
-  let config: TracerConfig = {
-    resource,
-    spanProcessors: [],
+async function initializeSdk() {
+  // Read while the layer logger is active so invalid propagator warnings show.
+  let sdkConfig: SdkConfig = {
+    autoDetectResources: true,
+    resourceDetectors: [awsLambdaDetector, envDetector, processDetector],
+    textMapPropagator: getPropagator(),
   };
-
-  const exporters = getExportersFromEnv();
-  if (!exporters) {
-    return;
+  if (typeof configureSdk === 'function') {
+    sdkConfig = configureSdk(sdkConfig);
   }
 
+  // Deprecated hooks update the SDK options only when defined.
   if (typeof configureTracer === 'function') {
-    config = configureTracer(config);
-  }
-
-  if (exporters.length) {
-    config.spanProcessors = config.spanProcessors || [];
-    exporters.map(exporter => {
-      if (exporter instanceof ConsoleSpanExporter) {
-        config.spanProcessors?.push(new SimpleSpanProcessor(exporter));
-      } else {
-        config.spanProcessors?.push(new BatchSpanProcessor(exporter));
-      }
+    const tracerConfig = configureTracer({
+      resource: sdkConfig.resource,
+      sampler: sdkConfig.sampler,
+      spanLimits: sdkConfig.spanLimits,
+      idGenerator: sdkConfig.idGenerator,
+      spanProcessors: sdkConfig.spanProcessors ?? [],
     });
+    if (Object.hasOwn(tracerConfig, 'resource')) {
+      sdkConfig.resource = tracerConfig.resource;
+    }
+    if (Object.hasOwn(tracerConfig, 'sampler')) {
+      sdkConfig.sampler = tracerConfig.sampler;
+    }
+    if (Object.hasOwn(tracerConfig, 'spanLimits')) {
+      sdkConfig.spanLimits = tracerConfig.spanLimits;
+    }
+    if (Object.hasOwn(tracerConfig, 'idGenerator')) {
+      sdkConfig.idGenerator = tracerConfig.idGenerator;
+    }
+    if (Object.hasOwn(tracerConfig, 'spanProcessors')) {
+      sdkConfig.spanProcessors =
+        sdkConfig.spanProcessors === undefined
+          ? nonEmpty(tracerConfig.spanProcessors)
+          : tracerConfig.spanProcessors;
+    }
   }
 
-  config.spanProcessors = config.spanProcessors || [];
-  if (config.spanProcessors.length === 0) {
-    // Default
-    config.spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter()));
-  }
-
-  // Logging for debug
-  if (logLevel === DiagLogLevel.DEBUG) {
-    config.spanProcessors.push(
-      new SimpleSpanProcessor(new ConsoleSpanExporter()),
-    );
-  }
-
-  const tracerProvider = new NodeTracerProvider(config);
-
-  let sdkRegistrationConfig: SDKRegistrationConfig = {};
-  if (typeof configureSdkRegistration === 'function') {
-    sdkRegistrationConfig = configureSdkRegistration(sdkRegistrationConfig);
-  }
-  // Auto-configure propagator if not provided
-  if (!sdkRegistrationConfig.propagator) {
-    sdkRegistrationConfig.propagator = getPropagator();
-  }
-  tracerProvider.register(sdkRegistrationConfig);
-
-  return tracerProvider;
-}
-
-async function initializeMeterProvider(
-  resource: Resource,
-): Promise<unknown | undefined> {
-  if (process.env.OTEL_METRICS_EXPORTER === 'none') {
-    return;
-  }
-
-  const { metrics } = await import('@opentelemetry/api');
-  const { MeterProvider, PeriodicExportingMetricReader } =
-    await import('@opentelemetry/sdk-metrics');
-  const { OTLPMetricExporter } =
-    await import('@opentelemetry/exporter-metrics-otlp-http');
-
-  // Configure default meter provider (doesn't export metrics)
-  const metricExporter = new OTLPMetricExporter();
-  let meterConfig: unknown = {
-    resource,
-    readers: [
-      new PeriodicExportingMetricReader({
-        exporter: metricExporter,
-      }),
-    ],
-  };
+  // Only readers and views are supported from the deprecated meter hook.
   if (typeof configureMeter === 'function') {
-    meterConfig = configureMeter(meterConfig);
+    const readers = sdkConfig.metricReaders ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meterConfig: any =
+      configureMeter({
+        readers,
+        views: sdkConfig.views,
+      }) ?? {};
+    if (Object.hasOwn(meterConfig, 'readers')) {
+      sdkConfig.metricReaders =
+        sdkConfig.metricReaders === undefined && meterConfig.readers === readers
+          ? nonEmpty(meterConfig.readers)
+          : meterConfig.readers;
+    }
+    if (Object.hasOwn(meterConfig, 'views')) {
+      sdkConfig.views = meterConfig.views;
+    }
   }
 
-  const meterProvider = new MeterProvider(meterConfig as object);
-  if (typeof configureMeterProvider === 'function') {
-    configureMeterProvider(meterProvider);
-  } else {
-    metrics.setGlobalMeterProvider(meterProvider);
-  }
-
-  metricsDisableFunction = () => {
-    metrics.disable();
-  };
-
-  return meterProvider;
-}
-
-async function initializeLoggerProvider(
-  resource: Resource,
-): Promise<unknown | undefined> {
-  if (process.env.OTEL_LOGS_EXPORTER === 'none') {
-    return;
-  }
-
-  const { logs } = await import('@opentelemetry/api-logs');
-  const {
-    LoggerProvider,
-    BatchLogRecordProcessor,
-    SimpleLogRecordProcessor,
-    ConsoleLogRecordExporter,
-  } = await import('@opentelemetry/sdk-logs');
-  const { OTLPLogExporter } =
-    await import('@opentelemetry/exporter-logs-otlp-http');
-
-  const logExporter = new OTLPLogExporter();
-  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  let loggerConfig: any = {
-    resource,
-    processors: [],
-  };
+  // Only processors are supported from the deprecated logger hook.
   if (typeof configureLogger === 'function') {
-    loggerConfig = configureLogger(loggerConfig);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const loggerConfig: any =
+      configureLogger({
+        processors: sdkConfig.logRecordProcessors ?? [],
+      }) ?? {};
+    if (Object.hasOwn(loggerConfig, 'processors')) {
+      sdkConfig.logRecordProcessors =
+        sdkConfig.logRecordProcessors === undefined
+          ? nonEmpty(loggerConfig.processors)
+          : loggerConfig.processors;
+    }
   }
 
-  loggerConfig.processors = loggerConfig.processors || [];
-  if (loggerConfig.processors.length === 0) {
-    loggerConfig.processors.push(
-      new BatchLogRecordProcessor({
-        exporter: logExporter,
-      }),
-    );
-  }
-  // Logging for debug
-  if (logLevel === DiagLogLevel.DEBUG) {
-    loggerConfig.processors.push(
-      new SimpleLogRecordProcessor({
-        exporter: new ConsoleLogRecordExporter(),
-      }),
-    );
-  }
-
-  const loggerProvider = new LoggerProvider(loggerConfig as object);
-  if (typeof configureLoggerProvider === 'function') {
-    configureLoggerProvider(loggerProvider);
-  } else {
-    logs.setGlobalLoggerProvider(loggerProvider);
+  if (typeof configureSdkRegistration === 'function') {
+    const sdkRegistrationConfig = configureSdkRegistration({
+      propagator: sdkConfig.textMapPropagator,
+      contextManager: sdkConfig.contextManager,
+    });
+    if (Object.hasOwn(sdkRegistrationConfig, 'propagator')) {
+      sdkConfig.textMapPropagator =
+        sdkRegistrationConfig.propagator ?? sdkConfig.textMapPropagator;
+    }
+    if (Object.hasOwn(sdkRegistrationConfig, 'contextManager')) {
+      // NodeSDK treats null as "leave the context manager unset", as register() did.
+      sdkConfig.contextManager =
+        sdkRegistrationConfig.contextManager as ContextManager;
+    }
   }
 
-  logsDisableFunction = () => {
-    logs.disable();
-  };
+  // NodeSDK installs its own diag logger when OTEL_LOG_LEVEL is set.
+  // Drop ours first so it does not warn about the override.
+  if (getStringFromEnv('OTEL_LOG_LEVEL') != null) {
+    diag.disable();
+  }
 
-  return loggerProvider;
-}
-
-async function initializeProvider() {
-  const resource = detectResources({
-    detectors: [awsLambdaDetector, envDetector, processDetector],
-  });
-
-  const tracerProvider: TracerProvider | undefined =
-    await initializeTracerProvider(resource);
-  const meterProvider: unknown | undefined =
-    await initializeMeterProvider(resource);
-  const loggerProvider: unknown | undefined =
-    await initializeLoggerProvider(resource);
+  const sdk = new NodeSDK(sdkConfig);
+  sdk.start();
 
   // Create instrumentations if they have not been created before
   // to prevent additional coldstart overhead
@@ -524,16 +372,15 @@ async function initializeProvider() {
     instrumentations = await createInstrumentations();
   }
 
-  // Re-register instrumentation with initialized provider. Patched code will see the update.
+  // Register the instrumentations again now that NodeSDK has set the global
+  // providers. They are not passed to NodeSDK: start() registers them before
+  // it creates the providers, so the Lambda instrumentation would bind the
+  // no-op tracer provider and never flush at the end of an invocation.
+  disableInstrumentations = registerInstrumentations({ instrumentations });
+}
 
-  disableInstrumentations = registerInstrumentations({
-    instrumentations,
-    tracerProvider,
-    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    meterProvider: meterProvider as any,
-    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    loggerProvider: loggerProvider as any,
-  });
+function nonEmpty<T>(list: T[] | undefined): T[] | undefined {
+  return list && list.length ? list : undefined;
 }
 
 export async function wrap() {
@@ -541,7 +388,7 @@ export async function wrap() {
     throw new Error('Not initialized yet');
   }
 
-  await initializeProvider();
+  await initializeSdk();
 }
 
 export async function unwrap() {
@@ -558,16 +405,8 @@ export async function unwrap() {
   context.disable();
   propagation.disable();
   trace.disable();
-
-  if (metricsDisableFunction) {
-    metricsDisableFunction();
-    metricsDisableFunction = () => {};
-  }
-
-  if (logsDisableFunction) {
-    logsDisableFunction();
-    logsDisableFunction = () => {};
-  }
+  metrics.disable();
+  logs.disable();
 }
 
 export async function init() {
@@ -592,8 +431,6 @@ export function logDebug(message: string, ...args: unknown[]) {
 let initialized = false;
 let instrumentations: Instrumentation[];
 let disableInstrumentations: () => void;
-let metricsDisableFunction: () => void;
-let logsDisableFunction: () => void;
 
 // Configure lambda logging
 const logLevel = diagLogLevelFromString(getStringFromEnv('OTEL_LOG_LEVEL'));
