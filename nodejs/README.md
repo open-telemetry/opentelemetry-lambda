@@ -11,7 +11,7 @@ The following hooks are provided as a way to reconfigure the layer from within a
 
 | Name | Config Type | Brief |
 | --- | --- | --- |
-| configureAwsInstrumentation | [AwsSdkInstrumentationConfig][https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-sdk/src/types.ts) | |
+| configureAwsInstrumentation | [AwsSdkInstrumentationConfig](https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-sdk/src/types.ts) | |
 | configureLambdaInstrumentation | [AwsLambdaInstrumentationConfig](https://github.com/open-telemetry/opentelemetry-js-contrib/blob/main/packages/instrumentation-aws-lambda/src/types.ts) | |
 | configureInstrumentation | | |
 | configureSdk | [NodeSDKConfiguration](https://github.com/open-telemetry/opentelemetry-js/blob/main/experimental/packages/opentelemetry-sdk-node/src/types.ts) | provides full access to define the configuration used to start otel. |
