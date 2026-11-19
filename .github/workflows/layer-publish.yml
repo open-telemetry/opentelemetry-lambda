@@ -54,8 +54,29 @@ jobs:
     permissions:
       id-token: write # required for AWS OIDC authentication
     runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    # Regions whose AWS endpoints are known to be unreachable. A failed publish to one of
+    # these is reported on the job but does not fail the release. Remove a region once it
+    # is healthy again.
+    continue-on-error: ${{ contains(fromJSON('["me-south-1"]'), inputs.aws_region) }}
 
     steps:
+
+      - name: Check AWS region is reachable
+        shell: bash
+        run: |
+          # Fail fast instead of waiting through every AssumeRole retry when STS is unreachable.
+          for attempt in 1 2 3; do
+            if curl --silent --output /dev/null --max-time 10 "https://sts.${INPUTS_AWS_REGION}.amazonaws.com"; then
+              exit 0
+            fi
+            echo "Attempt ${attempt} to reach sts.${INPUTS_AWS_REGION}.amazonaws.com failed"
+            sleep 10
+          done
+          echo "::error ::AWS region ${INPUTS_AWS_REGION} is unreachable, skipping layer publish"
+          exit 1
+        env:
+          INPUTS_AWS_REGION: ${{ inputs.aws_region }}
 
       - name: Construct Layer Name
         shell: bash

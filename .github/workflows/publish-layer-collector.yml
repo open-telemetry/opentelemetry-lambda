@@ -151,6 +151,7 @@ jobs:
     uses: $/.github/workflows/layer-publish.yml
     needs: prepare-release-jobs
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-release-jobs.outputs.release_jobs) }}
     with:
       artifact-name: opentelemetry-collector-layer-${{ matrix.architecture }}.zip
