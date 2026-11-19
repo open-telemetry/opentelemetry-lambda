@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package disablequeuedretryconverter // import "github.com/open-telemetry/opentelemetry-lambda/collector/internal/confmap/converter/disablequeuedretryconverter"
+package disablequeuedretryconverter // import "github.com/open-telemetry/opentelemetry-lambda/collector/confmap/converter/disablequeuedretryconverter"
 
 import (
 	"context"
