@@ -2,7 +2,6 @@ GOTEST_OPT?= -race -timeout 120s
 GOCMD?= go
 GOTEST=$(GOCMD) test
 LINT=golangci-lint
-IMPI=impi
 
 GOOS := $(shell $(GOCMD) env GOOS)
 GOARCH := $(shell $(GOCMD) env GOARCH)
@@ -37,10 +36,6 @@ lint:
 .PHONY: generate
 generate:
 	$(GOCMD) generate ./...
-
-.PHONY: impi
-impi:
-	@$(IMPI) --local github.com/open-telemetry/opentelemetry-lambda/collector --scheme stdThirdPartyLocal ./...
 
 .PHONY: moddownload
 moddownload:

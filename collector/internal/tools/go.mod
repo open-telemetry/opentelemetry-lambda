@@ -2,17 +2,24 @@ module github.com/open-telemetry/opentelemetry-lambda/collector/internal/tools
 
 go 1.26.0
 
+tool (
+	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/google/addlicense
+	github.com/jcchavezs/porto/cmd/porto
+	go.opentelemetry.io/build-tools/crosslink
+	go.opentelemetry.io/build-tools/multimod
+	golang.org/x/exp/cmd/apidiff
+	golang.org/x/tools/cmd/goimports
+	golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize
+	golang.org/x/vuln/cmd/govulncheck
+)
+
 require (
 	github.com/golangci/golangci-lint/v2 v2.15.0
 	github.com/google/addlicense v1.2.0
 	github.com/jcchavezs/porto v0.7.0
-	github.com/pavius/impi v0.0.3
-	github.com/tcnksm/ghr v0.18.6
-	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
-	go.opentelemetry.io/build-tools/chloggen v0.30.0
 	go.opentelemetry.io/build-tools/crosslink v0.30.0
 	go.opentelemetry.io/build-tools/multimod v0.30.0
-	go.opentelemetry.io/build-tools/semconvgen v0.24.0
 	golang.org/x/exp v0.0.0-20261109185158-a52e3aef5920
 	golang.org/x/tools v0.52.1-0.20261106145633-d407941a339a
 	golang.org/x/vuln v1.9.0

@@ -1,0 +1,11 @@
+go 1.26.0
+
+use (
+	.
+	./internal/tools
+	./lambdacomponents
+	./lambdalifecycle
+	./processor/coldstartprocessor
+	./processor/decoupleprocessor
+	./receiver/telemetryapireceiver
+)
