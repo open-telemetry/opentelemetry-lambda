@@ -111,7 +111,7 @@ jobs:
       # architecture:
       # If you add a nodejs runtime here, please make sure that the collector/Makefile publish and publish-layer targets
       # get updated as well
-      runtimes: nodejs20.x nodejs22.x nodejs24.x
+      runtimes: nodejs22.x nodejs24.x
       release-group: prod
       aws_region: ${{ matrix.aws_region }}
     secrets:
