@@ -21,7 +21,6 @@ runs:
       working-directory: nodejs
       run: |
         npm ci
-        npm run build
 
     - name: Save Node.js SDK version
       id: version
@@ -31,7 +30,7 @@ runs:
         SDK_VERSION=$(npm list @opentelemetry/core --depth=0 | grep @opentelemetry/core | sed 's/^.*@//')
         echo "component-version=$SDK_VERSION" >> "$GITHUB_OUTPUT"
 
-    - name: Rename layer zip
+    - name: Build NodeJS layer
       shell: bash
-      working-directory: nodejs/packages/layer/build
-      run: mv layer.zip opentelemetry-nodejs-layer.zip
+      working-directory: nodejs/packages
+      run: sh ./build.sh
