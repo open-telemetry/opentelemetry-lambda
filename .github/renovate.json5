@@ -35,24 +35,6 @@
       abandonmentThreshold: '50 years',
     },
     {
-      description: 'Disable the following digest updates as constraints are not applied',
-      matchDepTypes: [
-        'indirect',
-        'replace',
-      ],
-      matchCategories: [
-        'golang',
-      ],
-      matchUpdateTypes: [
-        'digest',
-      ],
-      matchPackageNames: [
-        'github.com/prometheus/prometheus',
-        'k8s.io/kube-openapi',
-      ],
-      enabled: false,
-    },
-    {
       groupName: 'collector-other',
       matchUpdateTypes: [
         '!major',
