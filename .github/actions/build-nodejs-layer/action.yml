@@ -33,4 +33,4 @@ runs:
     - name: Build NodeJS layer
       shell: bash
       working-directory: nodejs/packages
-      run: ./build.sh
+      run: sh ./build.sh
