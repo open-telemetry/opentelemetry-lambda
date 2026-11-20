@@ -52,7 +52,6 @@ require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/antchfx/xmlquery v1.5.2 // indirect
 	github.com/antchfx/xpath v1.3.9 // indirect
-	github.com/armon/go-metrics v0.7.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.48.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.33.20 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.21.2 // indirect
