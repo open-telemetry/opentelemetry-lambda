@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-lambda/collector/lambdacomponents
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.165.1
@@ -117,7 +117,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
-	github.com/google/go-tpm v0.9.9-0.20261001180303-e05fb8b1ca4e // indirect
+	github.com/google/go-tpm v0.9.9-0.20261030171821-c395998989d7 // indirect
 	github.com/google/s2a-go v0.1.11 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.25 // indirect
@@ -187,8 +187,9 @@ require (
 	github.com/open-telemetry/opentelemetry-lambda/collector/lambdalifecycle v0.0.0-00010101000000-000000000000 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
-	github.com/openshift/api v0.0.0-20251015095338-264e80a2b6e7 // indirect
-	github.com/openshift/client-go v0.0.0-20251015124057-db0dee36e235 // indirect
+	github.com/openshift/api v0.0.0-20261118203153-ca0b115da1b1 // indirect
+	github.com/openshift/client-go v0.0.0-20261117110410-e591d492769c // indirect
+	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -341,7 +342,6 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.37.2 // indirect
 	k8s.io/apimachinery v0.37.2 // indirect
 	k8s.io/client-go v0.37.2 // indirect
