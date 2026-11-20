@@ -30,11 +30,14 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   AggregationTemporality,
+  ConsoleMetricExporter,
   InMemoryMetricExporter,
   MeterProvider,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPMetricExporter as HttpOTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { OTLPMetricExporter as ProtoOTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
 import {
   InMemoryLogRecordExporter,
   SimpleLogRecordProcessor,
@@ -295,6 +298,58 @@ describe('wrapper', async () => {
         global.configureMeter = config => config;
         await wrap();
 
+        assert.ok(!(metrics.getMeterProvider() instanceof MeterProvider));
+      });
+
+      it('keep the OTLP reader when configureMeter adds a reader', async () => {
+        const reader = new PeriodicExportingMetricReader({
+          exporter: new InMemoryMetricExporter(
+            AggregationTemporality.CUMULATIVE,
+          ),
+        });
+        let defaults: any[] = [];
+        global.configureMeter = (config: any) => {
+          defaults = [...config.readers];
+          config.readers.push(reader);
+          return config;
+        };
+        await wrap();
+
+        assert.strictEqual(defaults.length, 1);
+        assert.ok(
+          defaults[0]._exporter instanceof ProtoOTLPMetricExporter,
+          'default protocol is http/protobuf',
+        );
+        // collect() throws if NodeSDK did not register the reader.
+        await defaults[0].collect();
+        await reader.collect();
+      });
+
+      it('give configureMeter the env readers for the OTLP protocol', async () => {
+        process.env.OTEL_METRICS_EXPORTER = 'otlp,console';
+        process.env.OTEL_EXPORTER_OTLP_METRICS_PROTOCOL = 'http/json';
+        let defaults: any[] = [];
+        global.configureMeter = (config: any) => {
+          defaults = config.readers;
+          return config;
+        };
+        await wrap();
+
+        assert.strictEqual(defaults.length, 2);
+        assert.ok(defaults[0]._exporter instanceof HttpOTLPMetricExporter);
+        assert.ok(defaults[1]._exporter instanceof ConsoleMetricExporter);
+      });
+
+      it('give configureMeter no readers when OTEL_METRICS_EXPORTER is none', async () => {
+        process.env.OTEL_METRICS_EXPORTER = 'none';
+        let defaults: any[] | undefined;
+        global.configureMeter = (config: any) => {
+          defaults = config.readers;
+          return config;
+        };
+        await wrap();
+
+        assert.deepStrictEqual(defaults, []);
         assert.ok(!(metrics.getMeterProvider() instanceof MeterProvider));
       });
 
