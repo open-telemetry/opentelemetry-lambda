@@ -3,7 +3,7 @@ FROM public.ecr.aws/sam/build-nodejs22.x:1.174.0
 ADD . /workspace
 WORKDIR /workspace
 
-RUN npm ci && \
+RUN npm install && \
     npm run clean && \
     npm run compile && \
     npm run install-externals && \
