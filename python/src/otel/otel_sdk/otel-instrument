@@ -147,13 +147,9 @@ else
 fi
 
 CLOUD_ACCOUNT_ID=$(readlink /tmp/.otel-aws-account-id 2>/dev/null || true)
-if [ -n "$CLOUD_ACCOUNT_ID" ]; then
-  case "$OTEL_RESOURCE_ATTRIBUTES" in
-    *cloud.account.id=*) ;;
-    *) export OTEL_RESOURCE_ATTRIBUTES="cloud.account.id=${CLOUD_ACCOUNT_ID},${OTEL_RESOURCE_ATTRIBUTES}" ;;
-  esac
+if [[ -n "$CLOUD_ACCOUNT_ID" && $OTEL_RESOURCE_ATTRIBUTES != *"cloud.account.id="* ]]; then
+  export OTEL_RESOURCE_ATTRIBUTES="cloud.account.id=${CLOUD_ACCOUNT_ID},${OTEL_RESOURCE_ATTRIBUTES}" ;;
 fi
-
 
 # - Uses the default `OTEL_PROPAGATORS` which is set to `tracecontext,baggage`
 
