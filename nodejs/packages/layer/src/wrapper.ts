@@ -9,10 +9,16 @@ import {
   TextMapPropagator,
   trace,
 } from '@opentelemetry/api';
-import { diagLogLevelFromString, getStringFromEnv } from '@opentelemetry/core';
+import {
+  diagLogLevelFromString,
+  getNumberFromEnv,
+  getStringFromEnv,
+  getStringListFromEnv,
+} from '@opentelemetry/core';
 import { getPropagator } from '@opentelemetry/auto-configuration-propagators';
 import { NodeSDK, type NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 import type { TracerProviderOptions } from '@opentelemetry/sdk-trace';
+import type { MetricReader } from '@opentelemetry/sdk-metrics';
 import { envDetector, processDetector } from '@opentelemetry/resources';
 import { awsLambdaDetector } from '@opentelemetry/resource-detector-aws';
 import {
@@ -307,7 +313,12 @@ async function initializeSdk() {
 
   // Only readers and views are supported from the deprecated meter hook.
   if (typeof configureMeter === 'function') {
-    const readers = sdkConfig.metricReaders ?? [];
+    // The hook gets the env readers, as before NodeSDK, so a hook that adds a
+    // reader keeps the default OTLP export.
+    const defaults = sdkConfig.metricReaders
+      ? undefined
+      : await metricReadersFromEnv();
+    const readers = sdkConfig.metricReaders ?? [...(defaults ?? [])];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const meterConfig: any =
       configureMeter({
@@ -315,9 +326,12 @@ async function initializeSdk() {
         views: sdkConfig.views,
       }) ?? {};
     if (Object.hasOwn(meterConfig, 'readers')) {
+      // Left unchanged, NodeSDK builds the env readers itself.
       sdkConfig.metricReaders =
-        sdkConfig.metricReaders === undefined && meterConfig.readers === readers
-          ? nonEmpty(meterConfig.readers)
+        defaults &&
+        meterConfig.readers === readers &&
+        sameItems(readers, defaults)
+          ? undefined
           : meterConfig.readers;
     }
     if (Object.hasOwn(meterConfig, 'views')) {
@@ -381,6 +395,71 @@ async function initializeSdk() {
 
 function nonEmpty<T>(list: T[] | undefined): T[] | undefined {
   return list && list.length ? list : undefined;
+}
+
+function sameItems<T>(list: T[], other: T[]): boolean {
+  return list.length === other.length && list.every((v, i) => v === other[i]);
+}
+
+// The readers NodeSDK builds from OTEL_METRICS_EXPORTER. Prometheus is left
+// out: its exporter starts a server as soon as it is created.
+async function metricReadersFromEnv(): Promise<MetricReader[]> {
+  const exporters = new Set(getStringListFromEnv('OTEL_METRICS_EXPORTER'));
+  if (exporters.has('none')) {
+    return [];
+  }
+  if (exporters.size === 0) {
+    exporters.add('otlp');
+  }
+  const { ConsoleMetricExporter, PeriodicExportingMetricReader } =
+    await import('@opentelemetry/sdk-metrics');
+  const readers: MetricReader[] = [];
+  if (exporters.has('otlp')) {
+    const interval = positiveFromEnv('OTEL_METRIC_EXPORT_INTERVAL');
+    const timeout = positiveFromEnv('OTEL_METRIC_EXPORT_TIMEOUT');
+    readers.push(
+      new PeriodicExportingMetricReader({
+        exporter: await otlpMetricExporterFromEnv(),
+        ...(interval && { exportIntervalMillis: interval }),
+        ...(timeout && {
+          exportTimeoutMillis: interval ? Math.min(timeout, interval) : timeout,
+        }),
+      }),
+    );
+  }
+  if (exporters.has('console')) {
+    readers.push(
+      new PeriodicExportingMetricReader({
+        exporter: new ConsoleMetricExporter(),
+      }),
+    );
+  }
+  return readers;
+}
+
+async function otlpMetricExporterFromEnv() {
+  const protocol = (
+    getStringFromEnv('OTEL_EXPORTER_OTLP_METRICS_PROTOCOL') ??
+    getStringFromEnv('OTEL_EXPORTER_OTLP_PROTOCOL')
+  )?.trim();
+  if (protocol === 'grpc') {
+    const { OTLPMetricExporter } =
+      await import('@opentelemetry/exporter-metrics-otlp-grpc');
+    return new OTLPMetricExporter();
+  }
+  if (protocol === 'http/json') {
+    const { OTLPMetricExporter } =
+      await import('@opentelemetry/exporter-metrics-otlp-http');
+    return new OTLPMetricExporter();
+  }
+  const { OTLPMetricExporter } =
+    await import('@opentelemetry/exporter-metrics-otlp-proto');
+  return new OTLPMetricExporter();
+}
+
+function positiveFromEnv(name: string): number | undefined {
+  const value = getNumberFromEnv(name);
+  return value != null && value > 0 ? value : undefined;
 }
 
 export async function wrap() {
