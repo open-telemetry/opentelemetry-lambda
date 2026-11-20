@@ -2,5 +2,5 @@
 set -e
 
 mkdir -p build
-docker build --progress plain -t aws-otel-lambda-nodejs-layer ../
+docker build --progress plain -t aws-otel-lambda-nodejs-layer -f layer/Dockerfile ../
 docker run --rm -v "$(pwd)/build:/out" aws-otel-lambda-nodejs-layer
