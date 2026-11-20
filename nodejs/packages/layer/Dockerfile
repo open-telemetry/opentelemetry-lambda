@@ -1,7 +1,7 @@
 FROM public.ecr.aws/sam/build-nodejs22.x:1.174.0
 
 ADD . /workspace
-WORKDIR /workspace
+WORKDIR /workspace/packages/layer
 
 RUN npm install && \
     npm run clean && \
