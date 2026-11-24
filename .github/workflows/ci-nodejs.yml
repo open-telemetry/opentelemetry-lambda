@@ -39,6 +39,8 @@ jobs:
         working-directory: nodejs
       - run: npm test
         working-directory: nodejs
+      - name: Build NodeJS layer
+        uses: $/.github/actions/build-nodejs-layer
       - name: Build AWS SDK Sample
         run: npm run build
         working-directory: nodejs/sample-apps/aws-sdk
